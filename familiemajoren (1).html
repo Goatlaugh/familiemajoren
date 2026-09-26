@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#1a5f2a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Familiemajoren</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green-900: #0f3d1a; --green-800: #1a5f2a; --green-700: #217a38; --green-600: #2d8f4a;
+      --green-100: #e8f5eb; --green-50: #f3faf5; --gold: #c9a227;
+      --gray-50: #f8faf9; --gray-100: #f1f5f3; --gray-200: #e2e8e4; --gray-300: #cbd5d0;
+      --gray-600: #4a5568; --gray-700: #2d3748; --gray-800: #1a202c;
+      --shadow: 0 4px 20px rgba(15,61,26,0.08); --radius: 12px; --radius-sm: 8px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { font-family: 'Inter', -apple-system, sans-serif; background: var(--gray-50); color: var(--gray-800); line-height: 1.5; min-height: 100vh; padding-bottom: 90px; }
+    h1, h2, h3 { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; }
+    .app-header { background: linear-gradient(135deg, var(--green-900), var(--green-800)); color: white; padding: 16px 20px; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); }
+    .app-header-inner { max-width: 640px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+    .logo-icon { width: 40px; height: 40px; background: rgba(255,255,255,0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+    .logo-text h1 { font-size: 1.25rem; margin: 0; }
+    .logo-text span { font-size: 0.7rem; opacity: 0.85; font-family: 'Inter', sans-serif; font-weight: 500; }
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--gray-200); display: flex; justify-content: space-around; padding: 6px 0 calc(6px + env(safe-area-inset-bottom)); z-index: 100; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); }
+    .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 4px 2px; background: none; border: none; color: var(--gray-600); font-size: 0.65rem; font-weight: 500; cursor: pointer; }
+    .nav-btn.active { color: var(--green-800); }
+    .nav-btn span.icon { font-size: 1.25rem; }
+    .container { max-width: 640px; margin: 0 auto; padding: 20px 16px; }
+    .page { display: none; }
+    .page.active { display: block; animation: fadeIn 0.25s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 16px; }
+    .card-title { font-size: 1.1rem; margin-bottom: 12px; color: var(--green-900); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.95rem; border: none; cursor: pointer; font-family: inherit; }
+    .btn-primary { background: var(--green-800); color: white; }
+    .btn-secondary { background: var(--green-100); color: var(--green-800); }
+    .btn-outline { background: transparent; border: 2px solid var(--green-800); color: var(--green-800); }
+    .btn-gold { background: linear-gradient(135deg, var(--gold), #b8922a); color: white; }
+    .btn-block { width: 100%; }
+    .btn-sm { padding: 8px 14px; font-size: 0.85rem; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px; color: var(--gray-700); }
+    input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 12px 14px; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); font-size: 1rem; font-family: inherit; background: white; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--green-600); box-shadow: 0 0 0 3px rgba(45,143,74,0.15); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th { text-align: left; padding: 10px 8px; background: var(--green-50); color: var(--green-900); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; }
+    td { padding: 12px 8px; border-bottom: 1px solid var(--gray-100); }
+    .rank { font-weight: 700; color: var(--green-800); }
+    .rank-1 { color: var(--gold); }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .badge-green { background: var(--green-100); color: var(--green-800); }
+    .badge-gold { background: #fef3c7; color: #92400e; }
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--gray-600); }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.5; }
+    .leader-row { background: linear-gradient(90deg, #fef9e7, transparent); }
+    .day-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
+    .day-chip { flex-shrink: 0; padding: 8px 16px; border-radius: 20px; background: var(--gray-100); border: 2px solid transparent; font-weight: 600; font-size: 0.85rem; cursor: pointer; }
+    .day-chip.completed { border-color: var(--green-600); }
+    .player-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+    .player-row input { flex: 1; }
+    .player-row .hcp-input { width: 70px; flex: none; text-align: center; }
+    .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--gray-800); color: white; padding: 12px 24px; border-radius: 30px; font-size: 0.9rem; font-weight: 500; z-index: 300; opacity: 0; transition: opacity 0.3s; pointer-events: none; max-width: 90%; text-align: center; }
+    .toast.show { opacity: 1; }
+    .score-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--gray-100); }
+    .score-name { flex: 1; font-weight: 500; }
+    .score-input { width: 80px; text-align: center; }
+    .history-item { display: flex; align-items: center; padding: 16px; background: white; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 12px; cursor: pointer; }
+    .history-year { font-weight: 700; font-size: 1.1rem; color: var(--green-800); min-width: 60px; }
+    .history-info { flex: 1; }
+    .history-sted { font-weight: 600; }
+    .history-winner { font-size: 0.85rem; color: var(--gray-600); }
+    .history-arrow { color: var(--gray-300); font-size: 1.2rem; }
+    .charter-content { font-size: 0.95rem; line-height: 1.7; }
+    .charter-content h3 { margin: 20px 0 8px; color: var(--green-900); font-size: 1.1rem; }
+    .charter-content p, .charter-content ul { margin-bottom: 10px; }
+    .charter-content ul { padding-left: 20px; }
+    .charter-motto { text-align: center; font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--green-800); margin: 20px 0; padding: 14px; background: var(--green-50); border-radius: var(--radius); }
+    .section-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-600); font-weight: 600; margin-bottom: 10px; }
+    .divider { height: 1px; background: var(--gray-200); margin: 20px 0; }
+    .points-badge { background: var(--green-800); color: white; font-weight: 700; padding: 4px 10px; border-radius: 6px; font-size: 0.9rem; }
+    .text-center { text-align: center; } .text-muted { color: var(--gray-600); }
+    .mt-2 { margin-top: 8px; } .mt-3 { margin-top: 16px; } .mb-2 { margin-bottom: 8px; } .mb-3 { margin-bottom: 16px; }
+    .flex { display: flex; } .gap-2 { gap: 8px; } .items-center { align-items: center; } .justify-between { justify-content: space-between; }
+    .hidden { display: none !important; }
+    .group-choice { display: block; width: 100%; text-align: left; padding: 16px; margin-bottom: 10px; background: white; border: 2px solid var(--gray-200); border-radius: var(--radius); font-weight: 600; cursor: pointer; }
+    .group-choice:active { border-color: var(--green-600); background: var(--green-50); }
+    .team-box { background: var(--gray-50); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 10px; min-height: 50px; border-left: 4px solid var(--gray-300); }
+    .team-box.t0 { border-left-color: #3b82f6; } .team-box.t1 { border-left-color: #ef4444; }
+    .team-box.t2 { border-left-color: #10b981; } .team-box.t3 { border-left-color: #f59e0b; }
+    .team-box.t4 { border-left-color: #8b5cf6; } .team-box.t5 { border-left-color: #ec4899; }
+    .player-chip { display: inline-flex; align-items: center; gap: 6px; background: white; border: 1px solid var(--gray-200); border-radius: 20px; padding: 6px 12px; margin: 4px; font-size: 0.9rem; cursor: pointer; }
+    .player-chip .hcp-tag { font-size: 0.75rem; color: var(--gray-600); background: var(--gray-100); padding: 1px 6px; border-radius: 10px; }
+    .match-card { background: var(--gray-50); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 12px; border: 1px solid var(--gray-200); }
+    .match-card .vs { text-align: center; font-weight: 700; color: var(--green-800); margin: 6px 0; }
+    .mode-btns { display: flex; gap: 8px; margin-bottom: 12px; }
+    .mode-btn { flex: 1; padding: 10px; border: 2px solid var(--gray-200); border-radius: var(--radius-sm); background: white; font-weight: 600; font-size: 0.85rem; cursor: pointer; text-align: center; }
+    .mode-btn.active { border-color: var(--green-600); background: var(--green-50); color: var(--green-900); }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: flex-end; justify-content: center; z-index: 200; padding: 16px; }
+    .modal { background: white; border-radius: var(--radius) var(--radius) 0 0; width: 100%; max-width: 500px; max-height: 85vh; overflow-y: auto; padding: 24px; }
+    .hof-entry { padding: 12px; border-bottom: 1px solid var(--gray-100); }
+    .hof-entry:last-child { border-bottom: none; }
+    .lunch-banner { background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; text-align: center; border: 2px solid var(--gold); }
+    .lunch-banner strong { color: #92400e; }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="app-header-inner">
+      <div class="logo-icon">🏆</div>
+      <div class="logo-text">
+        <h1>Familiemajoren</h1>
+        <span>Ett år som mester. Ett år med skryterett.</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div id="page-home" class="page active"><div id="home-content"></div></div>
+    <div id="page-setup" class="page">
+      <div class="card">
+        <h2 class="card-title">⚙️ Oppsett av turnering</h2>
+        <div class="form-group"><label>År</label><input type="number" id="setup-year" value="2026" min="2020" max="2100" /></div>
+        <div class="form-group"><label>Sted</label><input type="text" id="setup-sted" placeholder="Alicante, Marbella, Stavanger..." /></div>
+        <div class="form-group"><label>Antall deltakere</label><input type="number" id="setup-players-count" value="6" min="2" max="16" onchange="renderPlayerInputs()" /></div>
+        <div class="form-group"><label>Spillere (navn + HCP)</label><div id="player-inputs"></div></div>
+        <div class="form-group"><label>Antall konkurransedager (min. 4)</label><input type="number" id="setup-days" value="5" min="4" max="10" onchange="renderDayFormats()" /></div>
+        <div class="form-group"><label>Spilleformat per dag</label><div id="day-formats"></div></div>
+        <button class="btn btn-primary btn-block mt-3" onclick="saveSetup()">Lagre turneringsoppsett</button>
+      </div>
+    </div>
+    <div id="page-tournament" class="page"><div id="tournament-content"></div></div>
+    <div id="page-scoring" class="page"><div id="scoring-content"></div></div>
+    <div id="page-leaderboard" class="page"><div id="leaderboard-content"></div></div>
+    <div id="page-groups" class="page"><div id="groups-content"></div></div>
+    <div id="page-group-detail" class="page"><div id="group-detail-content"></div></div>
+    <div id="page-history" class="page"><div id="history-content"></div></div>
+    <div id="page-history-detail" class="page"><div id="history-detail-content"></div></div>
+    <div id="page-hof" class="page"><div id="hof-content"></div></div>
+    <div id="page-charter" class="page">
+      <div class="card">
+        <h2 class="card-title">📜 Familiemajoren – Sammendrag</h2>
+        <div class="charter-content" id="charter-body"></div>
+      </div>
+    </div>
+    <div id="page-settings" class="page">
+      <div class="card">
+        <h2 class="card-title">⚙️ Innstillinger & Backup</h2>
+        <p class="text-muted mb-3">Eksporter for backup eller deling mellom enheter.</p>
+        <button class="btn btn-primary btn-block mb-2" onclick="exportData()">⬇️ Eksporter data</button>
+        <button class="btn btn-secondary btn-block mb-2" onclick="document.getElementById('import-file').click()">⬆️ Importer data</button>
+        <input type="file" id="import-file" accept=".json" class="hidden" onchange="importData(event)" />
+        <div class="divider"></div>
+        <button class="btn btn-outline btn-block" onclick="resetAllData()">🗑️ Nullstill all data</button>
+        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.4 · Familiemajoren</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lunch / HoF Modal -->
+  <div id="modal-overlay" class="modal-overlay hidden" onclick="if(event.target===this)closeModal()">
+    <div class="modal" id="modal-content"></div>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-page="home" onclick="navigate('home')"><span class="icon">🏠</span> Hjem</button>
+    <button class="nav-btn" data-page="tournament" onclick="navigate('tournament')"><span class="icon">⛳</span> Turnering</button>
+    <button class="nav-btn" data-page="hof" onclick="navigate('hof')"><span class="icon">🏅</span> HoF</button>
+    <button class="nav-btn" data-page="history" onclick="navigate('history')"><span class="icon">📚</span> Historikk</button>
+    <button class="nav-btn" data-page="charter" onclick="navigate('charter')"><span class="icon">📜</span> Charter</button>
+    <button class="nav-btn" data-page="settings" onclick="navigate('settings')"><span class="icon">⚙️</span> Mer</button>
+  </nav>
+  <div id="toast" class="toast"></div>
+
+<script>
+const FORMATS = {
+  stableford: "Individuell Stableford",
+  fourball: "Ryder Cup Fourball",
+  scramble: "Akkumulert Scramble Matchplay",
+  singles: "Ryder Cup Singler",
+  final: "Finalerunden (doble poeng)"
+};
+
+const HOF_MANUAL_CATS = [
+  { id: 'hole-in-one', label: 'Hole-in-One', icon: '🎯' },
+  { id: 'albatross', label: 'Albatross', icon: '🦅' },
+  { id: 'eagle', label: 'Eagle', icon: '🦅' },
+  { id: 'birdie-streak', label: 'Flest birdies på rad', icon: '🔥' },
+  { id: 'comeback', label: 'Største comeback', icon: '📈' },
+  { id: 'other', label: 'Annet', icon: '✨' }
+];
+
+let state = { current: null, history: [], hallOfFame: { manual: [] } };
+let currentScoringDay = 0;
+let currentGroupType = null;
+let editableTeams = [];
+let editableSingles = [];
+let groupMode = 'hcp';
+let teamMatches = [];
+
+function init() {
+  loadState();
+  if (!state.hallOfFame) state.hallOfFame = { manual: [] };
+  if (!state.hallOfFame.manual) state.hallOfFame.manual = [];
+  renderPlayerInputs();
+  renderDayFormats();
+  renderCharter();
+  navigate('home');
+}
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('familiemajoren_v1');
+    if (saved) state = JSON.parse(saved);
+  } catch (e) {}
+}
+
+function saveState() {
+  localStorage.setItem('familiemajoren_v1', JSON.stringify(state));
+}
+
+function navigate(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const page = document.getElementById('page-' + pageId);
+  if (page) page.classList.add('active');
+  const navBtn = document.querySelector('.nav-btn[data-page="' + pageId + '"]');
+  if (navBtn) navBtn.classList.add('active');
+  if (pageId === 'home') renderHome();
+  if (pageId === 'tournament') renderTournament();
+  if (pageId === 'history') renderHistory();
+  if (pageId === 'leaderboard') renderLeaderboard();
+  if (pageId === 'groups') renderGroupsMenu();
+  if (pageId === 'hof') renderHoF();
+  if (pageId === 'charter') renderCharter();
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.add('hidden');
+}
+
+function showModal(html) {
+  document.getElementById('modal-content').innerHTML = html;
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+
+function renderCharter() {
+  document.getElementById('charter-body').innerHTML = `
+    <div class="charter-motto">«Ett år som mester. Ett år med skryterett.»</div>
+    <p><strong>Kortversjon – fullt charter gjelder ved tvil.</strong></p>
+    <h3>1. Formål og verdier</h3>
+    <p>Familiemajoren er familiens årlige golfmesterskap. Familie først, golf deretter.</p>
+    <h3>2–3. Deltakelse & struktur</h3>
+    <p>Minimum 4 dager. Finalerunden sist. Poeng avgjør mesteren.</p>
+    <h3>4. Spilleformater</h3>
+    <p>Stableford · Fourball · Akkumulert Scramble · Singler · Finalerunden (doble poeng)</p>
+    <h3>5. Poeng</h3>
+    <p>1. plass = antall deltakere. Matchplay: Seier/Tap/Uavgjort. Finalen dobler.</p>
+    <h3>6. Tiebreak</h3>
+    <p>Stableford: lavest HCP. Sammenlagt: Final → individuelle seire → HCP → delt.</p>
+    <h3>7. Lunsjregelen</h3>
+    <p>Dagens tapere betaler for dagens vinnere.</p>
+    <div class="divider"></div>
+    <p class="text-muted text-center" style="font-size:0.85rem;">***Familie først. Golf deretter. Tradisjonen for alltid.***</p>
+  `;
+}
+
+function renderHome() {
+  const el = document.getElementById('home-content');
+  if (!state.current) {
+    el.innerHTML = '<div class="card text-center"><div class="empty-state"><div class="icon">🏆</div><h2 style="margin-bottom:8px;">Velkommen til Familiemajoren</h2><p class="text-muted mb-3">Ingen pågående turnering.</p><button class="btn btn-primary" onclick="navigate(\'setup\')">Sett opp ny turnering</button></div></div>' +
+      (state.history.length ? '<div class="card"><h3 class="card-title">Siste mestere</h3>' + state.history.slice(-3).reverse().map(h => '<div class="flex justify-between items-center" style="padding:8px 0;border-bottom:1px solid var(--gray-100);"><span><strong>' + h.year + '</strong> · ' + h.sted + '</span><span class="badge badge-gold">🏆 ' + h.winner + '</span></div>').join('') + '</div>' : '');
+  } else {
+    const t = state.current;
+    const standings = calculateStandings(t);
+    const leader = standings[0];
+    el.innerHTML = '<div class="card"><div class="flex justify-between items-center mb-2"><div><div class="section-title">Pågående turnering</div><h2 style="margin:0;color:var(--green-900);">' + t.year + ' · ' + t.sted + '</h2></div><span class="badge badge-green">' + t.players.length + ' spillere</span></div><div class="divider"></div><div class="flex justify-between items-center"><div><div class="text-muted" style="font-size:0.85rem;">Leder</div><div style="font-weight:700;font-size:1.2rem;">' + (leader ? leader.name : '–') + '</div></div><div class="points-badge">' + (leader ? leader.total + ' p' : '–') + '</div></div><button class="btn btn-primary btn-block mt-3" onclick="navigate(\'tournament\')">Gå til turnering</button></div><div class="card"><h3 class="card-title">Hurtigvalg</h3><div class="flex gap-2" style="flex-wrap:wrap;"><button class="btn btn-secondary btn-sm" onclick="navigate(\'leaderboard\')">📊 Leaderboard</button><button class="btn btn-secondary btn-sm" onclick="navigate(\'groups\')">👥 Grupper</button><button class="btn btn-secondary btn-sm" onclick="navigate(\'hof\')">🏅 Hall of Fame</button></div></div>';
+  }
+}
+
+function renderPlayerInputs() {
+  const count = parseInt(document.getElementById('setup-players-count').value) || 6;
+  let html = '';
+  for (let i = 0; i < count; i++) {
+    html += '<div class="player-row"><input type="text" class="player-name-input" placeholder="Navn spiller ' + (i+1) + '" /><input type="number" class="hcp-input player-hcp-input" placeholder="HCP" min="0" max="54" step="0.1" /></div>';
+  }
+  document.getElementById('player-inputs').innerHTML = html;
+}
+
+function renderDayFormats() {
+  const days = parseInt(document.getElementById('setup-days').value) || 5;
+  const defaults = ['stableford', 'fourball', 'scramble', 'singles', 'final'];
+  let html = '';
+  for (let i = 0; i < days; i++) {
+    const def = i === days - 1 ? 'final' : (defaults[i] || 'stableford');
+    html += '<div class="form-group"><label>Dag ' + (i+1) + '</label><select class="day-format-select">';
+    for (const [k, v] of Object.entries(FORMATS)) html += '<option value="' + k + '"' + (k === def ? ' selected' : '') + '>' + v + '</option>';
+    html += '</select></div>';
+  }
+  document.getElementById('day-formats').innerHTML = html;
+}
+
+function saveSetup() {
+  const year = parseInt(document.getElementById('setup-year').value);
+  const sted = document.getElementById('setup-sted').value.trim();
+  const nameInputs = document.querySelectorAll('.player-name-input');
+  const hcpInputs = document.querySelectorAll('.player-hcp-input');
+  const players = [];
+  nameInputs.forEach((inp, i) => {
+    const name = inp.value.trim();
+    if (name) players.push({ name, hcp: parseFloat(hcpInputs[i].value) || 0 });
+  });
+  if (!sted) { toast('Fyll inn sted'); return; }
+  if (players.length < 2) { toast('Minst 2 spillere'); return; }
+  const daySelects = document.querySelectorAll('.day-format-select');
+  const days = Array.from(daySelects).map((sel, idx) => ({
+    dayNumber: idx + 1, format: sel.value, course: '', results: null, points: null,
+    teams: null, matches: null, teamMatches: null, completed: false
+  }));
+  state.current = { year, sted, players, days, createdAt: new Date().toISOString() };
+  saveState();
+  toast('Turnering lagret!');
+  navigate('tournament');
+}
+
+function renderTournament() {
+  const el = document.getElementById('tournament-content');
+  if (!state.current) {
+    el.innerHTML = '<div class="card text-center"><div class="empty-state"><div class="icon">⛳</div><p class="mb-3">Ingen pågående turnering.</p><button class="btn btn-primary" onclick="navigate(\'setup\')">Sett opp ny turnering</button></div></div>';
+    return;
+  }
+  const t = state.current;
+  const standings = calculateStandings(t);
+  el.innerHTML = '<div class="card"><div class="flex justify-between items-center"><div><div class="section-title">' + t.year + '</div><h2 style="margin:0;">' + t.sted + '</h2></div><span class="badge badge-green">' + t.players.length + ' spillere</span></div></div><div class="card"><h3 class="card-title">Konkurransedager</h3><div class="day-chips">' + t.days.map((d,i) => '<div class="day-chip ' + (d.completed ? 'completed' : '') + '" onclick="openScoring(' + i + ')">Dag ' + d.dayNumber + (d.completed ? ' ✓' : '') + '</div>').join('') + '</div>' +
+    t.days.map((d,i) => '<div class="flex justify-between items-center" style="padding:10px 0;border-bottom:1px solid var(--gray-100);"><div><strong>Dag ' + d.dayNumber + '</strong><div class="text-muted" style="font-size:0.85rem;">' + FORMATS[d.format] + '</div>' + (d.course ? '<div class="text-muted" style="font-size:0.8rem;">📍 ' + d.course + '</div>' : '') + '</div><button class="btn btn-sm ' + (d.completed ? 'btn-secondary' : 'btn-primary') + '" onclick="openScoring(' + i + ')">' + (d.completed ? 'Se / Rediger' : 'Før resultat') + '</button></div>').join('') +
+    '</div><div class="card"><h3 class="card-title">📊 Sammenlagt</h3>' + renderStandingsTable(standings) + '<button class="btn btn-secondary btn-block mt-3" onclick="navigate(\'leaderboard\')">Full leaderboard</button></div><div class="card"><h3 class="card-title">👥 Grupper</h3><button class="btn btn-secondary btn-block" onclick="navigate(\'groups\')">Åpne gruppegenerator</button></div><div class="card"><button class="btn btn-gold btn-block" onclick="finishTournament()">🏁 Marker turnering som ferdig</button></div>';
+}
+
+function openScoring(dayIndex) {
+  currentScoringDay = dayIndex;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-scoring').classList.add('active');
+  renderScoring();
+}
+
+function recommendedTeamCount(n) {
+  if (n <= 3) return 2;
+  if (n % 2 === 0) return n / 2;
+  if (n === 5 || n === 7) return 2;
+  if (n === 9 || n === 11) return 4;
+  if (n === 13 || n === 15) return 6;
+  return Math.max(2, Math.floor(n / 2));
+}
+
+function generateTeams(players, numTeams, mode) {
+  numTeams = Math.max(2, Math.min(numTeams, Math.floor(players.length / 2)));
+  if (numTeams % 2 === 1) numTeams = Math.max(2, numTeams - 1);
+  let ordered;
+  if (mode === 'points' && state.current) {
+    const standings = calculateStandings(state.current);
+    ordered = standings.map(s => players.find(p => p.name === s.name)).filter(Boolean);
+  } else {
+    ordered = [...players].sort((a, b) => a.hcp - b.hcp);
+  }
+  const teams = Array.from({ length: numTeams }, () => []);
+  let idx = 0, dir = 1;
+  ordered.forEach(p => {
+    teams[idx].push(p.name);
+    idx += dir;
+    if (idx >= numTeams) { idx = numTeams - 1; dir = -1; }
+    if (idx < 0) { idx = 0; dir = 1; }
+  });
+  return teams.filter(t => t.length > 0);
+}
+
+function pairTeamsIntoMatches(teams) {
+  const matches = [];
+  for (let i = 0; i < teams.length; i += 2) {
+    if (teams[i + 1]) matches.push({ teamA: teams[i], teamB: teams[i + 1], result: null });
+  }
+  return matches;
+}
+
+function playerChip(name, teamIdx) {
+  const p = state.current.players.find(pl => pl.name === name);
+  const hcp = p ? p.hcp : '?';
+  return '<span class="player-chip" onclick="movePlayerToNext(\'' + name.replace(/'/g, "\\'") + '\', ' + teamIdx + ')">' + name + ' <span class="hcp-tag">' + hcp + '</span></span>';
+}
+
+function movePlayerToNext(name, fromIdx) {
+  if (!editableTeams[fromIdx]) return;
+  editableTeams[fromIdx] = editableTeams[fromIdx].filter(n => n !== name);
+  const next = (fromIdx + 1) % editableTeams.length;
+  editableTeams[next].push(name);
+  editableTeams = editableTeams.filter(t => t.length > 0);
+  teamMatches = pairTeamsIntoMatches(editableTeams);
+  renderTeamBoxes();
+  if (document.querySelector('.match-result')) renderMatchCards();
+  else renderMatchCardsPreview();
+}
+
+function renderTeamBoxes() {
+  const container = document.getElementById('teams-container');
+  if (!container) return;
+  container.innerHTML = editableTeams.map((team, i) =>
+    '<div class="team-box t' + (i % 6) + '"><div class="flex justify-between mb-1"><span class="badge badge-green">Lag ' + (i+1) + ' (' + team.length + ')</span></div><div>' + team.map(n => playerChip(n, i)).join('') + '</div></div>'
+  ).join('');
+}
+
+function renderMatchCards() {
+  const container = document.getElementById('matches-container');
+  if (!container) return;
+  if (!teamMatches.length) { container.innerHTML = '<p class="text-muted">Generer lag først.</p>'; return; }
+  container.innerHTML = teamMatches.map((m, i) => `
+    <div class="match-card">
+      <div class="section-title">Kamp ${i + 1}</div>
+      <div><strong>Lag ${i*2 + 1}:</strong> ${m.teamA.join(', ')}</div>
+      <div class="vs">vs</div>
+      <div><strong>Lag ${i*2 + 2}:</strong> ${m.teamB.join(', ')}</div>
+      <div class="form-group mt-2" style="margin-bottom:0;">
+        <select class="match-result" data-match="${i}">
+          <option value="">– Velg resultat –</option>
+          <option value="A">Lag ${i*2 + 1} vant</option>
+          <option value="B">Lag ${i*2 + 2} vant</option>
+          <option value="halved">Uavgjort</option>
+        </select>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderMatchCardsPreview() {
+  const container = document.getElementById('matches-container');
+  if (!container) return;
+  if (!teamMatches || !teamMatches.length) {
+    container.innerHTML = '<p class="text-muted">Generer lag først for å se kamper.</p>';
+    return;
+  }
+  container.innerHTML = teamMatches.map((m, i) =>
+    '<div class="match-card"><div class="section-title">Kamp ' + (i+1) + '</div>' +
+    '<div><strong>Lag ' + (i*2+1) + ':</strong> ' + (m.teamA || []).join(', ') + '</div>' +
+    '<div class="vs">vs</div>' +
+    '<div><strong>Lag ' + (i*2+2) + ':</strong> ' + (m.teamB || []).join(', ') + '</div></div>'
+  ).join('');
+}
+
+function renderScoring() {
+  const el = document.getElementById('scoring-content');
+  const t = state.current;
+  if (!t) return;
+  const day = t.days[currentScoringDay];
+  const isTeam = ['fourball', 'scramble'].includes(day.format);
+  const isSingles = day.format === 'singles';
+  const isIndividual = ['stableford', 'final'].includes(day.format);
+
+  if (isTeam) {
+    if (day.teams && day.teams.length) {
+      editableTeams = JSON.parse(JSON.stringify(day.teams));
+      teamMatches = day.teamMatches ? JSON.parse(JSON.stringify(day.teamMatches)) : pairTeamsIntoMatches(editableTeams);
+    } else {
+      const rec = recommendedTeamCount(t.players.length);
+      editableTeams = generateTeams(t.players, rec, 'hcp');
+      teamMatches = pairTeamsIntoMatches(editableTeams);
+    }
+  }
+  if (isSingles) {
+    if (day.matches && day.matches.length) editableSingles = JSON.parse(JSON.stringify(day.matches));
+    else editableSingles = generateSinglesMatches(calculateStandings(t));
+  }
+
+  let scoringHTML = '';
+  if (isIndividual) {
+    scoringHTML = '<p class="text-muted mb-3">Stableford-poeng. Tiebreak: lavest HCP.</p>' +
+      t.players.map(p => '<div class="score-row"><span class="score-name">' + p.name + ' <span class="text-muted" style="font-size:0.8rem;">(HCP ' + p.hcp + ')</span></span><input type="number" class="score-input individual-score" data-player="' + p.name + '" value="' + (day.results && day.results[p.name] !== undefined ? day.results[p.name] : '') + '" placeholder="0" min="0" max="100" /></div>').join('');
+  } else if (isTeam) {
+    const rec = recommendedTeamCount(t.players.length);
+    scoringHTML = '<p class="text-muted mb-2"><strong>Steg 1:</strong> Sett opp lag</p><div class="form-group"><label>Antall lag</label><select id="num-teams-select" onchange="changeNumTeams()">' +
+      [2,4,6,8].filter(x => x <= t.players.length && x % 2 === 0).map(x => '<option value="' + x + '"' + (editableTeams.length === x ? ' selected' : '') + '>' + x + ' lag' + (x === rec ? ' (anbefalt)' : '') + '</option>').join('') +
+      '</select></div><div class="mode-btns"><div class="mode-btn ' + (groupMode==='hcp'?'active':'') + '" onclick="setGroupMode(\'hcp\')">Etter HCP</div><div class="mode-btn ' + (groupMode==='points'?'active':'') + '" onclick="setGroupMode(\'points\')">Etter poeng</div></div><button class="btn btn-sm btn-secondary mb-3" onclick="regenerateTeamsScoring()">🔄 Generer lag</button><div id="teams-container"></div><div class="divider"></div><p class="text-muted mb-2"><strong>Steg 2:</strong> Kamper</p><div id="matches-container"></div>';
+  } else if (isSingles) {
+    scoringHTML = '<p class="text-muted mb-3">Matcher etter stilling.</p><button class="btn btn-sm btn-secondary mb-3" onclick="regenerateSingles()">🔄 Nytt forslag</button>' +
+      editableSingles.map((m, i) => '<div class="match-card"><div class="flex justify-between"><strong>' + m.p1 + '</strong><span class="text-muted">vs</span><strong>' + m.p2 + '</strong></div><select class="singles-result mt-2" data-p1="' + m.p1 + '" data-p2="' + m.p2 + '"><option value="">– Velg resultat –</option><option value="p1">' + m.p1 + ' vant</option><option value="p2">' + m.p2 + ' vant</option><option value="halved">Uavgjort</option></select></div>').join('');
+  }
+
+  el.innerHTML = '<div class="card"><div class="flex justify-between items-center mb-2"><button class="btn btn-sm btn-secondary" onclick="navigate(\'tournament\')">← Tilbake</button><span class="badge badge-green">Dag ' + day.dayNumber + '</span></div><h2 style="margin:8px 0;">' + FORMATS[day.format] + '</h2><div class="form-group mt-3"><label>Bane</label><input type="text" id="scoring-course" value="' + (day.course || '') + '" placeholder="Golfbane..." /></div></div><div class="card"><h3 class="card-title">Resultater</h3>' + scoringHTML +
+    '<button class="btn btn-primary btn-block mt-3" onclick="saveScoring()">Lagre & beregn poeng</button>' +
+    '<button class="btn btn-secondary btn-block mt-2" onclick="openHoFRegister()">🏅 Registrer Hall of Fame</button></div>';
+  if (isTeam) { renderTeamBoxes(); renderMatchCards(); }
+}
+
+function setGroupMode(m) { groupMode = m; document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active')); if (event && event.target) event.target.classList.add('active'); }
+function changeNumTeams() {
+  const num = parseInt(document.getElementById('num-teams-select').value);
+  editableTeams = generateTeams(state.current.players, num, groupMode);
+  teamMatches = pairTeamsIntoMatches(editableTeams);
+  renderTeamBoxes(); renderMatchCards();
+}
+function regenerateTeamsScoring() {
+  const num = parseInt(document.getElementById('num-teams-select').value) || recommendedTeamCount(state.current.players.length);
+  editableTeams = generateTeams(state.current.players, num, groupMode);
+  teamMatches = pairTeamsIntoMatches(editableTeams);
+  renderTeamBoxes(); renderMatchCards();
+  toast('Lag og kamper oppdatert');
+}
+function regenerateSingles() {
+  editableSingles = generateSinglesMatches(calculateStandings(state.current));
+  renderScoring(); toast('Nye matcher');
+}
+function generateSinglesMatches(standings) {
+  const matches = [];
+  for (let i = 0; i < standings.length; i += 2) {
+    if (standings[i + 1]) matches.push({ p1: standings[i].name, p2: standings[i + 1].name });
+  }
+  return matches;
+}
+
+// ---------- LUNCH RULE ----------
+function computeLunchSponsors(day, tournament) {
+  const n = tournament.players.length;
+  const sponsors = [];
+  if (!day.points) return sponsors;
+
+  if (['stableford', 'final'].includes(day.format)) {
+    // Rank by points awarded (higher points = better place)
+    const ranked = Object.entries(day.points).sort((a,b) => b[1] - a[1]);
+    const half = Math.floor(n / 2);
+    // Bottom half pays for top half
+    const bottom = ranked.slice(half).map(x => x[0]);
+    return bottom;
+  }
+  if (['fourball', 'scramble'].includes(day.format) && day.teamMatches) {
+    day.teamMatches.forEach(m => {
+      if (m.result === 'A') sponsors.push(...m.teamB);
+      else if (m.result === 'B') sponsors.push(...m.teamA);
+      // halved: each pays own → no sponsors
+    });
+    return [...new Set(sponsors)];
+  }
+  if (day.format === 'singles' && day.matches) {
+    // From results
+    if (day.results) {
+      Object.entries(day.results).forEach(([key, val]) => {
+        const parts = key.split('_vs_');
+        if (parts.length !== 2) return;
+        const [p1, p2] = parts;
+        if (val === 'p1') sponsors.push(p2);
+        else if (val === 'p2') sponsors.push(p1);
+      });
+    }
+    return [...new Set(sponsors)];
+  }
+  return sponsors;
+}
+
+function showLunchPopup(sponsors) {
+  if (!sponsors || !sponsors.length) {
+    toast('Uavgjort / jevnt – hver betaler sin egen lunsj');
+    return;
+  }
+  showModal(`
+    <div style="text-align:center;">
+      <div style="font-size:2.5rem;margin-bottom:8px;">🍽️</div>
+      <h2 style="margin-bottom:12px;">Lunsjregelen</h2>
+      <p class="text-muted mb-3">Dagens lunsj er sponset av:</p>
+      <div style="font-size:1.15rem;font-weight:700;color:var(--green-900);margin-bottom:20px;">
+        ${sponsors.join('<br>')}
+      </div>
+      <p class="text-muted" style="font-size:0.85rem;margin-bottom:16px;">Tap på banen er én ting. Å betale lunsjen gjør det offisielt.</p>
+      <button class="btn btn-primary btn-block" onclick="closeModal()">OK</button>
+    </div>
+  `);
+}
+
+// ---------- HALL OF FAME ----------
+function openHoFRegister() {
+  const t = state.current;
+  if (!t) return;
+  const day = t.days[currentScoringDay];
+  const course = (document.getElementById('scoring-course') && document.getElementById('scoring-course').value) || day.course || '';
+
+  showModal(`
+    <div class="flex justify-between items-center mb-3">
+      <h2 style="margin:0;">🏅 Hall of Fame</h2>
+      <button class="btn btn-sm btn-secondary" onclick="closeModal()">Lukk</button>
+    </div>
+    <p class="text-muted mb-3">Registrer en prestasjon fra denne dagen.</p>
+    <div class="form-group">
+      <label>Kategori</label>
+      <select id="hof-cat">
+        ${HOF_MANUAL_CATS.map(c => '<option value="' + c.id + '">' + c.icon + ' ' + c.label + '</option>').join('')}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Spiller</label>
+      <select id="hof-player">
+        ${t.players.map(p => '<option value="' + p.name + '">' + p.name + '</option>').join('')}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Detaljer (hull, antall, beskrivelse …)</label>
+      <input type="text" id="hof-details" placeholder="F.eks. Hull 12, 4 birdies på rad, fra 6. til 1. plass" />
+    </div>
+    <div class="form-group">
+      <label>Bane</label>
+      <input type="text" id="hof-course" value="${course}" placeholder="Golfbane" />
+    </div>
+    <button class="btn btn-primary btn-block" onclick="saveHoFEntry()">Lagre i Hall of Fame</button>
+  `);
+}
+
+function saveHoFEntry() {
+  const cat = document.getElementById('hof-cat').value;
+  const player = document.getElementById('hof-player').value;
+  const details = document.getElementById('hof-details').value.trim();
+  const course = document.getElementById('hof-course').value.trim();
+  const t = state.current;
+  const day = t.days[currentScoringDay];
+
+  if (!state.hallOfFame) state.hallOfFame = { manual: [] };
+  if (!state.hallOfFame.manual) state.hallOfFame.manual = [];
+
+  state.hallOfFame.manual.push({
+    category: cat,
+    player,
+    details,
+    course,
+    year: t.year,
+    sted: t.sted,
+    day: day.dayNumber,
+    format: day.format,
+    createdAt: new Date().toISOString()
+  });
+  saveState();
+  closeModal();
+  toast('Lagret i Hall of Fame!');
+}
+
+function getAutoRecords() {
+  const records = {
+    highestStableford: null,
+    bestFinal: null,
+    mostWins: null
+  };
+
+  // Scan current + history for highest stableford / best final
+  const allTournaments = [];
+  if (state.current) allTournaments.push(state.current);
+  state.history.forEach(h => allTournaments.push(h));
+
+  allTournaments.forEach(t => {
+    (t.days || []).forEach(day => {
+      if (!day.results || typeof day.results !== 'object') return;
+      if (day.format === 'stableford' || day.format === 'final') {
+        Object.entries(day.results).forEach(([player, score]) => {
+          if (typeof score !== 'number') return;
+          const entry = { player, value: score, course: day.course || '', year: t.year, day: day.dayNumber, sted: t.sted };
+          if (day.format === 'stableford' || day.format === 'final') {
+            if (!records.highestStableford || score > records.highestStableford.value) {
+              records.highestStableford = entry;
+            }
+          }
+          if (day.format === 'final') {
+            if (!records.bestFinal || score > records.bestFinal.value) {
+              records.bestFinal = entry;
+            }
+          }
+        });
+      }
+    });
+  });
+
+  // Most wins from history
+  const winCount = {};
+  state.history.forEach(h => {
+    const winners = (h.winner || '').split(' & ');
+    winners.forEach(w => {
+      const name = w.trim();
+      if (name) winCount[name] = (winCount[name] || 0) + 1;
+    });
+  });
+  let topWinner = null;
+  Object.entries(winCount).forEach(([name, count]) => {
+    if (!topWinner || count > topWinner.value) topWinner = { player: name, value: count };
+  });
+  records.mostWins = topWinner;
+
+  return records;
+}
+
+function renderHoF() {
+  const el = document.getElementById('hof-content');
+  const auto = getAutoRecords();
+  const manual = (state.hallOfFame && state.hallOfFame.manual) ? state.hallOfFame.manual : [];
+
+  let autoHtml = '<div class="card"><h3 class="card-title">📊 Automatiske rekorder</h3>';
+  if (auto.highestStableford) {
+    autoHtml += '<div class="hof-entry"><strong>Høyeste Stableford</strong><br>' + auto.highestStableford.player + ' – ' + auto.highestStableford.value + ' poeng<br><span class="text-muted" style="font-size:0.85rem;">' + (auto.highestStableford.course || '') + ' · ' + auto.highestStableford.year + ' Dag ' + auto.highestStableford.day + '</span></div>';
+  } else autoHtml += '<p class="text-muted">Ingen Stableford-rekord ennå.</p>';
+  if (auto.bestFinal) {
+    autoHtml += '<div class="hof-entry"><strong>Beste Finalerunde</strong><br>' + auto.bestFinal.player + ' – ' + auto.bestFinal.value + ' poeng<br><span class="text-muted" style="font-size:0.85rem;">' + (auto.bestFinal.course || '') + ' · ' + auto.bestFinal.year + '</span></div>';
+  }
+  if (auto.mostWins) {
+    autoHtml += '<div class="hof-entry"><strong>Flest seire</strong><br>' + auto.mostWins.player + ' – ' + auto.mostWins.value + '× mester</div>';
+  }
+  autoHtml += '</div>';
+
+  let manualHtml = '<div class="card"><h3 class="card-title">🏅 Prestasjoner</h3>';
+  if (!manual.length) {
+    manualHtml += '<p class="text-muted">Ingen manuelle registreringer ennå. Bruk knappen «Registrer Hall of Fame» når du fører resultater.</p>';
+  } else {
+    HOF_MANUAL_CATS.forEach(cat => {
+      const items = manual.filter(m => m.category === cat.id).slice().reverse();
+      if (!items.length) return;
+      manualHtml += '<div class="section-title mt-3">' + cat.icon + ' ' + cat.label + '</div>';
+      items.forEach(m => {
+        manualHtml += '<div class="hof-entry"><strong>' + m.player + '</strong>' +
+          (m.details ? ' – ' + m.details : '') +
+          '<br><span class="text-muted" style="font-size:0.85rem;">' + (m.course || '') + ' · ' + m.year + (m.day ? ' Dag ' + m.day : '') + (m.sted ? ' · ' + m.sted : '') + '</span></div>';
+      });
+    });
+  }
+  manualHtml += '</div>';
+
+  el.innerHTML = '<div class="card"><h2 class="card-title">🏅 Hall of Fame</h2><p class="text-muted">Rekorder og prestasjoner gjennom Familiemajorens historie.</p></div>' + autoHtml + manualHtml;
+}
+
+function saveScoring() {
+  const t = state.current;
+  const day = t.days[currentScoringDay];
+  day.course = document.getElementById('scoring-course').value.trim();
+  const n = t.players.length;
+  const maxPoints = n;
+  const losePts = Math.ceil(maxPoints / 2);
+  const halfPts = (maxPoints + losePts) / 2;
+  let playerPoints = {};
+
+  if (['stableford', 'final'].includes(day.format)) {
+    const scores = {};
+    document.querySelectorAll('.individual-score').forEach(inp => { scores[inp.dataset.player] = parseFloat(inp.value) || 0; });
+    day.results = scores;
+    const ranked = t.players.map(p => ({ name: p.name, score: scores[p.name] || 0, hcp: p.hcp }))
+      .sort((a, b) => b.score !== a.score ? b.score - a.score : a.hcp - b.hcp);
+    let i = 0;
+    while (i < ranked.length) {
+      let j = i;
+      while (j < ranked.length && ranked[j].score === ranked[i].score && ranked[j].hcp === ranked[i].hcp) j++;
+      const positions = [];
+      for (let k = i; k < j; k++) positions.push(maxPoints - k);
+      let pts = positions.reduce((a, b) => a + b, 0) / positions.length;
+      if (day.format === 'final') pts *= 2;
+      for (let k = i; k < j; k++) playerPoints[ranked[k].name] = Math.round(pts * 10) / 10;
+      i = j;
+    }
+  } else if (['fourball', 'scramble'].includes(day.format)) {
+    document.querySelectorAll('.match-result').forEach(sel => {
+      const idx = parseInt(sel.dataset.match);
+      if (teamMatches[idx]) teamMatches[idx].result = sel.value || null;
+    });
+    day.teams = JSON.parse(JSON.stringify(editableTeams));
+    day.teamMatches = JSON.parse(JSON.stringify(teamMatches));
+    day.results = { matches: teamMatches };
+    teamMatches.forEach(m => {
+      if (!m.result) return;
+      if (m.result === 'A') { m.teamA.forEach(p => playerPoints[p] = maxPoints); m.teamB.forEach(p => playerPoints[p] = losePts); }
+      else if (m.result === 'B') { m.teamB.forEach(p => playerPoints[p] = maxPoints); m.teamA.forEach(p => playerPoints[p] = losePts); }
+      else if (m.result === 'halved') { [...m.teamA, ...m.teamB].forEach(p => playerPoints[p] = halfPts); }
+    });
+  } else if (day.format === 'singles') {
+    day.matches = JSON.parse(JSON.stringify(editableSingles));
+    const results = {};
+    document.querySelectorAll('.singles-result').forEach(sel => {
+      const p1 = sel.dataset.p1, p2 = sel.dataset.p2, val = sel.value;
+      if (!val) return;
+      results[p1 + '_vs_' + p2] = val;
+      if (val === 'p1') { playerPoints[p1] = (playerPoints[p1]||0) + maxPoints; playerPoints[p2] = (playerPoints[p2]||0) + losePts; }
+      else if (val === 'p2') { playerPoints[p2] = (playerPoints[p2]||0) + maxPoints; playerPoints[p1] = (playerPoints[p1]||0) + losePts; }
+      else { playerPoints[p1] = (playerPoints[p1]||0) + halfPts; playerPoints[p2] = (playerPoints[p2]||0) + halfPts; }
+    });
+    day.results = results;
+  }
+
+  day.points = playerPoints;
+  day.completed = true;
+  saveState();
+
+  // Lunch popup
+  const sponsors = computeLunchSponsors(day, t);
+  navigate('tournament');
+  setTimeout(() => showLunchPopup(sponsors), 400);
+}
+
+function calculateStandings(tournament) {
+  const totals = {};
+  const individualWins = {};
+  tournament.players.forEach(p => { totals[p.name] = 0; individualWins[p.name] = 0; });
+  tournament.days.forEach(day => {
+    if (day.points) Object.entries(day.points).forEach(([player, pts]) => { totals[player] = (totals[player] || 0) + pts; });
+    if (['stableford', 'final'].includes(day.format) && day.points) {
+      const maxPts = Math.max(...Object.values(day.points));
+      Object.entries(day.points).forEach(([player, pts]) => { if (pts === maxPts) individualWins[player]++; });
+    }
+  });
+  const finalDay = tournament.days.find(d => d.format === 'final' && d.completed);
+  let finalRank = {};
+  if (finalDay && finalDay.points) {
+    Object.entries(finalDay.points).sort((a,b) => b[1] - a[1]).forEach(([name], idx) => { finalRank[name] = idx; });
+  }
+  return tournament.players.map(p => ({
+    name: p.name, total: totals[p.name] || 0, hcp: p.hcp,
+    individualWins: individualWins[p.name] || 0,
+    finalRank: finalRank[p.name] !== undefined ? finalRank[p.name] : 999
+  })).sort((a, b) => {
+    if (b.total !== a.total) return b.total - a.total;
+    if (a.finalRank !== b.finalRank) return a.finalRank - b.finalRank;
+    if (b.individualWins !== a.individualWins) return b.individualWins - a.individualWins;
+    return a.hcp - b.hcp;
+  });
+}
+
+function renderStandingsTable(standings) {
+  if (!standings.length) return '<p class="text-muted">Ingen poeng ennå.</p>';
+  const leaderPts = standings[0].total;
+  return '<div class="table-wrap"><table><thead><tr><th>#</th><th>Spiller</th><th>HCP</th><th>Poeng</th><th>+/−</th></tr></thead><tbody>' +
+    standings.map((s, i) => '<tr class="' + (i===0?'leader-row':'') + '"><td class="rank rank-' + (i+1) + '">' + (i+1) + '</td><td>' + s.name + '</td><td class="text-muted">' + s.hcp + '</td><td><strong>' + s.total + '</strong></td><td class="text-muted">' + (i===0?'–':(s.total-leaderPts)) + '</td></tr>').join('') +
+    '</tbody></table></div>';
+}
+
+function renderLeaderboard() {
+  const el = document.getElementById('leaderboard-content');
+  if (!state.current) { el.innerHTML = '<div class="card"><p class="text-muted">Ingen pågående turnering.</p></div>'; return; }
+  const t = state.current;
+  const standings = calculateStandings(t);
+  el.innerHTML = '<div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'tournament\')">← Tilbake</button><h2 class="card-title">📊 Sammenlagt</h2><p class="text-muted mb-3">' + t.year + ' · ' + t.sted + '</p>' + renderStandingsTable(standings) + '</div><div class="card"><h3 class="card-title">Poeng per dag</h3>' +
+    (t.days.filter(d => d.completed).map(d => '<div style="margin-bottom:16px;"><div class="flex justify-between mb-1"><strong>Dag ' + d.dayNumber + '</strong><span class="text-muted" style="font-size:0.85rem;">' + FORMATS[d.format] + '</span></div>' + (d.points ? Object.entries(d.points).sort((a,b)=>b[1]-a[1]).map(([name,pts]) => '<div class="flex justify-between" style="font-size:0.9rem;"><span>' + name + '</span><span>' + pts + ' p</span></div>').join('') : '') + '</div>').join('') || '<p class="text-muted">Ingen fullførte dager.</p>') + '</div>';
+}
+
+function renderGroupsMenu() {
+  const el = document.getElementById('groups-content');
+  if (!state.current) { el.innerHTML = '<div class="card"><p class="text-muted">Ingen pågående turnering.</p></div>'; return; }
+  el.innerHTML = '<div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'tournament\')">← Tilbake</button><h2 class="card-title">👥 Gruppegenerator</h2></div>' +
+    '<button class="group-choice" onclick="openGroupDetail(\'teams\')">⛳ Lagforslag (Fourball / Scramble)</button>' +
+    '<button class="group-choice" onclick="openGroupDetail(\'singles\')">🥊 Ryder Cup Singler</button>' +
+    '<button class="group-choice" onclick="openGroupDetail(\'leaderflight\')">🏁 Finalerunden – Lederflight</button>';
+}
+
+function openGroupDetail(type) {
+  currentGroupType = type;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-group-detail').classList.add('active');
+  renderGroupDetail();
+}
+
+function renderGroupDetail() {
+  const el = document.getElementById('group-detail-content');
+  const t = state.current;
+  if (!t) { el.innerHTML = '<div class="card"><p class="text-muted">Ingen turnering.</p></div>'; return; }
+
+  if (currentGroupType === 'teams') {
+    const rec = recommendedTeamCount(t.players.length);
+    groupMode = groupMode || 'hcp';
+    editableTeams = generateTeams(t.players, rec, groupMode);
+    teamMatches = pairTeamsIntoMatches(editableTeams);
+    let teamOptions = [2,4,6,8].filter(x => x <= t.players.length && x % 2 === 0);
+    if (!teamOptions.length) teamOptions = [2];
+    el.innerHTML = '<div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'groups\')">← Tilbake</button><h2 class="card-title">Lagforslag + Kamper</h2>' +
+      '<div class="form-group"><label>Antall lag</label><select id="detail-num-teams" onchange="changeDetailTeams()">' +
+      teamOptions.map(x => '<option value="' + x + '"' + (x === rec ? ' selected' : '') + '>' + x + ' lag' + (x === rec ? ' (anbefalt)' : '') + '</option>').join('') +
+      '</select></div><div class="mode-btns"><div class="mode-btn ' + (groupMode==='hcp'?'active':'') + '" id="mode-hcp" onclick="setDetailMode(\'hcp\')">Etter HCP</div><div class="mode-btn ' + (groupMode==='points'?'active':'') + '" id="mode-points" onclick="setDetailMode(\'points\')">Etter poeng</div></div>' +
+      '<button class="btn btn-sm btn-secondary mb-3" onclick="regenerateDetailTeams()">🔄 Generer</button><div id="teams-container"></div><div class="divider"></div><p class="section-title">Kampoppsett</p><div id="matches-container"></div></div>';
+    setTimeout(() => { renderTeamBoxes(); renderMatchCardsPreview(); }, 30);
+  } else if (currentGroupType === 'singles') {
+    editableSingles = generateSinglesMatches(calculateStandings(t));
+    el.innerHTML = '<div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'groups\')">← Tilbake</button><h2 class="card-title">Ryder Cup Singler</h2><button class="btn btn-sm btn-secondary mb-3" onclick="regenerateSinglesDetail()">🔄 Nytt forslag</button>' +
+      editableSingles.map((m,i) => '<div class="match-card"><strong>Match ' + (i+1) + '</strong><div class="flex justify-between mt-1"><span>' + m.p1 + '</span><span class="text-muted">vs</span><span>' + m.p2 + '</span></div></div>').join('') + '</div>';
+  } else if (currentGroupType === 'leaderflight') {
+    const standings = calculateStandings(t);
+    const top3 = standings.slice(0, 3);
+    el.innerHTML = '<div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'groups\')">← Tilbake</button><h2 class="card-title">Finalerunden – Lederflight</h2><div style="background:var(--green-50);padding:16px;border-radius:8px;"><strong>Lederflight:</strong><div class="mt-2">' +
+      top3.map((s,i) => '<div style="padding:6px 0;">' + (i+1) + '. ' + s.name + ' <span class="text-muted">(' + s.total + ' p)</span></div>').join('') + '</div></div></div>';
+  }
+}
+
+function setDetailMode(m) {
+  groupMode = m;
+  const h = document.getElementById('mode-hcp');
+  const p = document.getElementById('mode-points');
+  if (h) h.classList.toggle('active', m === 'hcp');
+  if (p) p.classList.toggle('active', m === 'points');
+}
+function changeDetailTeams() {
+  const num = parseInt(document.getElementById('detail-num-teams').value);
+  editableTeams = generateTeams(state.current.players, num, groupMode);
+  teamMatches = pairTeamsIntoMatches(editableTeams);
+  renderTeamBoxes(); renderMatchCardsPreview();
+}
+function regenerateDetailTeams() {
+  const num = parseInt(document.getElementById('detail-num-teams').value) || recommendedTeamCount(state.current.players.length);
+  editableTeams = generateTeams(state.current.players, num, groupMode);
+  teamMatches = pairTeamsIntoMatches(editableTeams);
+  renderTeamBoxes(); renderMatchCardsPreview();
+  toast('Oppdatert');
+}
+function regenerateSinglesDetail() {
+  editableSingles = generateSinglesMatches(calculateStandings(state.current));
+  renderGroupDetail();
+}
+
+function finishTournament() {
+  if (!state.current || !confirm('Låse turneringen og flytte til historikk?')) return;
+  const t = state.current;
+  const standings = calculateStandings(t);
+  const winner = standings[0] ? standings[0].name : 'Ukjent';
+  let winners = [winner];
+  if (standings.length > 1 && standings[0].total === standings[1].total &&
+      standings[0].finalRank === standings[1].finalRank &&
+      standings[0].individualWins === standings[1].individualWins &&
+      standings[0].hcp === standings[1].hcp) {
+    winners = [standings[0].name, standings[1].name];
+  }
+  state.history.push({
+    year: t.year, sted: t.sted, winner: winners.join(' & '), players: t.players,
+    days: t.days, standings, finishedAt: new Date().toISOString()
+  });
+  state.current = null;
+  saveState();
+  toast('🏆 ' + winners.join(' & ') + ' er Familiemajormester!');
+  navigate('history');
+}
+
+function renderHistory() {
+  const el = document.getElementById('history-content');
+  if (!state.history.length) {
+    el.innerHTML = '<div class="card"><div class="empty-state"><div class="icon">📚</div><p>Ingen fullførte turneringer.</p></div></div>';
+    return;
+  }
+  const sorted = [...state.history].sort((a,b) => b.year - a.year);
+  el.innerHTML = '<div class="card"><h2 class="card-title">📚 Historikk / Mesterliste</h2></div>' +
+    sorted.map(h => {
+      const idx = state.history.indexOf(h);
+      return '<div class="history-item" onclick="openHistoryDetail(' + idx + ')"><div class="history-year">' + h.year + '</div><div class="history-info"><div class="history-sted">' + h.sted + '</div><div class="history-winner">🏆 ' + h.winner + '</div></div><div class="history-arrow">›</div></div>';
+    }).join('');
+}
+
+function openHistoryDetail(index) {
+  const h = state.history[index];
+  if (!h) return;
+  const el = document.getElementById('history-detail-content');
+  el.innerHTML = '<div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'history\')">← Tilbake</button><div class="section-title">Familiemajoren</div><h2 style="margin:0 0 4px;">' + h.year + ' · ' + h.sted + '</h2><div class="badge badge-gold mt-2">🏆 ' + h.winner + '</div></div><div class="card"><h3 class="card-title">Sluttstilling</h3>' + renderStandingsTable(h.standings || []) + '</div><div class="card"><h3 class="card-title">Dag for dag</h3>' +
+    (h.days || []).map(d => '<div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--gray-100);"><div class="flex justify-between mb-1"><strong>Dag ' + d.dayNumber + '</strong><span class="badge badge-green">' + (FORMATS[d.format]||d.format) + '</span></div>' + (d.course ? '<div class="text-muted" style="font-size:0.85rem;">📍 ' + d.course + '</div>' : '') + (d.points ? Object.entries(d.points).sort((a,b)=>b[1]-a[1]).map(([n,p]) => '<div class="flex justify-between" style="font-size:0.9rem;"><span>' + n + '</span><span>' + p + ' p</span></div>').join('') : '') + '</div>').join('') + '</div>';
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-history-detail').classList.add('active');
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'familiemajoren_backup_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  toast('Eksportert!');
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (imported && (imported.current !== undefined || imported.history)) {
+        if (confirm('Overskrive eksisterende data?')) {
+          state = imported;
+          if (!state.hallOfFame) state.hallOfFame = { manual: [] };
+          saveState();
+          toast('Importert!');
+          navigate('home');
+        }
+      } else toast('Ugyldig fil');
+    } catch (err) { toast('Kunne ikke lese fil'); }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function resetAllData() {
+  if (!confirm('Nullstille all data?') || !confirm('Siste sjanse?')) return;
+  state = { current: null, history: [], hallOfFame: { manual: [] } };
+  saveState();
+  toast('Nullstilt');
+  navigate('home');
+}
+
+init();
+</script>
+</body>
+</html>
