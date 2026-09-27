@@ -184,7 +184,21 @@
     .lunch-banner strong { color: #92400e; }
     .countdown-num { font-family: 'Playfair Display', Georgia, serif; font-size: 2.4rem; line-height: 1.1; color: var(--green-900); }
     .countdown-card { text-align: center; background: var(--green-50); border: 1px solid var(--green-100); }
-    .charter-content section { scroll-margin-top: 84px; }
+    .charter-paper { background: #f7f3ea; border-radius: 16px; padding: 18px 16px 28px; box-shadow: var(--shadow); }
+    .charter-kicker { color: var(--gold); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; }
+    .charter-sec { padding: 16px 0; border-top: 1px solid #eadfC8; scroll-margin-top: 64px; }
+    .charter-sec h3 { display: flex; gap: 12px; align-items: baseline; font-size: 1.15rem; margin: 0 0 8px; }
+    .charter-num { color: var(--gold); font-variant-numeric: tabular-nums; min-width: 28px; }
+    .charter-paper p { margin-bottom: 8px; }
+    .charter-paper table { width: 100%; border-collapse: collapse; margin: 12px 0; background: #fffdf8; border-radius: 10px; overflow: hidden; }
+    .charter-paper th { background: #14532d; color: white; text-transform: none; font-size: 0.8rem; letter-spacing: 0; }
+    .charter-paper td { background: transparent; }
+    .charter-stick { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 10px; background: #14532d; color: white; padding: 10px 12px; margin: 0 -16px 12px; }
+    .charter-stick strong { font-size: 0.82rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 46%; }
+    .charter-stick input { flex: 1; background: rgba(255,255,255,0.14); color: white; border: none; border-radius: 8px; padding: 8px 10px; }
+    .charter-stick input::placeholder { color: rgba(255,255,255,0.75); }
+    .toc-row { display: flex; gap: 12px; width: 100%; text-align: left; background: transparent; border: none; border-bottom: 1px solid #eadfC8; padding: 14px 2px; font: inherit; cursor: pointer; }
+    .toc-row b { color: var(--gold); min-width: 28px; }
   </style>
 </head>
 <body>
@@ -244,19 +258,17 @@
     <div id="page-hof" class="page"><div id="hof-content"></div></div>
     <div id="page-media" class="page"><div id="media-content"></div></div>
     <div id="page-charter" class="page">
-      <div class="card">
-        <button type="button" class="btn btn-sm btn-secondary mb-3" onclick="navigate('more')">← Tilbake</button>
+      <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Offisielt charter</h1><div class="sub">Sammendrag</div></div></div>
+      <div class="charter-paper">
         <button class="btn btn-primary btn-block mb-3" onclick="navigate('charter-full')">Se fulle charter</button>
-        <h2 class="card-title">Charter – sammendrag</h2>
         <div class="charter-content" id="charter-body"></div>
       </div>
     </div>
     <div id="page-charter-full" class="page">
-      <div class="card">
+      <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Offisielt charter</h1><div class="sub">Versjon 1.0</div></div></div>
+      <div class="charter-stick"><strong id="charter-chapter">Innhold</strong><input type="text" id="charter-full-search" placeholder="Søk" oninput="renderCharterFull()" /></div>
+      <div class="charter-paper">
         <button class="btn btn-sm btn-secondary mb-3" onclick="navigate('charter')">← Tilbake til sammendrag</button>
-        <h2 class="card-title">Fullt charter</h2>
-        <p class="text-muted mb-3">Offisielt charter og turneringsreglement, versjon 1.0.</p>
-        <div class="form-group"><label>Søk</label><input type="text" id="charter-full-search" placeholder="Søk i charteret" oninput="renderCharterFull()" /></div>
         <div id="charter-full-toc"></div>
         <div class="charter-content" id="charter-full-body"></div>
       </div>
@@ -297,7 +309,7 @@
         <p id="google-redirect" class="text-muted mb-3" style="font-size:0.8rem;word-break:break-all;"></p>
         <div class="divider"></div>
         <button class="btn btn-danger btn-block" onclick="resetAllData()">Nullstill all data</button>
-        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.24 · Familiemajoren</p>
+        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.25 · Familiemajoren</p>
       </div>
     </div>
   </div>
@@ -662,7 +674,7 @@ function seasonNavKey(pageId) {
 function syncChrome(pageId) {
   currentPage = pageId;
   const header = document.querySelector('.app-header');
-  const ownBanner = pageId === 'home' || pageId === 'leaderboard' || pageId === 'scoring' || pageId === 'more' || pageId === 'tournament' || pageId === 'setup' || pageId === 'card' || pageId === 'card-setup' || pageId === 'history-card';
+  const ownBanner = pageId === 'home' || pageId === 'leaderboard' || pageId === 'scoring' || pageId === 'more' || pageId === 'tournament' || pageId === 'setup' || pageId === 'card' || pageId === 'card-setup' || pageId === 'history-card' || pageId === 'charter' || pageId === 'charter-full';
   if (header) header.hidden = ownBanner;
   paintSeasonNav();
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -747,7 +759,7 @@ const CHARTER = [
   { title: 'Deltakelse', body: 'Åpent for familiemedlemmer, ektefeller eller samboere og inviterte gjester godkjent av turneringskomiteen. Handicap ved turneringsstart gjelder hele mesterskapet. Midlertidig handicap kan settes av komiteen. Usportslig opptreden, juks eller feilrapportering kan gi advarsel, poengtrekk eller diskvalifikasjon.' },
   { title: 'Turneringens struktur', body: 'Minimum fire konkurransedager. Finalerunden er alltid siste dag. Kun én Familiemajormester per år. Krav: minst én individuell konkurranse, minst én lagkonkurranse, og finalerunden. Mesteren kåres av summen av Familiemajoren-poeng, ikke av samlet golfscore.' },
   { title: 'Spilleformater', body: 'Individuell Stableford: individuell konkurranse med fullt handicap. Høyest Stableford-score vinner dagen. Ryder Cup Fourball: lag, beste netto per hull, matchplay. Familiemajoren Akkumulert Scramble Matchplay: scramble med overføring av hullpoeng ved delte hull. Ryder Cup Singler: individuell matchplay én mot én, satt opp etter sammenlagtstilling. Finalerunden: individuell Stableford med doble poeng. Lederflight, topp 3, spiller sist.' },
-  { title: 'Poengsystem', body: 'Førsteplass får like mange poeng som antall deltakere. Sisteplass får 1 poeng. Skalaen følger feltet. Ved 6 deltakere: 6, 5, 4, 3, 2, 1. Matchplay ved 6 deltakere: seier 6, tap 3, uavgjort 4,5. Uavgjort er snittet av seier og tap. Finalerunden dobler alle poeng.' },
+  { title: 'Poengsystem', body: 'Førsteplass får like mange poeng som antall deltakere. Sisteplass får 1 poeng. Finalerunden dobler alle poeng. Ved seks deltakere i matchplay er uavgjort snittet av seier og tap.', table: [['Plass', 'Poeng'], ['1', '6'], ['2', '5'], ['3', '4'], ['4', '3'], ['5', '2'], ['6', '1']], table2: [['Resultat', 'Poeng'], ['Seier', '6'], ['Tap', '3'], ['Uavgjort', '4,5']] },
   { title: 'Tiebreak', body: 'Stableford: lavest handicap rangeres først. Er det fortsatt likt, deles plassen og poengene fordeles likt. Matchplay: uavgjort, ingen ekstra hull. Sammenlagt: 1) best plassering i finalerunden, 2) flest individuelle seire, 3) lavest handicap, 4) delt seier.' },
   { title: 'Lunsjregelen', body: 'Dagens tapere betaler lunsjen for dagens vinnere. Kostnaden fordeles likt. Stableford og finale: nederste halvdel betaler for øverste halvdel. Fourball og scramble: tapende lag betaler for vinnende lag i hver kamp. Singler: matchtapere betaler for sine matchvinnere. Uavgjort: hver betaler sin egen. I appen: hvis bare én person, eller under 40 prosent av feltet, skulle betalt, dekkes lunsjen av seg selv.' },
   { title: 'Gruppeinndeling', body: 'Turneringskomiteen sørger for rettferdighet, balanserte lag og variasjon. En flight er maks fire spillere. Lag på to er standard når det er mulig. Antall lag skal være partall, slik at lag kan møtes. Et lag kan aldri bestå av bare én person. Lederflight spiller sist i finalerunden.' },
@@ -756,26 +768,105 @@ const CHARTER = [
   { title: 'Hall of Fame', body: 'Hall of Fame samler seire, seire på rad, pallplasseringer, matchseire, høyeste Stableford, beste finale, seiermargin og dager som leder. Disse oppdateres automatisk fra resultatene. Hole-in-One, Albatross, Eagle, flest birdies på rad, største comeback og annet registreres for hånd.' },
   { title: 'Turneringskomité', body: 'Turneringskomiteen er øverste organ under mesterskapet: planlegging, gruppeoppsett, tolkning og tvister. Avgjørelser er bindende. Regelendringer kan bare vedtas mellom mesterskap og gjelder fra neste utgave. Charteret har alltid forrang.' }
 ];
+function miniTable(rows) {
+  if (!rows || !rows.length) return '';
+  const head = rows[0];
+  const body = rows.slice(1);
+  return '<table><thead><tr>' + head.map(function (c) { return '<th>' + c + '</th>'; }).join('') + '</tr></thead><tbody>' +
+    body.map(function (r) { return '<tr>' + r.map(function (c) { return '<td>' + c + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table>';
+}
 function renderCharter() {
   const body = document.getElementById('charter-body');
   if (!body) return;
-  body.innerHTML = '<div class="charter-motto">«Ett år som mester. Ett år med skryterett.»</div>' +
-    '<p class="text-muted">Kortversjon. Fullt charter gjelder ved tvil.</p>' +
-    CHARTER.map((c, i) => '<section><h3>' + (i + 1) + '. ' + c.title + '</h3><p>' + c.body + '</p></section>').join('') +
-    '<div class="divider"></div><p class="text-muted text-center" style="font-size:0.85rem;">Familie først. Golf deretter. Tradisjonen for alltid.</p>';
+  body.innerHTML = '<div class="charter-kicker">SAMMENDRAG</div><h2 style="margin:6px 0 8px;">Familiemajoren</h2><div class="charter-motto">«Ett år som mester. Ett år med skryterett.»</div><p class="text-muted">Kortversjon. Fullt charter gjelder ved tvil.</p>' +
+    CHARTER.map(function (c, i) {
+      const num = String(i + 1).padStart(2, '0');
+      return '<section class="charter-sec"><h3><span class="charter-num">' + num + '</span>' + c.title + '</h3><p>' + c.body + '</p>' + miniTable(c.table) + miniTable(c.table2) + '</section>';
+    }).join('') +
+    '<p class="text-muted text-center" style="font-size:0.85rem;margin-top:16px;">Familie først. Golf deretter. Tradisjonen for alltid.</p>';
 }
-
+function charterCell(text) {
+  if (!text || text.length > 64) return false;
+  if (text.indexOf(':') >= 0 && text.length > 18) return false;
+  if (/\.\s*$/.test(text) && text.length > 18) return false;
+  if (text.length > 24 && text.indexOf('. ') >= 0) return false;
+  return true;
+}
+function stackedLabels(row) {
+  if (row.some(function (c) { return /^[\d]/.test(c) || /^(Dag |Match |Spiller )/.test(c); })) return false;
+  return row.filter(function (c) { return c.length > 6; }).length >= Math.min(3, row.length);
+}
+function promoteCharterTables(html) {
+  const heads = [
+    ['Plass', 'Poeng'], ['Plass', 'Ordinær verdi', 'Finaleverdi'], ['Plass', 'Ordinær', 'Finale'], ['Plass', 'Spiller', 'Poeng'],
+    ['Resultat', 'Poeng'], ['Resultat', 'Poeng per spiller'], ['Flight 1', 'Flight 2'], ['Team Blå', 'Team Rød'],
+    ['Match', 'Oppsett'], ['Dag', 'Format'], ['År', 'Spillested', 'Mester'],
+    ['Rekord', 'Spiller', 'Antall / Detaljer', 'År'], ['Rekord', 'Spiller', 'Score / Detaljer', 'Bane / År'],
+    ['Prestasjon', 'Spiller', 'Hull', 'Golfbane', 'År'], ['Kategori', 'Spiller / Detaljer', 'År'], ['Navn', 'Signatur', 'Dato']
+  ];
+  const bits = html.split(/(<p>[\s\S]*?<\/p>)/);
+  const chunks = bits.filter(Boolean).map(function (bit) {
+    if (bit.indexOf('<p>') !== 0) return { kind: 'html', html: bit };
+    const text = bit.replace(/<\/?p>/g, '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+    return { kind: 'p', text: text, html: bit };
+  });
+  let out = '';
+  let i = 0;
+  while (i < chunks.length) {
+    if (chunks[i].kind !== 'p' || !charterCell(chunks[i].text)) { out += chunks[i].html; i++; continue; }
+    let j = i;
+    const cells = [];
+    while (j < chunks.length && chunks[j].kind === 'p' && charterCell(chunks[j].text)) { cells.push(chunks[j].text); j++; }
+    const header = heads.find(function (h) { return cells.length >= h.length && h.every(function (name, k) { return cells[k] === name; }); });
+    if (!header || cells.length <= header.length) { out += chunks[i].html; i++; continue; }
+    const rest = cells.slice(header.length);
+    let rows = [];
+    const even = rest.length % header.length === 0;
+    if (even) {
+      for (let r = 0; r < rest.length; r += header.length) rows.push(rest.slice(r, r + header.length));
+      if (rows.some(stackedLabels)) rows = rest.map(function (label) { return [label]; });
+    } else rows = rest.map(function (label) { return [label]; });
+    const wide = rows[0] && rows[0].length === header.length;
+    out += '<table><thead><tr>' + header.map(function (h) { return '<th>' + h + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      rows.map(function (r) {
+        const cols = wide ? r : [r[0]].concat(header.slice(1).map(function () { return ''; }));
+        return '<tr>' + cols.map(function (c) { return '<td>' + c + '</td>'; }).join('') + '</tr>';
+      }).join('') + '</tbody></table>';
+    i = j;
+  }
+  return out;
+}
+function watchCharterChapter() {
+  const bar = document.getElementById('charter-chapter');
+  const sections = document.querySelectorAll('#charter-full-body section');
+  if (!bar) return;
+  if (window.charterObs) window.charterObs.disconnect();
+  if (!sections.length) { bar.textContent = 'Innhold'; return; }
+  window.charterObs = new IntersectionObserver(function (entries) {
+    const hit = entries.filter(function (e) { return e.isIntersecting; }).sort(function (a, b) { return b.intersectionRatio - a.intersectionRatio; })[0];
+    if (hit) bar.textContent = hit.target.getAttribute('data-title') || 'Innhold';
+  }, { rootMargin: '-20% 0px -60% 0px', threshold: [0, 0.2, 0.6] });
+  sections.forEach(function (s) { window.charterObs.observe(s); });
+}
 function renderCharterFull() {
   const dataEl = document.getElementById('charter-full-data');
   if (!window.CHARTER_FULL && dataEl) window.CHARTER_FULL = JSON.parse(dataEl.textContent);
   const all = window.CHARTER_FULL || [];
   const q = ((document.getElementById('charter-full-search') || {}).value || '').trim().toLowerCase();
-  const hits = all.map((c, i) => ({ c: c, i: i })).filter(x => !q || (x.c.title + ' ' + x.c.html.replace(/<[^>]+>/g, ' ')).toLowerCase().indexOf(q) !== -1);
+  const hits = all.map(function (c, i) { return { c: c, i: i }; }).filter(function (x) {
+    return !q || (x.c.title + ' ' + x.c.html.replace(/<[^>]+>/g, ' ')).toLowerCase().indexOf(q) !== -1;
+  });
   const toc = document.getElementById('charter-full-toc');
   const body = document.getElementById('charter-full-body');
   if (!toc || !body) return;
-  toc.innerHTML = '<div class="section-title">Innhold</div>' + (hits.length ? hits.map(x => '<button type="button" class="toc-btn" onclick="document.getElementById(\'full-' + x.i + '\').scrollIntoView({behavior:\'smooth\',block:\'start\'})">' + x.c.title + '</button>').join('') : '<p class="text-muted">Ingen treff.</p>');
-  body.innerHTML = hits.map(x => '<section id="full-' + x.i + '"><h3>' + x.c.title + '</h3>' + x.c.html + '</section>').join('') || '<p class="text-muted">Ingen treff.</p>';
+  toc.innerHTML = '<div class="charter-kicker">INNHOLD</div>' + (hits.length ? hits.map(function (x) {
+    const num = String(x.i + 1).padStart(2, '0');
+    return '<button type="button" class="toc-row" onclick="document.getElementById(\'full-' + x.i + '\').scrollIntoView({behavior:\'smooth\',block:\'start\'})"><b>' + num + '</b><span>' + x.c.title + '</span></button>';
+  }).join('') : '<p class="text-muted">Ingen treff.</p>');
+  body.innerHTML = hits.map(function (x) {
+    return '<section class="charter-sec" id="full-' + x.i + '" data-title="' + x.c.title.replace(/"/g, '"') + '"><h3><span class="charter-num">' + String(x.i + 1).padStart(2, '0') + '</span>' + x.c.title + '</h3>' + promoteCharterTables(x.c.html) + '</section>';
+  }).join('') || '<p class="text-muted">Ingen treff.</p>';
+  watchCharterChapter();
 }
 
 
