@@ -53,7 +53,8 @@
     .full-head { color: #6b7280; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; }
     .full-row { border-top: 1px solid #f3f4f6; }
     .full-row.now { background: #fbf6e8; border-radius: 8px; }
-    .tag-gold { color: #b45309; font-weight: 700; font-size: 0.78rem; }
+    .points-box { margin-top: 14px; border: 1.5px solid #e5e7eb; background: #f9fafb; border-radius: 12px; text-align: center; font-weight: 700; padding: 14px; }
+    .team-line { text-align: center; font-weight: 700; }
     .home-banner-motto { position: absolute; z-index: 1; left: 18px; right: 18px; bottom: 16px; margin: 0; font-family: 'Playfair Display', Georgia, serif; font-size: 1.35rem; line-height: 1.25; text-shadow: 0 2px 12px rgba(0,0,0,.55); }
     .page-banner { margin: -20px -16px 16px; background: #0f3d1a; color: white; padding: calc(16px + env(safe-area-inset-top)) 16px 16px; display: flex; align-items: center; gap: 12px; }
     .page-banner img { width: 44px; height: 44px; border-radius: 12px; object-fit: cover; flex: none; }
@@ -296,7 +297,7 @@
         <p id="google-redirect" class="text-muted mb-3" style="font-size:0.8rem;word-break:break-all;"></p>
         <div class="divider"></div>
         <button class="btn btn-danger btn-block" onclick="resetAllData()">Nullstill all data</button>
-        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.23 · Familiemajoren</p>
+        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.24 · Familiemajoren</p>
       </div>
     </div>
   </div>
@@ -1070,10 +1071,36 @@ function dayCardButtons(d, i) {
   html += '<button class="btn btn-sm ' + (d.completed ? 'btn-secondary' : 'btn-primary') + '" onclick="openScoring(' + i + ')">' + (d.completed ? 'Se / Rediger' : 'Før resultat') + '</button>';
   return html;
 }
+function cardIsBlank(day) {
+  if (!day.card) return true;
+  if (day.course) return false;
+  if (day.card.ready) return false;
+  if (day.card.allocated && Object.keys(day.card.allocated).length) return false;
+  const holes = day.card.holes || [];
+  for (let i = 0; i < holes.length; i++) {
+    if (holes[i] && ((holes[i].par && holes[i].par !== 4) || (holes[i].index && holes[i].index !== i + 1))) return false;
+  }
+  return true;
+}
+function copyCardFromPrevious(dayIndex) {
+  const t = state.current;
+  const day = t.days[dayIndex];
+  if (!cardIsBlank(day)) return;
+  let prev = null;
+  for (let i = dayIndex - 1; i >= 0; i--) {
+    if (t.days[i] && t.days[i].card) { prev = t.days[i]; break; }
+  }
+  if (!prev || !prev.card) return;
+  ensureCard(day);
+  day.card.holes = JSON.parse(JSON.stringify(prev.card.holes));
+  day.card.allocated = JSON.parse(JSON.stringify(prev.card.allocated || {}));
+  if (prev.course) day.course = prev.course;
+}
 function openCardSetup(i) {
   if (!isAdmin()) { toast('Lås opp admin under Innstillinger'); navigate('settings'); return; }
   cardDay = i;
   ensureCard(state.current.days[i]);
+  copyCardFromPrevious(i);
   navigate('card-setup');
 }
 function renderCardSetup() {
@@ -1095,7 +1122,7 @@ function renderCardSetup() {
   if (day.format === 'singles') {
     matches = '<div class="card"><h3 class="card-title">Matcher</h3>' + ((day.matches && day.matches.length) ? day.matches.map(function (m, i) { return '<div class="text-muted" style="margin-bottom:6px;">Match ' + (i + 1) + ': ' + m.p1 + ' mot ' + m.p2 + '</div>'; }).join('') : '<p class="text-muted">Ingen matcher ennå.</p>') + '<button class="btn btn-sm btn-secondary mt-2" onclick="generateCardMatches()">Generer matcher</button></div>';
   }
-  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Forbered scorekort</h1><div class="sub">Dag ' + day.dayNumber + ' · ' + (FORMATS[day.format] || '') + '</div></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'tournament\')">← Tilbake</button><h3 class="card-title">Tildelte slag</h3><p class="text-muted mb-2">Skriv tallet fra klubbens liste. Tomme felt kan stå.</p>' + players + '</div>' + matches + '<div class="card"><h3 class="card-title">Banen</h3><p class="text-muted mb-2">Par og hullindex.</p>' + holes + '</div><button class="btn btn-secondary btn-block" onclick="saveCardSetup(false)">Lagre og fortsett senere</button><button class="btn btn-primary btn-block mt-2" onclick="saveCardSetup(true)">Lagre og gjør klart</button>';
+  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Forbered scorekort</h1><div class="sub">Dag ' + day.dayNumber + ' · ' + (FORMATS[day.format] || '') + '</div></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'tournament\')">← Tilbake</button><div class="form-group"><label>Bane</label><input type="text" id="card-course" value="' + String(day.course || '').replace(/"/g, '"') + '" placeholder="Valgfritt" /></div><h3 class="card-title">Tildelte slag</h3><p class="text-muted mb-2">Tallet fra klubbens liste. Ligger klart fra dagen før, og kan skrives over.</p>' + players + '</div>' + matches + '<div class="card"><h3 class="card-title">Banen</h3><p class="text-muted mb-2">Par og hullindex. Ligger klart fra dagen før.</p>' + holes + '</div><button class="btn btn-secondary btn-block" onclick="saveCardSetup(false)">Lagre og fortsett senere</button><button class="btn btn-primary btn-block mt-2" onclick="saveCardSetup(true)">Lagre og gjør klart</button>';
 }
 function generateCardMatches() {
   const t = state.current;
@@ -1113,6 +1140,8 @@ function generateCardMatches() {
 function saveCardSetup(markReady) {
   const day = state.current.days[cardDay];
   const card = ensureCard(day);
+  const courseEl = document.getElementById('card-course');
+  if (courseEl) day.course = courseEl.value.trim();
   document.querySelectorAll('.alloc-input').forEach(function (inp) {
     const name = decodeURIComponent(inp.dataset.player);
     if (inp.value.trim() === '') delete card.allocated[name];
@@ -1224,7 +1253,28 @@ function teamStatus(day, match) {
 }
 function jsName(name) { return String(name).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
 function holeNav(hole) {
-  return '<div class="hole-nav"><button class="btn btn-secondary" onclick="goHole(' + Math.max(0, hole - 1) + ')">Forrige hull</button><button class="btn btn-primary" onclick="goHole(' + Math.min(17, hole + 1) + ')">Neste hull</button></div>';
+  let html = '<div class="hole-nav"><button class="btn btn-secondary" onclick="goHole(' + Math.max(0, hole - 1) + ')">Forrige hull</button><button class="btn btn-primary" onclick="goHole(' + Math.min(17, hole + 1) + ')">Neste hull</button></div>';
+  if (hole === 17 && currentPage !== 'history-card') html += '<button class="btn btn-gold btn-block mt-3" onclick="leaveCard()">Fullfør runde</button>';
+  return html;
+}
+function missingHolesForMe(day) {
+  const me = myName();
+  const missing = [];
+  if (day.format === 'scramble') {
+    const found = scrambleMatch(day, me);
+    const arr = found && day.card.scramble ? (day.card.scramble[found.idx] || []) : [];
+    for (let i = 0; i < 18; i++) if (!arr[i]) missing.push(i + 1);
+    return missing;
+  }
+  for (let i = 0; i < 18; i++) if (grossAt(day, me, i) == null) missing.push(i + 1);
+  return missing;
+}
+function leaveCard() {
+  const day = state.current && state.current.days[cardDay];
+  if (!day) return;
+  const missing = missingHolesForMe(day);
+  if (missing.length) { toast('Du mangler å fylle ut hull ' + missing.join(', ')); return; }
+  navigate('leaderboard');
 }
 function wideStep(name, value, locked) {
   const shown = value == null ? '–' : value;
@@ -1371,10 +1421,10 @@ function scrambleCardHtml(day, match, idx, locked) {
     return '<button type="button" class="pick' + (chosen === val ? ' on' : '') + '" onclick="setScramble(\'' + val + '\')">' + label + '</button>';
   };
   return cardHead(day, 'Hull ' + (cardHole + 1), 'Akkumulert scramble') +
-    '<div class="card"><div class="status-big"><span style="color:' + a.color + '">' + a.name + '</span> <span class="text-muted">vs</span> <span style="color:' + b.color + '">' + b.name + '</span></div>' +
+    '<div class="card"><div class="team-line" style="color:' + a.color + '"><span class="badge" style="background:' + a.color + ';color:#fff;">' + a.name + '</span> ' + match.teamA.join(', ') + '</div><div class="text-center text-muted" style="margin:8px 0;">mot</div><div class="team-line" style="color:' + b.color + '"><span class="badge" style="background:' + b.color + ';color:#fff;">' + b.name + '</span> ' + match.teamB.join(', ') + '</div>' +
     '<div class="gold-result">Dette hullet er verdt ' + (pot == null ? '–' : pot) + '</div><div class="mt-3">' +
     (pot == null && !chosen ? '<p class="text-muted">Fyll hullene foran først.</p>' : btn('A', a.name + ' vinner') + btn('H', 'Delt') + btn('B', b.name + ' vinner')) +
-    '</div><div class="text-center mt-2">Hullpoeng: ' + a.name + ' ' + tot.a + ' · ' + b.name + ' ' + tot.b + '</div>' +
+    '</div><div class="points-box">Hullpoeng: ' + a.name + ' (' + tot.a + ') – ' + b.name + ' (' + tot.b + ')</div>' +
     holeDotRow(function (i) { return !!arr[i]; }) + holeNav(cardHole) + '</div>';
 }
 function cardHead(day, title, sub) {
@@ -1477,9 +1527,26 @@ function awardFromCard(day) {
   }
   day.points = points;
 }
+function cardIncomplete(day) {
+  const t = state.current;
+  if (['stableford', 'final'].includes(day.format)) {
+    return (t.players || []).some(function (p) { return missingNamed(day, p.name); });
+  }
+  if (day.format === 'scramble') {
+    return (day.teamMatches || []).some(function (m, idx) { return scrambleTotals((day.card.scramble && day.card.scramble[idx]) || []).pending; });
+  }
+  if (day.format === 'fourball') return (day.teamMatches || []).some(function (m) { return matchRun(day, m).pending; });
+  if (day.format === 'singles') return (day.matches || []).some(function (m) { return matchRun(day, { teamA: [m.p1], teamB: [m.p2] }).pending; });
+  return false;
+}
+function missingNamed(day, name) {
+  for (let i = 0; i < 18; i++) if (grossAt(day, name, i) == null) return true;
+  return false;
+}
 function finishLiveRound() {
   if (!isAdmin()) return;
   const day = state.current.days[cardDay];
+  if (cardIncomplete(day) && !confirm('Er du sikker på at du vil avslutte runden? Ikke alle har ført opp.')) return;
   awardFromCard(day);
   day.completed = true;
   saveState();
