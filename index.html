@@ -265,7 +265,7 @@
         <p id="google-redirect" class="text-muted mb-3" style="font-size:0.8rem;word-break:break-all;"></p>
         <div class="divider"></div>
         <button class="btn btn-danger btn-block" onclick="resetAllData()">Nullstill all data</button>
-        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.20 · Familiemajoren</p>
+        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.21 · Familiemajoren</p>
       </div>
     </div>
   </div>
@@ -278,7 +278,7 @@
   <nav class="bottom-nav">
     <button class="nav-btn active" data-page="home" onclick="navigate('home')"><svg viewBox="0 0 24 24"><path d="M4 10.8 12 4l8 6.8V20a1 1 0 0 1-1 1h-4.5v-6h-5V21H5a1 1 0 0 1-1-1z"/></svg>Hjem</button>
     <button class="nav-btn" data-page="tournament" onclick="navigate('tournament')"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="19.4" rx="3.2" ry="1.45"/><path d="M12 17.8V4.2"/><path d="M12 4.2h5.4L15.1 6.8l2.3 2.6H12"/></svg>Turnering</button>
-    <button class="nav-btn" data-page="leaderboard" onclick="navigate('leaderboard')"><svg viewBox="0 0 24 24"><rect x="3.5" y="12" width="4.5" height="8" rx="1.2"/><rect x="9.75" y="4" width="4.5" height="16" rx="1.2"/><rect x="16" y="8.5" width="4.5" height="11.5" rx="1.2"/></svg>Stilling</button>
+    <button class="nav-btn" id="nav-season" data-page="history" onclick="navigate('history')"><svg viewBox="0 0 24 24"><path d="M5 4.5h9.5A2 2 0 0 1 16.5 6.5V20H7a2 2 0 0 0-2 2z"/><path d="M5 4.5v15.5"/></svg>Historikk</button>
     <button class="nav-btn" data-page="media" onclick="navigate('media')"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="3.2"/><path d="M10.2 9.1v5.8L15.4 12z"/></svg>Media</button>
     <button class="nav-btn" data-page="more" onclick="navigate('more')"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="5.5" cy="12" r="1.55"/><circle cx="12" cy="12" r="1.55"/><circle cx="18.5" cy="12" r="1.55"/></svg>Mer</button>
   </nav>
@@ -513,6 +513,14 @@ function editingNow() {
 }
 
 function refreshVisible() {
+  if ((currentPage === 'leaderboard') && !standingsLive()) {
+    navigate('history');
+    return;
+  }
+  paintSeasonNav();
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const navBtn = document.querySelector('.nav-btn[data-page="' + seasonNavKey(currentPage || 'home') + '"]');
+  if (navBtn) navBtn.classList.add('active');
   const page = currentPage || 'home';
   if (page === 'home') { renderHome(); startCountdown(); return; }
   if (page === 'tournament') return renderTournament();
@@ -590,24 +598,45 @@ function forgetCloudCode() {
   showCloudGate('enter');
 }
 
+function standingsLive() {
+  return !!(state.current && (state.current.days || []).some(function (d) { return d.completed; }));
+}
+
+function paintSeasonNav() {
+  const btn = document.getElementById('nav-season');
+  if (!btn) return;
+  const live = standingsLive();
+  btn.dataset.page = live ? 'leaderboard' : 'history';
+  btn.onclick = function () { navigate(live ? 'leaderboard' : 'history'); };
+  btn.innerHTML = live
+    ? '<svg viewBox="0 0 24 24"><rect x="3.5" y="12" width="4.5" height="8" rx="1.2"/><rect x="9.75" y="4" width="4.5" height="16" rx="1.2"/><rect x="16" y="8.5" width="4.5" height="11.5" rx="1.2"/></svg>Stilling'
+    : '<svg viewBox="0 0 24 24"><path d="M5 4.5h9.5A2 2 0 0 1 16.5 6.5V20H7a2 2 0 0 0-2 2z"/><path d="M5 4.5v15.5"/></svg>Historikk';
+}
+
+function seasonNavKey(pageId) {
+  const live = standingsLive();
+  return ({
+    home: 'home', setup: 'tournament', tournament: 'tournament', scoring: 'tournament',
+    groups: 'tournament', 'group-detail': 'tournament', leaderboard: live ? 'leaderboard' : 'history', media: 'media',
+    more: 'more', settings: 'more', history: live ? 'more' : 'history', 'history-detail': live ? 'more' : 'history', hof: 'more',
+    charter: 'more', 'charter-full': 'more'
+  })[pageId] || 'home';
+}
+
 function syncChrome(pageId) {
   currentPage = pageId;
   const header = document.querySelector('.app-header');
   const ownBanner = pageId === 'home' || pageId === 'leaderboard' || pageId === 'scoring' || pageId === 'more' || pageId === 'tournament' || pageId === 'setup';
   if (header) header.hidden = ownBanner;
+  paintSeasonNav();
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  const key = {
-    home: 'home', setup: 'tournament', tournament: 'tournament', scoring: 'tournament',
-    groups: 'tournament', 'group-detail': 'tournament', leaderboard: 'leaderboard', media: 'media',
-    more: 'more', settings: 'more', history: 'more', 'history-detail': 'more', hof: 'more',
-    charter: 'more', 'charter-full': 'more'
-  }[pageId] || 'home';
-  const navBtn = document.querySelector('.nav-btn[data-page="' + key + '"]');
+  const navBtn = document.querySelector('.nav-btn[data-page="' + seasonNavKey(pageId) + '"]');
   if (navBtn) navBtn.classList.add('active');
   rememberPage(pageId);
 }
 
 function navigate(pageId) {
+  if (pageId === 'leaderboard' && !standingsLive()) pageId = 'history';
   syncChrome(pageId);
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const page = document.getElementById('page-' + pageId);
@@ -1919,12 +1948,13 @@ function renderMedia() {
 
 function renderHistory() {
   const el = document.getElementById('history-content');
+  const backMer = standingsLive() ? '<button type="button" class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'more\')">← Tilbake</button>' : '';
   if (!state.history.length) {
-    el.innerHTML = '<button type="button" class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'more\')">← Tilbake</button><div class="card"><div class="empty-state"><div class="icon">📚</div><p>Ingen fullførte turneringer.</p></div></div>';
+    el.innerHTML = backMer + '<div class="card"><div class="empty-state"><div class="icon">📚</div><p>Ingen fullførte turneringer.</p></div></div>';
     return;
   }
   const sorted = [...state.history].sort((a,b) => b.year - a.year);
-  el.innerHTML = '<button type="button" class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'more\')">← Tilbake</button><div class="card"><h2 class="card-title">📚 Historikk / Mesterliste</h2></div>' +
+  el.innerHTML = backMer + '<div class="card"><h2 class="card-title">📚 Historikk / Mesterliste</h2></div>' +
     sorted.map(h => {
       const idx = state.history.indexOf(h);
       return '<div class="history-item" onclick="openHistoryDetail(' + idx + ')"><div class="history-year">' + h.year + '</div><div class="history-info"><div class="history-sted">' + h.sted + (h.startDate ? ' · ' + formatDate(h.startDate) : '') + '</div><div class="history-winner">🏆 ' + h.winner + '</div></div><div class="history-arrow">›</div></div>';
