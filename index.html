@@ -29,7 +29,8 @@
     .home-banner { position: relative; margin: -20px -16px 16px; height: calc(230px + env(safe-area-inset-top)); background: #143622 url('banner.jpg') center 42% / cover no-repeat; color: white; overflow: hidden; }
     .home-banner::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(8,30,16,.78), rgba(8,30,16,.12) 58%); }
     .home-banner-logo { position: absolute; z-index: 1; top: calc(14px + env(safe-area-inset-top)); left: 16px; width: 54px; height: 54px; border-radius: 14px; object-fit: cover; box-shadow: 0 4px 14px rgba(0,0,0,.28); }
-    .home-banner-motto { position: absolute; z-index: 1; left: 16px; right: 16px; bottom: 18px; font-family: 'Playfair Display', Georgia, serif; font-size: 1.35rem; line-height: 1.25; text-shadow: 0 2px 12px rgba(0,0,0,.5); }
+    .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .photo-grid img { width: 100%; height: 140px; object-fit: cover; border-radius: 8px; background: var(--gray-100); }
     .logo-text h1 { font-size: 1.25rem; margin: 0; }
     .logo-text span { font-size: 0.7rem; opacity: 0.85; font-family: 'Inter', sans-serif; font-weight: 500; }
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--gray-200); display: flex; justify-content: space-around; padding: 6px 0 calc(6px + env(safe-area-inset-bottom)); z-index: 100; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); }
@@ -195,8 +196,18 @@
         <input type="file" id="import-file" accept=".json" class="hidden" onchange="importData(event)" />
         <button class="btn btn-outline btn-block mb-2" onclick="forgetCloudCode()">Bytt familiekode på denne telefonen</button>
         <div class="divider"></div>
+        <h2 class="card-title">Google Foto</h2>
+        <p class="text-muted mb-3">Bildene lagres i ett album per år på Google-kontoen din. Appen sorterer dem på dag.</p>
+        <p id="google-status" class="text-muted mb-3">Sjekker koblingen…</p>
+        <div class="form-group"><label>Client ID</label><input type="text" id="google-client-id" autocomplete="off" /></div>
+        <div class="form-group"><label>Client secret</label><input type="password" id="google-client-secret" autocomplete="off" /></div>
+        <button class="btn btn-secondary btn-block mb-2" onclick="saveGoogleApp()">Lagre Google-nøkler</button>
+        <button class="btn btn-primary btn-block mb-2" onclick="startGoogleConnect()">Koble til Google Foto</button>
+        <p class="text-muted" style="font-size:0.8rem;">Denne adressen skal legges inn som redirect URI hos Google:</p>
+        <p id="google-redirect" class="text-muted mb-3" style="font-size:0.8rem;word-break:break-all;"></p>
+        <div class="divider"></div>
         <button class="btn btn-outline btn-block" onclick="resetAllData()">🗑️ Nullstill all data</button>
-        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.9 · Familiemajoren</p>
+        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.10 · Familiemajoren</p>
       </div>
     </div>
   </div>
@@ -281,6 +292,7 @@ function registerAppInstall() {
 }
 
 function init() {
+  takeGoogleCode();
   loadState();
   state = normalizeState(state);
   renderPlayerInputs();
@@ -411,6 +423,7 @@ async function connectCloud(code) {
   cloudOn = true;
   startCloudPoll();
   navigate(currentPage || 'home');
+  finishGoogleLink();
 }
 
 function editingNow() {
@@ -524,6 +537,7 @@ function navigate(pageId) {
   if (pageId === 'media') renderMedia();
   if (pageId === 'charter') renderCharter();
   if (pageId === 'charter-full') renderCharterFull();
+  if (pageId === 'settings') loadGoogleStatus();
 }
 
 function formatDate(iso) {
@@ -1381,27 +1395,233 @@ function finishTournament() {
 
 
 let mediaFocus = null;
-function openMediaPlaceholder() {
-  showModal('<div style="text-align:center;"><h2 style="margin-bottom:12px;">Media</h2><p class="text-muted mb-3">Bilder kommer når turneringen ligger i skyen. Ingenting lagres på telefonen ennå.</p><button class="btn btn-primary btn-block" onclick="closeModal()">OK</button></div>');
+let mediaDay = null;
+let refreshingPhotos = false;
+
+function googleRedirect() {
+  return location.origin + location.pathname;
 }
+
+function takeGoogleCode() {
+  const params = new URLSearchParams(location.search);
+  const code = params.get('code');
+  if (!code && !params.get('error')) return;
+  if (code) sessionStorage.setItem('familiemajoren_google_code', code);
+  history.replaceState({}, '', location.pathname + location.hash);
+}
+
+async function finishGoogleLink() {
+  const code = sessionStorage.getItem('familiemajoren_google_code');
+  if (!code || !cloudOn) return;
+  sessionStorage.removeItem('familiemajoren_google_code');
+  const family = localStorage.getItem(CODE_KEY);
+  if (!family) return;
+  try {
+    await cloudRpc('connect_google', { p_password: family, p_code: code, p_redirect: googleRedirect() });
+    toast('Google Foto er koblet til');
+    navigate('settings');
+  } catch (e) {
+    toast(e.message || 'Google-koblingen feilet');
+  }
+}
+
+async function loadGoogleStatus() {
+  const el = document.getElementById('google-status');
+  const redirect = document.getElementById('google-redirect');
+  if (redirect) redirect.textContent = googleRedirect();
+  const family = localStorage.getItem(CODE_KEY);
+  if (!el) return;
+  if (!family || !cloudOn) {
+    el.textContent = 'Koble til familiekoden først.';
+    return;
+  }
+  try {
+    const status = await cloudRpc('google_status', { p_password: family });
+    const input = document.getElementById('google-client-id');
+    if (input && status.clientId && !input.value) input.value = status.clientId;
+    el.textContent = status.connected
+      ? 'Google Foto er koblet til.'
+      : (status.configured ? 'Nøklene er lagret. Trykk Koble til Google Foto.' : 'Legg inn Client ID og Client secret fra Google.');
+  } catch (e) {
+    el.textContent = 'Kunne ikke lese Google-status. Kjør SQL-scriptet i Supabase først.';
+  }
+}
+
+async function saveGoogleApp() {
+  const family = localStorage.getItem(CODE_KEY);
+  const id = document.getElementById('google-client-id').value.trim();
+  const secret = document.getElementById('google-client-secret').value.trim();
+  if (!family) { toast('Familiekode mangler'); return; }
+  try {
+    await cloudRpc('set_google_app', { p_password: family, p_client_id: id, p_client_secret: secret });
+    document.getElementById('google-client-secret').value = '';
+    toast('Google-nøklene er lagret');
+    loadGoogleStatus();
+  } catch (e) {
+    toast(e.message || 'Kunne ikke lagre');
+  }
+}
+
+function startGoogleConnect() {
+  const clientId = document.getElementById('google-client-id').value.trim();
+  if (!clientId) { toast('Legg inn Client ID først'); return; }
+  const scope = 'https://www.googleapis.com/auth/photoslibrary.appendonly https://www.googleapis.com/auth/photoslibrary.readonly.appcreateddata';
+  location.href = 'https://accounts.google.com/o/oauth2/v2/auth?response_type=code&access_type=offline&prompt=consent'
+    + '&client_id=' + encodeURIComponent(clientId)
+    + '&redirect_uri=' + encodeURIComponent(googleRedirect())
+    + '&scope=' + encodeURIComponent(scope);
+}
+
+function mediaAlbums() {
+  const albums = [];
+  if (state.current) albums.push({ year: state.current.year, sted: state.current.sted, title: state.current.year + ' · ' + state.current.sted + ' (pågår)', days: state.current.days || [] });
+  (state.history || []).forEach(h => albums.push({ year: h.year, sted: h.sted, title: h.year + ' · ' + h.sted, days: h.days || [] }));
+  return albums;
+}
+
+function findDay(year, sted, dayNumber) {
+  if (state.current && String(state.current.year) === String(year) && state.current.sted === sted) {
+    return (state.current.days || []).find(d => d.dayNumber === dayNumber);
+  }
+  const past = (state.history || []).find(h => String(h.year) === String(year) && h.sted === sted);
+  return past && (past.days || []).find(d => d.dayNumber === dayNumber);
+}
+
+function photoHtml(photo) {
+  if (!photo.baseUrl) return '';
+  const thumb = photo.baseUrl + '=w400-h400';
+  const full = photo.baseUrl + '=w1600';
+  return '<a href="' + full + '" target="_blank" rel="noopener"><img src="' + thumb + '" alt="" /></a>';
+}
+
+async function refreshPhotoUrls(photos) {
+  if (refreshingPhotos || !cloudOn) return;
+  const stale = (photos || []).filter(p => p.googleId && (!p.baseUrl || !p.baseUrlAt || Date.now() - p.baseUrlAt > 45 * 60 * 1000));
+  if (!stale.length) return;
+  const family = localStorage.getItem(CODE_KEY);
+  if (!family) return;
+  refreshingPhotos = true;
+  try {
+    const rows = await cloudRpc('google_refresh_urls', { p_password: family, p_ids: stale.map(p => p.googleId) });
+    let changed = false;
+    (rows || []).forEach(row => {
+      const photo = photos.find(p => p.googleId === row.id);
+      if (photo && row.baseUrl) {
+        photo.baseUrl = row.baseUrl;
+        photo.baseUrlAt = Date.now();
+        changed = true;
+      }
+    });
+    if (changed) {
+      saveState();
+      renderMedia();
+    }
+  } catch (e) {
+  } finally {
+    refreshingPhotos = false;
+  }
+}
+
+function shrinkImage(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const max = 2000;
+      let w = img.width;
+      let h = img.height;
+      const scale = Math.min(1, max / Math.max(w, h));
+      w = Math.round(w * scale);
+      h = Math.round(h * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      canvas.toBlob(blob => {
+        URL.revokeObjectURL(url);
+        if (!blob) reject(new Error('Kunne ikke lese bildet'));
+        else resolve(blob);
+      }, 'image/jpeg', 0.82);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Kunne ikke lese bildet'));
+    };
+    img.src = url;
+  });
+}
+
+async function uploadDayPhoto(year, sted, dayNumber, file) {
+  const family = localStorage.getItem(CODE_KEY);
+  const day = findDay(year, sted, dayNumber);
+  if (!family || !day) { toast('Fant ikke dagen'); return; }
+  toast('Laster opp bildet…');
+  try {
+    const blob = await shrinkImage(file);
+    const res = await fetch(CLOUD_URL + '/functions/v1/google-photo', {
+      method: 'POST',
+      headers: {
+        apikey: CLOUD_KEY,
+        Authorization: 'Bearer ' + CLOUD_KEY,
+        'x-family-code': family,
+        'x-year': String(year),
+        'x-day': String(dayNumber),
+        'x-sted': sted || '',
+        'Content-Type': 'image/jpeg'
+      },
+      body: blob
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || json.message || 'Opplasting feilet');
+    if (!day.photos) day.photos = [];
+    day.photos.push({ googleId: json.googleId, baseUrl: json.baseUrl, baseUrlAt: Date.now(), filename: json.filename });
+    saveState();
+    toast('Bildet ligger i Google Foto');
+    renderMedia();
+  } catch (e) {
+    toast(e.message || 'Opplasting feilet');
+  }
+}
+
+function onDayPhotoPicked(year, sted, dayNumber, input) {
+  const files = Array.from(input.files || []);
+  input.value = '';
+  files.reduce((chain, file) => chain.then(() => uploadDayPhoto(year, sted, dayNumber, file)), Promise.resolve());
+}
+
+function openDayMedia(year, sted, dayNumber) {
+  const albums = mediaAlbums();
+  mediaFocus = albums.findIndex(a => String(a.year) === String(year) && a.sted === sted);
+  if (mediaFocus < 0) mediaFocus = null;
+  mediaDay = dayNumber;
+  navigate('media');
+}
+
 function renderMedia() {
   const el = document.getElementById('media-content');
-  const albums = [];
-  if (state.current) albums.push({ title: state.current.year + ' · ' + state.current.sted + ' (pågår)', days: state.current.days || [] });
-  (state.history || []).forEach(h => albums.push({ title: h.year + ' · ' + h.sted, days: h.days || [] }));
+  const albums = mediaAlbums();
   if (!albums.length) {
     el.innerHTML = '<div class="card"><div class="empty-state"><div class="icon">📷</div><p>Ingen turneringer å vise bilder for ennå.</p></div></div>';
     return;
   }
-  if (mediaFocus === null) {
-    el.innerHTML = '<div class="card"><h2 class="card-title">Media</h2><p class="text-muted mb-3">Album per år. Opplasting kommer med skybasert lagring.</p>' +
+  if (mediaFocus === null || !albums[mediaFocus]) {
+    mediaFocus = null;
+    el.innerHTML = '<div class="card"><h2 class="card-title">Media</h2><p class="text-muted mb-3">Ett album per år i Google Foto. Her sorteres bildene på dag.</p>' +
       albums.map((a, i) => '<button type="button" class="group-choice" onclick="mediaFocus=' + i + ';renderMedia()">' + a.title + '</button>').join('') + '</div>';
     return;
   }
   const album = albums[mediaFocus];
-  if (!album) { mediaFocus = null; renderMedia(); return; }
-  el.innerHTML = '<div class="card"><button type="button" class="btn btn-sm btn-secondary mb-3" onclick="mediaFocus=null;renderMedia()">Tilbake</button><h2 class="card-title">' + album.title + '</h2>' +
-    album.days.map(d => '<div class="history-item" style="cursor:default;"><div class="history-info"><div class="history-sted">Dag ' + d.dayNumber + (d.date ? ' · ' + formatDate(d.date) : '') + '</div><div class="history-winner">' + (FORMATS[d.format] || '') + '</div></div><button type="button" class="btn btn-sm btn-secondary" onclick="openMediaPlaceholder()">Legg til bilde</button></div><p class="text-muted mb-3" style="font-size:0.85rem;">Ingen bilder ennå.</p>').join('') + '</div>';
+  const days = mediaDay ? album.days.filter(d => d.dayNumber === mediaDay) : album.days;
+  const allPhotos = [];
+  el.innerHTML = '<div class="card"><button type="button" class="btn btn-sm btn-secondary mb-3" onclick="mediaFocus=null;mediaDay=null;renderMedia()">Tilbake</button><h2 class="card-title">' + album.title + '</h2><p class="text-muted mb-3">I Google Foto samles alt i albumet Familiemajoren ' + album.year + '.</p>' +
+    days.map(d => {
+      const photos = d.photos || [];
+      photos.forEach(p => allPhotos.push(p));
+      const inputId = 'photo-' + album.year + '-' + d.dayNumber;
+      return '<div id="media-day-' + d.dayNumber + '" style="margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--gray-100);"><div class="flex justify-between items-center"><strong>Dag ' + d.dayNumber + (d.date ? ' · ' + formatDate(d.date) : '') + '</strong><button type="button" class="btn btn-sm btn-primary" onclick="document.getElementById(\'' + inputId + '\').click()">Legg til bilde</button></div><input id="' + inputId + '" type="file" accept="image/*" multiple class="hidden" onchange="onDayPhotoPicked(' + JSON.stringify(album.year) + ',' + JSON.stringify(album.sted) + ',' + d.dayNumber + ', this)" />' +
+        (photos.length ? '<div class="photo-grid">' + photos.map(photoHtml).join('') + '</div>' : '<p class="text-muted mt-2" style="font-size:0.85rem;">Ingen bilder ennå.</p>') + '</div>';
+    }).join('') + '</div>';
+  refreshPhotoUrls(allPhotos);
 }
 
 function renderHistory() {
@@ -1423,7 +1643,7 @@ function openHistoryDetail(index) {
   if (!h) return;
   const el = document.getElementById('history-detail-content');
   el.innerHTML = '<div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'history\')">← Tilbake</button><div class="section-title">Familiemajoren</div><h2 style="margin:0 0 4px;">' + h.year + ' · ' + h.sted + '</h2><div class="badge badge-gold mt-2">🏆 ' + h.winner + '</div></div><div class="card"><h3 class="card-title">Sluttstilling</h3>' + renderStandingsTable(h.standings || []) + '</div><div class="card"><h3 class="card-title">Dag for dag</h3>' +
-    (h.days || []).map(d => '<div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--gray-100);"><div class="flex justify-between mb-1"><strong>Dag ' + d.dayNumber + (d.date ? ' · ' + formatDate(d.date) : '') + '</strong><span class="badge badge-green">' + (FORMATS[d.format]||d.format) + '</span></div>' + (d.course ? '<div class="text-muted" style="font-size:0.85rem;">📍 ' + d.course + '</div>' : '') + '<button type="button" class="btn btn-sm btn-secondary mt-2" onclick="openMediaPlaceholder()">Bilder</button>' + (d.points ? Object.entries(d.points).sort((a,b)=>b[1]-a[1]).map(([n,p]) => '<div class="flex justify-between" style="font-size:0.9rem;"><span>' + n + '</span><span>' + p + ' p</span></div>').join('') : '') + '</div>').join('') + '</div>';
+    (h.days || []).map(d => '<div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--gray-100);"><div class="flex justify-between mb-1"><strong>Dag ' + d.dayNumber + (d.date ? ' · ' + formatDate(d.date) : '') + '</strong><span class="badge badge-green">' + (FORMATS[d.format]||d.format) + '</span></div>' + (d.course ? '<div class="text-muted" style="font-size:0.85rem;">📍 ' + d.course + '</div>' : '') + '<button type="button" class="btn btn-sm btn-secondary mt-2" onclick="openDayMedia(' + JSON.stringify(h.year) + ',' + JSON.stringify(h.sted) + ',' + d.dayNumber + ')">Bilder</button>' + (d.points ? Object.entries(d.points).sort((a,b)=>b[1]-a[1]).map(([n,p]) => '<div class="flex justify-between" style="font-size:0.9rem;"><span>' + n + '</span><span>' + p + ' p</span></div>').join('') : '') + '</div>').join('') + '</div>';
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-history-detail').classList.add('active');
 }
