@@ -31,10 +31,29 @@
     .home-banner::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(8,30,16,.78), rgba(8,30,16,.12) 58%); }
     .home-banner-logo { position: absolute; z-index: 1; top: calc(14px + env(safe-area-inset-top)); left: 16px; width: 54px; height: 54px; border-radius: 14px; object-fit: cover; box-shadow: 0 4px 14px rgba(0,0,0,.28); }
     .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-    .hole-dots { display: flex; gap: 5px; flex-wrap: wrap; margin: 12px 0; }
-    .hole-dots button { width: 16px; height: 16px; border-radius: 50%; border: none; background: #e5e7eb; padding: 0; }
+    .hole-dots { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin: 16px 0; }
+    .hole-dots button { width: 14px; height: 14px; border-radius: 50%; border: none; background: #e5e7eb; padding: 0; }
     .hole-dots button.done { background: var(--green-800); }
     .hole-dots button.now { background: #c9a227; }
+    .wide-step { display: flex; align-items: center; background: #f3f4f6; border-radius: 999px; padding: 8px; margin: 18px 0 6px; }
+    .wide-step button { width: 64px; height: 64px; border: none; border-radius: 50%; background: #14532d; color: white; font-size: 2rem; line-height: 1; }
+    .wide-step .num { flex: 1; text-align: center; font-size: 3rem; font-weight: 700; color: #111827; }
+    .hole-nav { display: flex; gap: 10px; margin-top: 8px; }
+    .hole-nav .btn { flex: 1; }
+    .team-card { border-radius: 16px; padding: 14px 14px 6px; margin-bottom: 12px; border-left: 6px solid #2563eb; background: #fff; box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+    .fb-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 0; border-top: 1px solid #f3f4f6; }
+    .mini-step { display: flex; align-items: center; gap: 8px; }
+    .mini-step button { width: 36px; height: 36px; border-radius: 50%; border: 1px solid #e5e7eb; background: #fff; font-size: 1.2rem; }
+    .gold-result { background: #fbf6e4; color: #92400e; border-radius: 12px; text-align: center; font-weight: 700; padding: 12px; margin-top: 8px; }
+    .status-big { text-align: center; font-size: 1.35rem; font-weight: 700; margin: 12px 0; }
+    .pick { display: block; width: 100%; text-align: center; padding: 16px; margin-bottom: 10px; border-radius: 14px; border: 1.5px solid #e5e7eb; background: #fff; font-weight: 700; font-size: 1.05rem; }
+    .pick.on { background: #14532d; color: #fff; border-color: #14532d; }
+    .full-table { width: 100%; }
+    .full-head, .full-row { display: grid; grid-template-columns: 1.4fr .7fr .7fr 1fr; padding: 11px 4px; }
+    .full-head { color: #6b7280; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; }
+    .full-row { border-top: 1px solid #f3f4f6; }
+    .full-row.now { background: #fbf6e8; border-radius: 8px; }
+    .tag-gold { color: #b45309; font-weight: 700; font-size: 0.78rem; }
     .home-banner-motto { position: absolute; z-index: 1; left: 18px; right: 18px; bottom: 16px; margin: 0; font-family: 'Playfair Display', Georgia, serif; font-size: 1.35rem; line-height: 1.25; text-shadow: 0 2px 12px rgba(0,0,0,.55); }
     .page-banner { margin: -20px -16px 16px; background: #0f3d1a; color: white; padding: calc(16px + env(safe-area-inset-top)) 16px 16px; display: flex; align-items: center; gap: 12px; }
     .page-banner img { width: 44px; height: 44px; border-radius: 12px; object-fit: cover; flex: none; }
@@ -277,7 +296,7 @@
         <p id="google-redirect" class="text-muted mb-3" style="font-size:0.8rem;word-break:break-all;"></p>
         <div class="divider"></div>
         <button class="btn btn-danger btn-block" onclick="resetAllData()">Nullstill all data</button>
-        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.22 · Familiemajoren</p>
+        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.23 · Familiemajoren</p>
       </div>
     </div>
   </div>
@@ -963,6 +982,7 @@ function saveSetup() {
 
 let cardDay = 0;
 let cardHole = 0;
+let cardFull = false;
 let historyView = null;
 const ME_KEY = 'familiemajoren_me';
 const ADMIN_KEY = 'familiemajoren_admin_ok';
@@ -1113,14 +1133,14 @@ function saveCardSetup(markReady) {
   saveState();
   navigate('tournament');
 }
-function openLiveCard(i) { cardDay = i; cardHole = 0; navigate('card'); }
+function openLiveCard(i) { cardDay = i; cardHole = 0; cardFull = false; navigate('card'); }
 function setMeIndex(i) {
   const p = state.current && state.current.players[i];
   if (p) localStorage.setItem(ME_KEY, p.name);
   renderLiveCard();
 }
 function clearMe() { localStorage.removeItem(ME_KEY); renderLiveCard(); }
-function goHole(i) { cardHole = i; renderLiveCard(); }
+function goHole(i) { cardHole = i; if (currentPage === 'history-card') renderHistoryCard(); else renderLiveCard(); }
 function holeDotRow(filledFn) {
   let html = '<div class="hole-dots">';
   for (let i = 0; i < 18; i++) html += '<button type="button" class="' + (i === cardHole ? 'now' : (filledFn(i) ? 'done' : '')) + '" onclick="goHole(' + i + ')"></button>';
@@ -1128,7 +1148,7 @@ function holeDotRow(filledFn) {
 }
 function setGross(name, hole, value) {
   const day = state.current.days[cardDay];
-  if (day.completed && !isAdmin()) return;
+  if (day.completed) return;
   if (!canEditName(name)) return;
   ensureCard(day);
   if (!day.card.gross[name]) day.card.gross[name] = Array(18).fill(null);
@@ -1174,56 +1194,124 @@ function matchRun(day, match) {
   const lead = a - b;
   const nameA = match.teamA[0];
   const nameB = match.teamB[0];
-  const text = lead === 0 ? 'All square' : (lead > 0 ? nameA + ' ' + lead + ' opp' : nameB + ' ' + (-lead) + ' opp');
+  const text = lead === 0 ? 'Likt' : (lead > 0 ? nameA + ' ' + lead + ' opp' : nameB + ' ' + (-lead) + ' opp');
   const result = pending ? null : (lead > 0 ? 'A' : lead < 0 ? 'B' : 'halved');
   return { a: a, b: b, pending: pending, text: text, result: result };
 }
+const TEAM_LOOK = [
+  { name: 'Lag 1', color: '#2563eb', word: 'Blått', wash: '#f8fbff' },
+  { name: 'Lag 2', color: '#dc2626', word: 'Rødt', wash: '#fff8f8' },
+  { name: 'Lag 3', color: '#059669', word: 'Grønt', wash: '#f3fbf7' },
+  { name: 'Lag 4', color: '#d97706', word: 'Gult', wash: '#fffbeb' },
+  { name: 'Lag 5', color: '#7c3aed', word: 'Lilla', wash: '#f7f5ff' },
+  { name: 'Lag 6', color: '#db2777', word: 'Rosa', wash: '#fdf2f8' }
+];
+function teamLook(day, names) {
+  const teams = day.teams || [];
+  let idx = 0;
+  for (let i = 0; i < teams.length; i++) {
+    const t = teams[i] || [];
+    if (t.length === names.length && names.every(function (n) { return t.indexOf(n) >= 0; })) { idx = i; break; }
+  }
+  return TEAM_LOOK[idx % TEAM_LOOK.length];
+}
+function teamStatus(day, match) {
+  const run = matchRun(day, match);
+  const a = teamLook(day, match.teamA);
+  const b = teamLook(day, match.teamB);
+  const lead = run.a - run.b;
+  return { a: a, b: b, run: run, text: lead === 0 ? 'Likt' : (lead > 0 ? a.word + ' ' + lead + ' opp' : b.word + ' ' + (-lead) + ' opp') };
+}
+function jsName(name) { return String(name).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
+function holeNav(hole) {
+  return '<div class="hole-nav"><button class="btn btn-secondary" onclick="goHole(' + Math.max(0, hole - 1) + ')">Forrige hull</button><button class="btn btn-primary" onclick="goHole(' + Math.min(17, hole + 1) + ')">Neste hull</button></div>';
+}
+function wideStep(name, value, locked) {
+  const shown = value == null ? '–' : value;
+  if (locked) return '<div class="wide-step"><div class="num">' + shown + '</div></div>';
+  return '<div class="wide-step"><button type="button" onclick="bumpNamed(\'' + jsName(name) + '\',-1)">−</button><div class="num">' + shown + '</div><button type="button" onclick="bumpNamed(\'' + jsName(name) + '\',1)">+</button></div>';
+}
+function showFullCard(on) { cardFull = !!on; renderLiveCard(); }
 function renderStablefordCard(el, t, day) {
   const me = myName();
+  if (cardFull) return renderFullStableford(el, day, me, 'showFullCard(false)');
   const h = cardHole;
   const par = day.card.holes[h].par || 4;
   const recv = receivedAt(day, me, h);
   const g = grossAt(day, me, h);
   const pts = g == null ? '–' : stablefordAt(day, me, h);
-  const locked = day.completed && !isAdmin();
-  const controls = locked ? '<div style="font-size:2rem;font-weight:700;">' + (g == null ? '–' : g) + '</div>' : '<div class="stepper"><button type="button" onclick="bumpNamed(\'' + me.replace(/'/g, "\\'") + '\',-1)">−</button><div style="min-width:48px;text-align:center;font-size:1.8rem;font-weight:700;">' + (g == null ? '–' : g) + '</div><button type="button" onclick="bumpNamed(\'' + me.replace(/'/g, "\\'") + '\',1)">+</button></div>';
-  const out = rangeSums(day, me, 0, 9);
-  const inn = rangeSums(day, me, 9, 18);
-  const all = rangeSums(day, me, 0, 18);
-  el.innerHTML = cardHead(day, 'Hull ' + (h + 1)) + '<div class="card"><div class="text-muted">' + me + ' · ' + (day.card.allocated[me] || 0) + ' slag i dag</div><div class="flex justify-between items-center mt-2"><strong>Par ' + par + '</strong>' + (recv ? '<span class="badge badge-green">Du har slag her</span>' : '') + '</div><div style="text-align:center;margin:16px 0;">' + controls + '<div class="text-muted">Slag</div><div class="badge badge-green mt-2">' + pts + ' poeng på hullet</div></div>' + holeDotRow(function (i) { return grossAt(day, me, i) != null; }) + sumLine('Ut', out) + sumLine('Inn', inn) + sumLine('Totalt', all) + '<button class="btn btn-primary btn-block mt-3" onclick="goHole(' + Math.min(17, h + 1) + ')">Neste hull</button><button class="btn btn-sm btn-secondary mt-3" onclick="clearMe()">Bytt spiller</button></div>' + finishButton(day);
+  const locked = !!day.completed;
+  el.innerHTML = cardHead(day, 'Hull ' + (h + 1), me + ' · ' + (day.card.allocated[me] || 0) + ' slag i dag') +
+    '<div class="card"><div class="flex justify-between items-center"><strong>Par ' + par + '</strong>' + (recv ? '<span class="badge badge-green">Du har slag her</span>' : '') + '</div>' +
+    wideStep(me, g, locked) + '<div class="text-center"><span class="badge badge-green">' + pts + ' poeng på hullet</span></div>' +
+    holeDotRow(function (i) { return grossAt(day, me, i) != null; }) + holeNav(h) +
+    '<button class="btn btn-secondary btn-block mt-3" onclick="showFullCard(true)">Hele scorekortet</button><button class="btn btn-sm btn-secondary mt-3" onclick="clearMe()">Bytt spiller</button></div>' + roundButtons(day);
 }
-function playerRow(day, name) {
+function grossMark(day, name, i) {
+  const g = grossAt(day, name, i);
+  if (g == null) return '';
+  const under = (day.card.holes[i].par || 4) - g;
+  if (g === 1) return ' <span class="tag-gold">Hole-in-one</span>';
+  if (under >= 3) return ' <span class="tag-gold">Albatross</span>';
+  if (under === 2) return ' <span class="tag-gold">Eagle</span>';
+  return '';
+}
+function renderFullStableford(el, day, name, back) {
+  let rows = '';
+  for (let i = 0; i < 18; i++) {
+    const g = grossAt(day, name, i);
+    const par = day.card.holes[i].par || 4;
+    const pts = stablefordAt(day, name, i);
+    rows += '<div class="full-row' + (i === cardHole ? ' now' : '') + '"><span>' + (i + 1) + grossMark(day, name, i) + '</span><span>' + par + '</span><span>' + (g == null ? '–' : g) + '</span><span>' + (pts == null ? '–' : pts) + '</span></div>';
+  }
+  const out = rangeSums(day, name, 0, 9), inn = rangeSums(day, name, 9, 18), all = rangeSums(day, name, 0, 18);
+  el.innerHTML = cardHead(day, 'Hele scorekortet', name + ' · ' + (FORMATS[day.format] || '')) +
+    '<div class="card"><div class="full-table"><div class="full-head"><span>Hull</span><span>Par</span><span>Slag</span><span>Poeng</span></div>' + rows + '</div><div class="mt-3">' + sumLine('Ut', out) + sumLine('Inn', inn) + sumLine('Totalt', all) + '</div><button class="btn btn-secondary btn-block mt-3" onclick="' + back + '">Tilbake til hullet</button></div>';
+}
+function playerRow(day, name, locked) {
   const g = grossAt(day, name, cardHole);
   const net = netAt(day, name, cardHole);
   const recv = receivedAt(day, name, cardHole);
-  const edit = canEditName(name) && (!day.completed || isAdmin());
-  const controls = edit ? '<button type="button" class="btn btn-sm btn-secondary" onclick="bumpNamed(\'' + name.replace(/'/g, "\\'") + '\',-1)">−</button><strong style="min-width:24px;text-align:center;">' + (g == null ? '–' : g) + '</strong><button type="button" class="btn btn-sm btn-secondary" onclick="bumpNamed(\'' + name.replace(/'/g, "\\'") + '\',1)">+</button>' : '<strong>' + (g == null ? '–' : g) + '</strong>';
-  return '<div class="score-line"><div><div class="board-name">' + name + (recv ? ' <span class="badge badge-green">slag</span>' : '') + '</div></div><div class="flex items-center" style="gap:6px;">' + controls + '<span class="text-muted">netto ' + (net == null ? '–' : net) + '</span></div></div>';
+  const edit = !locked && canEditName(name) && !day.completed;
+  const controls = edit
+    ? '<div class="mini-step"><button type="button" onclick="bumpNamed(\'' + jsName(name) + '\',-1)">−</button><strong>' + (g == null ? '–' : g) + '</strong><button type="button" onclick="bumpNamed(\'' + jsName(name) + '\',1)">+</button></div>'
+    : '<strong>' + (g == null ? '–' : g) + '</strong>';
+  return '<div class="fb-row"><div>' + name + (recv ? ' <span class="badge badge-green">slag</span>' : '') + '</div><div class="flex items-center" style="gap:10px;">' + controls + '<span class="text-muted">netto ' + (net == null ? '–' : net) + '</span></div></div>';
 }
 function renderMatchCard(el, t, day) {
   const me = myName();
   let match = null;
-  let label = '';
   if (day.format === 'singles') {
     const idx = (day.matches || []).findIndex(function (m) { return m.p1 === me || m.p2 === me; });
     const m = (day.matches || [])[isAdmin() && idx < 0 ? 0 : idx];
     if (!m) { el.innerHTML = '<div class="card"><p>Ingen match for deg.</p></div>'; return; }
-    match = { teamA: [m.p1], teamB: [m.p2] };
-    label = 'Singler';
+    match = { teamA: [m.p1], teamB: [m.p2], singles: true };
   } else {
     const idx = (day.teamMatches || []).findIndex(function (m) { return m.teamA.includes(me) || m.teamB.includes(me); });
     match = (day.teamMatches || [])[isAdmin() && idx < 0 ? 0 : idx];
     if (!match) { el.innerHTML = '<div class="card"><p>Ingen kamp for deg.</p></div>'; return; }
-    label = 'Fourball';
   }
+  el.innerHTML = matchCardHtml(day, match, false) + roundButtons(day);
+}
+function matchCardHtml(day, match, locked) {
   const h = cardHole;
   const par = day.card.holes[h].par || 4;
   const w = holeWinner(day, match, h);
   const bestA = sideBest(day, match.teamA, h);
   const bestB = sideBest(day, match.teamB, h);
-  const who = w === 'A' ? match.teamA[0] + ' vinner hullet' : w === 'B' ? match.teamB[0] + ' vinner hullet' : w === 'H' ? 'Delt hull' : 'Venter på alle slag';
-  const run = matchRun(day, match);
-  el.innerHTML = cardHead(day, 'Hull ' + (h + 1)) + '<div class="card"><div class="text-muted mb-2">' + label + ' · Par ' + par + '</div><h3 class="card-title">' + match.teamA.join(' / ') + (bestA == null ? '' : ' · beste netto ' + bestA) + '</h3>' + match.teamA.map(function (n) { return playerRow(day, n); }).join('') + '<h3 class="card-title mt-3">' + match.teamB.join(' / ') + (bestB == null ? '' : ' · beste netto ' + bestB) + '</h3>' + match.teamB.map(function (n) { return playerRow(day, n); }).join('') + '<div class="badge badge-gold mt-3">' + who + '</div><div class="mt-2">Stilling: ' + run.text + '</div>' + holeDotRow(function (i) { return holeWinner(day, match, i) != null; }) + '<button class="btn btn-primary btn-block mt-3" onclick="goHole(' + Math.min(17, h + 1) + ')">Neste hull</button><button class="btn btn-sm btn-secondary mt-3" onclick="clearMe()">Bytt spiller</button></div>' + finishButton(day);
+  const lookA = match.singles ? { name: match.teamA[0], color: '#14532d', wash: '#fff' } : teamLook(day, match.teamA);
+  const lookB = match.singles ? { name: match.teamB[0], color: '#14532d', wash: '#fff' } : teamLook(day, match.teamB);
+  const status = match.singles ? matchRun(day, match).text : teamStatus(day, match).text;
+  const who = w === 'A' ? lookA.word || lookA.name : w === 'B' ? lookB.word || lookB.name : '';
+  const result = w === 'H' ? 'Delt hull' : who ? (who + ' vinner hullet') : 'Venter på alle slag';
+  const block = function (look, names, best) {
+    return '<div class="team-card" style="border-left-color:' + look.color + ';background:' + look.wash + '"><div class="flex justify-between"><strong style="color:' + look.color + '">' + look.name + '</strong><span class="text-muted">' + (best == null ? '' : 'Beste netto ' + best) + '</span></div>' + names.map(function (n) { return playerRow(day, n, locked); }).join('') + '</div>';
+  };
+  return cardHead(day, 'Hull ' + (h + 1), (match.singles ? 'Singler' : 'Fourball') + ' · Par ' + par) +
+    '<div class="card">' + block(lookA, match.teamA, bestA) + block(lookB, match.teamB, bestB) +
+    '<div class="gold-result">' + result + '</div><div class="status-big">' + (match.singles ? status : status) + '</div>' +
+    holeDotRow(function (i) { return holeWinner(day, match, i) != null; }) + holeNav(h) +
+    (locked ? '' : '<button class="btn btn-sm btn-secondary mt-3" onclick="clearMe()">Bytt spiller</button>') + '</div>';
 }
 function scramblePot(arr, hole) {
   let pot = 1;
@@ -1250,7 +1338,7 @@ function setScramble(val) {
   const match = (day.teamMatches || [])[use];
   if (!match) return;
   if (!isAdmin() && !match.teamA.includes(me) && !match.teamB.includes(me)) return;
-  if (day.completed && !isAdmin()) return;
+  if (day.completed) return;
   ensureCard(day);
   if (!day.card.scramble[use]) day.card.scramble[use] = Array(18).fill(null);
   if (scramblePot(day.card.scramble[use], cardHole) == null) { toast('Fyll hullene foran først'); return; }
@@ -1259,21 +1347,38 @@ function setScramble(val) {
   renderLiveCard();
 }
 function renderScrambleCard(el, t, day) {
-  const me = myName();
+  const found = scrambleMatch(day, myName());
+  if (!found) { el.innerHTML = '<div class="card"><p>Ingen scramble-kamp for deg.</p></div>'; return; }
+  el.innerHTML = scrambleCardHtml(day, found.match, found.idx, false) + roundButtons(day);
+}
+function scrambleMatch(day, me) {
   const idx = (day.teamMatches || []).findIndex(function (m) { return m.teamA.includes(me) || m.teamB.includes(me); });
   const use = isAdmin() && idx < 0 ? 0 : idx;
   const match = (day.teamMatches || [])[use];
-  if (!match) { el.innerHTML = '<div class="card"><p>Ingen scramble-kamp for deg.</p></div>'; return; }
+  return match ? { match: match, idx: use } : null;
+}
+function scrambleCardHtml(day, match, idx, locked) {
   ensureCard(day);
-  const arr = day.card.scramble[use] || Array(18).fill(null);
+  const arr = day.card.scramble[idx] || Array(18).fill(null);
   const pot = scramblePot(arr, cardHole);
   const tot = scrambleTotals(arr);
-  const can = (isAdmin() || match.teamA.includes(me) || match.teamB.includes(me)) && (!day.completed || isAdmin());
-  const buttons = !can || pot == null ? '<p class="text-muted">Fyll hullene foran først.</p>' : '<button class="btn btn-primary btn-block mb-2" onclick="setScramble(\'A\')">' + match.teamA[0] + ' vinner</button><button class="btn btn-secondary btn-block mb-2" onclick="setScramble(\'H\')">Delt</button><button class="btn btn-secondary btn-block" onclick="setScramble(\'B\')">' + match.teamB[0] + ' vinner</button>';
-  el.innerHTML = cardHead(day, 'Hull ' + (cardHole + 1)) + '<div class="card"><div class="text-muted mb-2">Akkumulert scramble</div><div>' + match.teamA.join(' / ') + ' mot ' + match.teamB.join(' / ') + '</div><div class="badge badge-gold mt-3">Dette hullet er verdt ' + (pot == null ? '–' : pot) + '</div><div class="mt-3">' + buttons + '</div><div class="mt-3">Hullpoeng: ' + tot.a + ' – ' + tot.b + '</div>' + holeDotRow(function (i) { return !!(arr[i]); }) + '<button class="btn btn-primary btn-block mt-3" onclick="goHole(' + Math.min(17, cardHole + 1) + ')">Neste hull</button></div>' + finishButton(day);
+  const a = teamLook(day, match.teamA);
+  const b = teamLook(day, match.teamB);
+  const chosen = arr[cardHole];
+  const can = !locked && !day.completed && (isAdmin() || match.teamA.includes(myName()) || match.teamB.includes(myName())) && pot != null;
+  const btn = function (val, label) {
+    if (!can) return '<div class="pick' + (chosen === val ? ' on' : '') + '">' + label + '</div>';
+    return '<button type="button" class="pick' + (chosen === val ? ' on' : '') + '" onclick="setScramble(\'' + val + '\')">' + label + '</button>';
+  };
+  return cardHead(day, 'Hull ' + (cardHole + 1), 'Akkumulert scramble') +
+    '<div class="card"><div class="status-big"><span style="color:' + a.color + '">' + a.name + '</span> <span class="text-muted">vs</span> <span style="color:' + b.color + '">' + b.name + '</span></div>' +
+    '<div class="gold-result">Dette hullet er verdt ' + (pot == null ? '–' : pot) + '</div><div class="mt-3">' +
+    (pot == null && !chosen ? '<p class="text-muted">Fyll hullene foran først.</p>' : btn('A', a.name + ' vinner') + btn('H', 'Delt') + btn('B', b.name + ' vinner')) +
+    '</div><div class="text-center mt-2">Hullpoeng: ' + a.name + ' ' + tot.a + ' · ' + b.name + ' ' + tot.b + '</div>' +
+    holeDotRow(function (i) { return !!arr[i]; }) + holeNav(cardHole) + '</div>';
 }
-function cardHead(day, title) {
-  return '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>' + title + '</h1><div class="sub">Dag ' + day.dayNumber + ' · ' + (FORMATS[day.format] || '') + '</div></div></div>';
+function cardHead(day, title, sub) {
+  return '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>' + title + '</h1><div class="sub">' + (sub || ('Dag ' + day.dayNumber + ' · ' + (FORMATS[day.format] || ''))) + '</div></div></div>';
 }
 function rangeSums(day, name, from, to) {
   let par = 0, slag = 0, poeng = 0, n = 0;
@@ -1287,12 +1392,21 @@ function rangeSums(day, name, from, to) {
   return { par: par, slag: slag, poeng: poeng, n: n };
 }
 function sumLine(label, s) {
-  if (!s.n) return '';
-  return '<div class="flex justify-between" style="font-size:0.92rem;margin-top:4px;"><strong>' + label + '</strong><span>Par ' + s.par + ' · Slag ' + s.slag + ' · Poeng ' + s.poeng + '</span></div>';
+  return '<div class="flex justify-between" style="font-size:0.92rem;margin-top:6px;"><strong>' + label + '</strong><span>Par ' + (s.par || 0) + ' · Slag ' + (s.slag || 0) + ' · Poeng ' + (s.poeng || 0) + '</span></div>';
 }
-function finishButton(day) {
-  if (!isAdmin() || day.completed) return '';
+function roundButtons(day) {
+  if (!isAdmin()) return '';
+  if (day.completed) return '<button class="btn btn-secondary btn-block mt-3" onclick="unlockLiveRound()">Lås opp scorekortet</button>';
   return '<button class="btn btn-gold btn-block mt-3" onclick="finishLiveRound()">Avslutt runden</button>';
+}
+function unlockLiveRound() {
+  if (!isAdmin()) return;
+  const day = state.current.days[cardDay];
+  day.completed = false;
+  day.points = null;
+  saveState();
+  toast('Scorekortet er åpnet igjen');
+  renderLiveCard();
 }
 function renderLiveCard() {
   const el = document.getElementById('card-content');
@@ -1384,10 +1498,10 @@ function liveDayHtml(t) {
   } else if (day.format === 'scramble') {
     body = (day.teamMatches || []).map(function (m, idx) {
       const tot = scrambleTotals(day.card.scramble[idx] || []);
-      return '<div style="padding:6px 0;">' + m.teamA.join(' / ') + ' ' + tot.a + ' – ' + tot.b + ' ' + m.teamB.join(' / ') + '</div>';
+      return '<div style="padding:6px 0;"><span style="color:' + teamLook(day, m.teamA).color + '">' + teamLook(day, m.teamA).name + '</span> ' + tot.a + ' – ' + tot.b + ' <span style="color:' + teamLook(day, m.teamB).color + '">' + teamLook(day, m.teamB).name + '</span></div>';
     }).join('');
   } else if (day.format === 'fourball') {
-    body = (day.teamMatches || []).map(function (m) { return '<div style="padding:6px 0;">' + m.teamA.join(' / ') + ' mot ' + m.teamB.join(' / ') + '<div class="text-muted">' + matchRun(day, m).text + '</div></div>'; }).join('');
+    body = (day.teamMatches || []).map(function (m) { const st = teamStatus(day, m); return '<div style="padding:6px 0;"><span style="color:' + st.a.color + '">' + st.a.name + '</span> mot <span style="color:' + st.b.color + '">' + st.b.name + '</span><div class="text-muted">' + st.text + '</div></div>'; }).join('');
   } else if (day.format === 'singles') {
     body = (day.matches || []).map(function (m) { return '<div style="padding:6px 0;">' + m.p1 + ' mot ' + m.p2 + '<div class="text-muted">' + matchRun(day, { teamA: [m.p1], teamB: [m.p2] }).text + '</div></div>'; }).join('');
   }
@@ -1491,6 +1605,7 @@ function openHistoryPlayers(histIndex, dayNumber) {
 }
 function openHistoryPlayer(name) {
   historyView.player = name;
+  cardHole = 0;
   renderHistoryCard();
 }
 function renderHistoryCard() {
@@ -1501,24 +1616,31 @@ function renderHistoryCard() {
   if (!day) { el.innerHTML = '<div class="card"><p>Fant ikke dagen.</p></div>'; return; }
   if (!historyView.player) {
     const rows = (h.players || []).map(function (p) {
-      const pts = day.card ? stablefordTotal(day, p.name) : '';
-      return '<button class="group-choice" onclick="openHistoryPlayer(\'' + p.name.replace(/'/g, "\\'") + '\')">' + p.name + (day.card && ['stableford', 'final'].includes(day.format) ? ' · ' + pts + ' poeng' : '') + '</button>';
+      const pts = day.card && ['stableford', 'final'].includes(day.format) ? ' · ' + stablefordTotal(day, p.name) + ' poeng' : '';
+      return '<button class="group-choice" onclick="openHistoryPlayer(\'' + jsName(p.name) + '\')">' + p.name + pts + '</button>';
     }).join('');
     el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Dag ' + day.dayNumber + '</h1><div class="sub">' + (FORMATS[day.format] || '') + '</div></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'history-detail\')">← Tilbake</button>' + (day.card ? rows : '<p class="text-muted">Dagen ble ført uten hullkort.</p>') + '</div>';
     return;
   }
   const name = historyView.player;
   ensureCard(day);
-  let rows = '';
-  for (let i = 0; i < 18; i++) {
-    const g = grossAt(day, name, i);
-    const par = day.card.holes[i].par || 4;
-    const under = g == null ? 0 : par - g;
-    const tag = g === 1 ? ' Hole-in-one' : under >= 3 ? ' Albatross' : under === 2 ? ' Eagle' : under === 1 ? ' Birdie' : '';
-    rows += '<div class="flex justify-between" style="padding:6px 0;border-bottom:1px solid var(--gray-100);"><span>Hull ' + (i + 1) + ' · par ' + par + '</span><span>' + (g == null ? '–' : g) + (['stableford', 'final'].includes(day.format) ? ' · ' + (stablefordAt(day, name, i) == null ? '–' : stablefordAt(day, name, i) + ' p') : ' · netto ' + (netAt(day, name, i) == null ? '–' : netAt(day, name, i))) + tag + '</span></div>';
+  if (['stableford', 'final'].includes(day.format)) {
+    renderFullStableford(el, day, name, 'historyView.player=null;renderHistoryCard()');
+    return;
   }
-  const out = rangeSums(day, name, 0, 9), inn = rangeSums(day, name, 9, 18), all = rangeSums(day, name, 0, 18);
-  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>' + name + '</h1><div class="sub">Dag ' + day.dayNumber + '</div></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="historyView.player=null;renderHistoryCard()">← Tilbake</button>' + rows + '<div class="mt-3">' + sumLine('Ut', out) + sumLine('Inn', inn) + sumLine('Totalt', all) + '</div></div>';
+  if (day.format === 'scramble') {
+    const found = (day.teamMatches || []).map(function (m, idx) { return { match: m, idx: idx }; }).find(function (x) { return x.match.teamA.includes(name) || x.match.teamB.includes(name); });
+    el.innerHTML = (found ? scrambleCardHtml(day, found.match, found.idx, true) : '<div class="card"><p>Fant ikke kampen.</p></div>') + '<div class="card"><button class="btn btn-secondary btn-block" onclick="historyView.player=null;renderHistoryCard()">Tilbake</button></div>';
+    return;
+  }
+  let match = null;
+  if (day.format === 'singles') {
+    const m = (day.matches || []).find(function (x) { return x.p1 === name || x.p2 === name; });
+    if (m) match = { teamA: [m.p1], teamB: [m.p2], singles: true };
+  } else {
+    match = (day.teamMatches || []).find(function (m) { return m.teamA.includes(name) || m.teamB.includes(name); });
+  }
+  el.innerHTML = (match ? matchCardHtml(day, match, true) : '<div class="card"><p>Fant ikke kampen.</p></div>') + '<div class="card"><button class="btn btn-secondary btn-block" onclick="historyView.player=null;renderHistoryCard()">Tilbake</button></div>';
 }
 
 function renderTournament() {
