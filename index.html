@@ -2,10 +2,15 @@
 <html lang="no">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#1a5f2a" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f3d1a" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Familie-Majoren" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Familiemajoren</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="icon" href="icon-192.png" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -20,7 +25,11 @@
     h1, h2, h3 { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; }
     .app-header { background: linear-gradient(135deg, var(--green-900), var(--green-800)); color: white; padding: 16px 20px; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); }
     .app-header-inner { max-width: 640px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
-    .logo-icon { width: 40px; height: 40px; background: rgba(255,255,255,0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+    .logo-icon-img { width: 42px; height: 42px; border-radius: 12px; object-fit: cover; flex: none; }
+    .home-banner { position: relative; margin: -20px -16px 16px; height: calc(230px + env(safe-area-inset-top)); background: #143622 url('banner.jpg') center 42% / cover no-repeat; color: white; overflow: hidden; }
+    .home-banner::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(8,30,16,.78), rgba(8,30,16,.12) 58%); }
+    .home-banner-logo { position: absolute; z-index: 1; top: calc(14px + env(safe-area-inset-top)); left: 16px; width: 54px; height: 54px; border-radius: 14px; object-fit: cover; box-shadow: 0 4px 14px rgba(0,0,0,.28); }
+    .home-banner-motto { position: absolute; z-index: 1; left: 16px; right: 16px; bottom: 18px; font-family: 'Playfair Display', Georgia, serif; font-size: 1.35rem; line-height: 1.25; text-shadow: 0 2px 12px rgba(0,0,0,.5); }
     .logo-text h1 { font-size: 1.25rem; margin: 0; }
     .logo-text span { font-size: 0.7rem; opacity: 0.85; font-family: 'Inter', sans-serif; font-weight: 500; }
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--gray-200); display: flex; justify-content: space-around; padding: 6px 0 calc(6px + env(safe-area-inset-bottom)); z-index: 100; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); }
@@ -113,7 +122,7 @@
 <body>
   <header class="app-header">
     <div class="app-header-inner">
-      <div class="logo-icon">🏆</div>
+      <img class="logo-icon-img" src="icon-192.png" alt="" />
       <div class="logo-text">
         <h1>Familiemajoren</h1>
         <span>Ett år som mester. Ett år med skryterett.</span>
@@ -130,7 +139,13 @@
       <p id="cloud-gate-error" style="color:#9b2c2c;font-size:0.9rem;min-height:1.2em;"></p>
       <button class="btn btn-primary btn-block" id="cloud-gate-btn" onclick="submitCloudGate()">Fortsett</button>
     </div>
-    <div id="page-home" class="page active"><div id="home-content"></div></div>
+    <div id="page-home" class="page active">
+      <div class="home-banner">
+        <img class="home-banner-logo" src="icon-192.png" alt="" />
+        <p class="home-banner-motto">Ett år som mester.<br>Ett år med skryterett.</p>
+      </div>
+      <div id="home-content"></div>
+    </div>
     <div id="page-setup" class="page">
       <div class="card">
         <h2 class="card-title">⚙️ Oppsett av turnering</h2>
@@ -181,7 +196,7 @@
         <button class="btn btn-outline btn-block mb-2" onclick="forgetCloudCode()">Bytt familiekode på denne telefonen</button>
         <div class="divider"></div>
         <button class="btn btn-outline btn-block" onclick="resetAllData()">🗑️ Nullstill all data</button>
-        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.8.1 · Familiemajoren</p>
+        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.9 · Familiemajoren</p>
       </div>
     </div>
   </div>
@@ -259,6 +274,12 @@ function cloudIsEmpty(data) {
   return !data.current && !(data.history && data.history.length) && !(manual && manual.length);
 }
 
+function registerAppInstall() {
+  if (!('serviceWorker' in navigator)) return;
+  if (location.pathname.endsWith('familiemajoren.html')) return;
+  navigator.serviceWorker.register('sw.js').catch(function () {});
+}
+
 function init() {
   loadState();
   state = normalizeState(state);
@@ -267,6 +288,7 @@ function init() {
   renderCharter();
   navigate('home');
   bootCloud();
+  registerAppInstall();
 }
 
 function loadState() {
@@ -480,6 +502,8 @@ function forgetCloudCode() {
 
 function navigate(pageId) {
   currentPage = pageId;
+  const header = document.querySelector('.app-header');
+  if (header) header.hidden = pageId === 'home';
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   const page = document.getElementById('page-' + pageId);
