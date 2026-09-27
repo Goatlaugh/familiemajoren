@@ -31,7 +31,10 @@
     .home-banner::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(8,30,16,.78), rgba(8,30,16,.12) 58%); }
     .home-banner-logo { position: absolute; z-index: 1; top: calc(14px + env(safe-area-inset-top)); left: 16px; width: 54px; height: 54px; border-radius: 14px; object-fit: cover; box-shadow: 0 4px 14px rgba(0,0,0,.28); }
     .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-    .photo-grid img { width: 100%; height: 140px; object-fit: cover; border-radius: 8px; background: var(--gray-100); }
+    .hole-dots { display: flex; gap: 5px; flex-wrap: wrap; margin: 12px 0; }
+    .hole-dots button { width: 16px; height: 16px; border-radius: 50%; border: none; background: #e5e7eb; padding: 0; }
+    .hole-dots button.done { background: var(--green-800); }
+    .hole-dots button.now { background: #c9a227; }
     .home-banner-motto { position: absolute; z-index: 1; left: 18px; right: 18px; bottom: 16px; margin: 0; font-family: 'Playfair Display', Georgia, serif; font-size: 1.35rem; line-height: 1.25; text-shadow: 0 2px 12px rgba(0,0,0,.55); }
     .page-banner { margin: -20px -16px 16px; background: #0f3d1a; color: white; padding: calc(16px + env(safe-area-inset-top)) 16px 16px; display: flex; align-items: center; gap: 12px; }
     .page-banner img { width: 44px; height: 44px; border-radius: 12px; object-fit: cover; flex: none; }
@@ -210,6 +213,9 @@
     </div>
     <div id="page-tournament" class="page"><div id="tournament-content"></div></div>
     <div id="page-scoring" class="page"><div id="scoring-content"></div></div>
+    <div id="page-card-setup" class="page"><div id="card-setup-content"></div></div>
+    <div id="page-card" class="page"><div id="card-content"></div></div>
+    <div id="page-history-card" class="page"><div id="history-card-content"></div></div>
     <div id="page-leaderboard" class="page"><div id="leaderboard-content"></div></div>
     <div id="page-groups" class="page"><div id="groups-content"></div></div>
     <div id="page-group-detail" class="page"><div id="group-detail-content"></div></div>
@@ -254,7 +260,13 @@
         <input type="file" id="import-file" accept=".json" class="hidden" onchange="importData(event)" />
         <button class="btn btn-outline btn-block mb-2" onclick="forgetCloudCode()">Bytt familiekode på denne telefonen</button>
         <div class="divider"></div>
-        <h2 class="card-title">Google Foto</h2>
+        <h2 class="card-title">Admin</h2>
+        <p class="text-muted mb-3">Bare admin ser Forbered scorekort og kan skrive over andres slag. Koden deles ikke som et spørsmål til familien.</p>
+        <p id="admin-status" class="text-muted mb-3"></p>
+        <div class="form-group"><label>Admin-kode</label><input type="password" id="admin-pin" autocomplete="off" /></div>
+        <button class="btn btn-primary btn-block mb-2" onclick="saveAdminPin()">Lagre admin-kode</button>
+        <button class="btn btn-secondary btn-block mb-2" onclick="unlockAdmin()">Lås opp denne telefonen</button>
+        <div class="divider"></div>
         <p class="text-muted mb-3">Bildene lagres i ett album per år på Google-kontoen din. Appen sorterer dem på dag.</p>
         <p id="google-status" class="text-muted mb-3">Sjekker koblingen…</p>
         <div class="form-group"><label>Client ID</label><input type="text" id="google-client-id" autocomplete="off" /></div>
@@ -265,7 +277,7 @@
         <p id="google-redirect" class="text-muted mb-3" style="font-size:0.8rem;word-break:break-all;"></p>
         <div class="divider"></div>
         <button class="btn btn-danger btn-block" onclick="resetAllData()">Nullstill all data</button>
-        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.21 · Familiemajoren</p>
+        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.22 · Familiemajoren</p>
       </div>
     </div>
   </div>
@@ -530,6 +542,9 @@ function refreshVisible() {
   if (page === 'group-detail') return renderGroupDetail();
   if (page === 'hof') return renderHoF();
   if (page === 'media') return renderMedia();
+  if (page === 'card') return renderLiveCard();
+  if (page === 'card-setup') return renderCardSetup();
+  if (page === 'history-card') return renderHistoryCard();
 }
 
 async function pullCloud() {
@@ -540,7 +555,8 @@ async function pullCloud() {
     const loaded = await cloudRpc('load_state', { p_password: code });
     if (!loaded || !loaded.updated_at || loaded.updated_at === cloudUpdatedAt) return;
     applyingRemote = true;
-    state = normalizeState(loaded.data);
+    const remote = normalizeState(loaded.data);
+    state = mergeRemoteCards(state, remote);
     cloudUpdatedAt = loaded.updated_at;
     localStorage.setItem('familiemajoren_v1', JSON.stringify(state));
     applyingRemote = false;
@@ -618,15 +634,15 @@ function seasonNavKey(pageId) {
   return ({
     home: 'home', setup: 'tournament', tournament: 'tournament', scoring: 'tournament',
     groups: 'tournament', 'group-detail': 'tournament', leaderboard: live ? 'leaderboard' : 'history', media: 'media',
-    more: 'more', settings: 'more', history: live ? 'more' : 'history', 'history-detail': live ? 'more' : 'history', hof: 'more',
-    charter: 'more', 'charter-full': 'more'
+    more: 'more', settings: 'more', history: live ? 'more' : 'history', 'history-detail': live ? 'more' : 'history', 'history-card': live ? 'more' : 'history', hof: 'more',
+    charter: 'more', 'charter-full': 'more', card: 'tournament', 'card-setup': 'tournament'
   })[pageId] || 'home';
 }
 
 function syncChrome(pageId) {
   currentPage = pageId;
   const header = document.querySelector('.app-header');
-  const ownBanner = pageId === 'home' || pageId === 'leaderboard' || pageId === 'scoring' || pageId === 'more' || pageId === 'tournament' || pageId === 'setup';
+  const ownBanner = pageId === 'home' || pageId === 'leaderboard' || pageId === 'scoring' || pageId === 'more' || pageId === 'tournament' || pageId === 'setup' || pageId === 'card' || pageId === 'card-setup' || pageId === 'history-card';
   if (header) header.hidden = ownBanner;
   paintSeasonNav();
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -655,7 +671,10 @@ function navigate(pageId) {
   if (pageId === 'media') renderMedia();
   if (pageId === 'charter') renderCharter();
   if (pageId === 'charter-full') renderCharterFull();
-  if (pageId === 'settings') loadGoogleStatus();
+  if (pageId === 'settings') { loadGoogleStatus(); renderAdminStatus(); }
+  if (pageId === 'card-setup') renderCardSetup();
+  if (pageId === 'card') renderLiveCard();
+  if (pageId === 'history-card') renderHistoryCard();
 }
 
 function formatDate(iso) {
@@ -942,6 +961,566 @@ function saveSetup() {
   navigate('tournament');
 }
 
+let cardDay = 0;
+let cardHole = 0;
+let historyView = null;
+const ME_KEY = 'familiemajoren_me';
+const ADMIN_KEY = 'familiemajoren_admin_ok';
+
+function isAdmin() { return localStorage.getItem(ADMIN_KEY) === '1' && !!(state && state.adminPin); }
+function myName() { return localStorage.getItem(ME_KEY) || ''; }
+function renderAdminStatus() {
+  const el = document.getElementById('admin-status');
+  if (!el) return;
+  el.textContent = isAdmin() ? 'Denne telefonen er låst opp som admin.' : (state.adminPin ? 'Koden er satt. Lås opp denne telefonen for å forberede scorekort.' : 'Ingen admin-kode ennå.');
+}
+function saveAdminPin() {
+  const pin = (document.getElementById('admin-pin').value || '').trim();
+  if (pin.length < 4) { toast('Minst 4 tegn'); return; }
+  state.adminPin = pin;
+  localStorage.setItem(ADMIN_KEY, '1');
+  saveState();
+  document.getElementById('admin-pin').value = '';
+  renderAdminStatus();
+  toast('Admin-koden er lagret på denne telefonen');
+}
+function unlockAdmin() {
+  const pin = (document.getElementById('admin-pin').value || '').trim();
+  if (!state.adminPin) { toast('Lag en admin-kode først'); return; }
+  if (pin !== state.adminPin) { toast('Feil kode'); return; }
+  localStorage.setItem(ADMIN_KEY, '1');
+  document.getElementById('admin-pin').value = '';
+  renderAdminStatus();
+  toast('Telefonen er låst opp');
+}
+function ensureCard(day) {
+  if (!day.card) day.card = { ready: false, holes: [], allocated: {}, gross: {}, scramble: {} };
+  if (!Array.isArray(day.card.holes) || day.card.holes.length < 18) {
+    const prev = day.card.holes || [];
+    day.card.holes = Array.from({ length: 18 }, function (_, i) { return prev[i] || { par: 4, index: i + 1 }; });
+  }
+  if (!day.card.allocated) day.card.allocated = {};
+  if (!day.card.gross) day.card.gross = {};
+  if (!day.card.scramble) day.card.scramble = {};
+  return day.card;
+}
+function strokesOnHole(allocated, holeIndex) {
+  const n = parseInt(allocated, 10) || 0;
+  const idx = parseInt(holeIndex, 10) || 0;
+  if (n <= 0 || idx <= 0) return 0;
+  return Math.floor(n / 18) + (idx <= (n % 18) ? 1 : 0);
+}
+function stablefordPoints(gross, par, received) {
+  const net = gross - (received || 0);
+  const under = (par || 4) - net;
+  if (under >= 3) return 5;
+  if (under === 2) return 4;
+  if (under === 1) return 3;
+  if (under === 0) return 2;
+  if (under === -1) return 1;
+  return 0;
+}
+function grossAt(day, name, hole) {
+  const row = day.card && day.card.gross && day.card.gross[name];
+  if (!row || row[hole] == null || row[hole] === '') return null;
+  const n = parseInt(row[hole], 10);
+  return isNaN(n) ? null : n;
+}
+function receivedAt(day, name, hole) {
+  return strokesOnHole(day.card.allocated[name], (day.card.holes[hole] || {}).index);
+}
+function netAt(day, name, hole) {
+  const g = grossAt(day, name, hole);
+  return g == null ? null : g - receivedAt(day, name, hole);
+}
+function stablefordAt(day, name, hole) {
+  const g = grossAt(day, name, hole);
+  return g == null ? null : stablefordPoints(g, day.card.holes[hole].par, receivedAt(day, name, hole));
+}
+function stablefordTotal(day, name) {
+  let s = 0;
+  for (let i = 0; i < 18; i++) { const p = stablefordAt(day, name, i); if (p != null) s += p; }
+  return s;
+}
+function canEditName(name) { return isAdmin() || myName() === name; }
+function dayCardButtons(d, i) {
+  let html = '';
+  if (isAdmin() && !d.completed) html += '<button class="btn btn-sm btn-primary" onclick="openCardSetup(' + i + ')">Forbered scorekort</button>';
+  if (d.card && d.card.ready) html += '<button class="btn btn-sm btn-secondary" onclick="openLiveCard(' + i + ')">' + (d.completed ? 'Se scorekort' : 'Mitt scorekort') + '</button>';
+  html += '<button class="btn btn-sm ' + (d.completed ? 'btn-secondary' : 'btn-primary') + '" onclick="openScoring(' + i + ')">' + (d.completed ? 'Se / Rediger' : 'Før resultat') + '</button>';
+  return html;
+}
+function openCardSetup(i) {
+  if (!isAdmin()) { toast('Lås opp admin under Innstillinger'); navigate('settings'); return; }
+  cardDay = i;
+  ensureCard(state.current.days[i]);
+  navigate('card-setup');
+}
+function renderCardSetup() {
+  const el = document.getElementById('card-setup-content');
+  const t = state.current;
+  const day = t && t.days[cardDay];
+  if (!el || !day) return;
+  const card = ensureCard(day);
+  const players = (t.players || []).map(function (p) {
+    return '<div class="score-line"><div><div class="board-name">' + p.name + '</div><div class="board-meta">HCP ' + p.hcp + '</div></div><input type="number" class="hcp-input alloc-input" data-player="' + encodeURIComponent(p.name) + '" value="' + (card.allocated[p.name] != null ? card.allocated[p.name] : '') + '" placeholder="Slag" /></div>';
+  }).join('');
+  const holes = card.holes.map(function (h, i) {
+    return '<div class="flex" style="gap:8px;align-items:center;margin-bottom:8px;"><strong style="width:64px;">Hull ' + (i + 1) + '</strong><input type="number" class="hcp-input hole-par" data-hole="' + i + '" value="' + (h.par || '') + '" placeholder="Par" /><input type="number" class="hcp-input hole-index" data-hole="' + i + '" value="' + (h.index || '') + '" placeholder="Index" /></div>';
+  }).join('');
+  let matches = '';
+  if (['fourball', 'scramble'].includes(day.format)) {
+    matches = '<div class="card"><h3 class="card-title">Kamper</h3>' + ((day.teamMatches && day.teamMatches.length) ? day.teamMatches.map(function (m, i) { return '<div class="text-muted" style="margin-bottom:6px;">Kamp ' + (i + 1) + ': ' + m.teamA.join(', ') + ' mot ' + m.teamB.join(', ') + '</div>'; }).join('') : '<p class="text-muted">Ingen kamper ennå.</p>') + '<button class="btn btn-sm btn-secondary mt-2" onclick="generateCardMatches()">Generer kamper</button></div>';
+  }
+  if (day.format === 'singles') {
+    matches = '<div class="card"><h3 class="card-title">Matcher</h3>' + ((day.matches && day.matches.length) ? day.matches.map(function (m, i) { return '<div class="text-muted" style="margin-bottom:6px;">Match ' + (i + 1) + ': ' + m.p1 + ' mot ' + m.p2 + '</div>'; }).join('') : '<p class="text-muted">Ingen matcher ennå.</p>') + '<button class="btn btn-sm btn-secondary mt-2" onclick="generateCardMatches()">Generer matcher</button></div>';
+  }
+  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Forbered scorekort</h1><div class="sub">Dag ' + day.dayNumber + ' · ' + (FORMATS[day.format] || '') + '</div></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'tournament\')">← Tilbake</button><h3 class="card-title">Tildelte slag</h3><p class="text-muted mb-2">Skriv tallet fra klubbens liste. Tomme felt kan stå.</p>' + players + '</div>' + matches + '<div class="card"><h3 class="card-title">Banen</h3><p class="text-muted mb-2">Par og hullindex.</p>' + holes + '</div><button class="btn btn-secondary btn-block" onclick="saveCardSetup(false)">Lagre og fortsett senere</button><button class="btn btn-primary btn-block mt-2" onclick="saveCardSetup(true)">Lagre og gjør klart</button>';
+}
+function generateCardMatches() {
+  const t = state.current;
+  const day = t.days[cardDay];
+  if (['fourball', 'scramble'].includes(day.format)) {
+    const teams = generateTeams(t.players, recommendedTeamCount(t.players.length), 'hcp');
+    day.teams = JSON.parse(JSON.stringify(teams));
+    day.teamMatches = pairTeamsIntoMatches(teams);
+  }
+  if (day.format === 'singles') day.matches = generateSinglesMatches(calculateStandings(t));
+  saveState();
+  renderCardSetup();
+  toast('Kamper er lagret. Du kan endre dem før dagen er klar.');
+}
+function saveCardSetup(markReady) {
+  const day = state.current.days[cardDay];
+  const card = ensureCard(day);
+  document.querySelectorAll('.alloc-input').forEach(function (inp) {
+    const name = decodeURIComponent(inp.dataset.player);
+    if (inp.value.trim() === '') delete card.allocated[name];
+    else card.allocated[name] = parseInt(inp.value, 10) || 0;
+  });
+  document.querySelectorAll('.hole-par').forEach(function (inp) {
+    if (inp.value !== '') card.holes[parseInt(inp.dataset.hole, 10)].par = parseInt(inp.value, 10) || 4;
+  });
+  document.querySelectorAll('.hole-index').forEach(function (inp) {
+    if (inp.value !== '') card.holes[parseInt(inp.dataset.hole, 10)].index = parseInt(inp.value, 10) || 1;
+  });
+  if (markReady) {
+    if (['fourball', 'scramble'].includes(day.format) && !(day.teamMatches && day.teamMatches.length)) { toast('Generer kamper først'); saveState(); return; }
+    if (day.format === 'singles' && !(day.matches && day.matches.length)) { toast('Generer matcher først'); saveState(); return; }
+    card.ready = true;
+    toast('Scorekortet er klart for spillerne');
+  } else toast('Lagret. Du kan fortsette senere');
+  saveState();
+  navigate('tournament');
+}
+function openLiveCard(i) { cardDay = i; cardHole = 0; navigate('card'); }
+function setMeIndex(i) {
+  const p = state.current && state.current.players[i];
+  if (p) localStorage.setItem(ME_KEY, p.name);
+  renderLiveCard();
+}
+function clearMe() { localStorage.removeItem(ME_KEY); renderLiveCard(); }
+function goHole(i) { cardHole = i; renderLiveCard(); }
+function holeDotRow(filledFn) {
+  let html = '<div class="hole-dots">';
+  for (let i = 0; i < 18; i++) html += '<button type="button" class="' + (i === cardHole ? 'now' : (filledFn(i) ? 'done' : '')) + '" onclick="goHole(' + i + ')"></button>';
+  return html + '</div>';
+}
+function setGross(name, hole, value) {
+  const day = state.current.days[cardDay];
+  if (day.completed && !isAdmin()) return;
+  if (!canEditName(name)) return;
+  ensureCard(day);
+  if (!day.card.gross[name]) day.card.gross[name] = Array(18).fill(null);
+  day.card.gross[name][hole] = value;
+  if (day.completed && isAdmin()) awardFromCard(day);
+  saveState();
+  renderLiveCard();
+}
+function bumpNamed(name, delta) {
+  const day = state.current.days[cardDay];
+  const cur = grossAt(day, name, cardHole);
+  let next = null;
+  if (cur == null) next = delta > 0 ? (day.card.holes[cardHole].par || 4) : null;
+  else next = cur + delta;
+  if (next != null && next < 1) next = null;
+  setGross(name, cardHole, next);
+}
+function sideBest(day, names, hole) {
+  let best = null;
+  for (let i = 0; i < names.length; i++) {
+    const net = netAt(day, names[i], hole);
+    if (net == null) return null;
+    if (best == null || net < best) best = net;
+  }
+  return best;
+}
+function holeWinner(day, match, hole) {
+  const a = sideBest(day, match.teamA, hole);
+  const b = sideBest(day, match.teamB, hole);
+  if (a == null || b == null) return null;
+  if (a < b) return 'A';
+  if (b < a) return 'B';
+  return 'H';
+}
+function matchRun(day, match) {
+  let a = 0, b = 0, pending = false;
+  for (let h = 0; h < 18; h++) {
+    const w = holeWinner(day, match, h);
+    if (!w) pending = true;
+    else if (w === 'A') a++;
+    else if (w === 'B') b++;
+  }
+  const lead = a - b;
+  const nameA = match.teamA[0];
+  const nameB = match.teamB[0];
+  const text = lead === 0 ? 'All square' : (lead > 0 ? nameA + ' ' + lead + ' opp' : nameB + ' ' + (-lead) + ' opp');
+  const result = pending ? null : (lead > 0 ? 'A' : lead < 0 ? 'B' : 'halved');
+  return { a: a, b: b, pending: pending, text: text, result: result };
+}
+function renderStablefordCard(el, t, day) {
+  const me = myName();
+  const h = cardHole;
+  const par = day.card.holes[h].par || 4;
+  const recv = receivedAt(day, me, h);
+  const g = grossAt(day, me, h);
+  const pts = g == null ? '–' : stablefordAt(day, me, h);
+  const locked = day.completed && !isAdmin();
+  const controls = locked ? '<div style="font-size:2rem;font-weight:700;">' + (g == null ? '–' : g) + '</div>' : '<div class="stepper"><button type="button" onclick="bumpNamed(\'' + me.replace(/'/g, "\\'") + '\',-1)">−</button><div style="min-width:48px;text-align:center;font-size:1.8rem;font-weight:700;">' + (g == null ? '–' : g) + '</div><button type="button" onclick="bumpNamed(\'' + me.replace(/'/g, "\\'") + '\',1)">+</button></div>';
+  const out = rangeSums(day, me, 0, 9);
+  const inn = rangeSums(day, me, 9, 18);
+  const all = rangeSums(day, me, 0, 18);
+  el.innerHTML = cardHead(day, 'Hull ' + (h + 1)) + '<div class="card"><div class="text-muted">' + me + ' · ' + (day.card.allocated[me] || 0) + ' slag i dag</div><div class="flex justify-between items-center mt-2"><strong>Par ' + par + '</strong>' + (recv ? '<span class="badge badge-green">Du har slag her</span>' : '') + '</div><div style="text-align:center;margin:16px 0;">' + controls + '<div class="text-muted">Slag</div><div class="badge badge-green mt-2">' + pts + ' poeng på hullet</div></div>' + holeDotRow(function (i) { return grossAt(day, me, i) != null; }) + sumLine('Ut', out) + sumLine('Inn', inn) + sumLine('Totalt', all) + '<button class="btn btn-primary btn-block mt-3" onclick="goHole(' + Math.min(17, h + 1) + ')">Neste hull</button><button class="btn btn-sm btn-secondary mt-3" onclick="clearMe()">Bytt spiller</button></div>' + finishButton(day);
+}
+function playerRow(day, name) {
+  const g = grossAt(day, name, cardHole);
+  const net = netAt(day, name, cardHole);
+  const recv = receivedAt(day, name, cardHole);
+  const edit = canEditName(name) && (!day.completed || isAdmin());
+  const controls = edit ? '<button type="button" class="btn btn-sm btn-secondary" onclick="bumpNamed(\'' + name.replace(/'/g, "\\'") + '\',-1)">−</button><strong style="min-width:24px;text-align:center;">' + (g == null ? '–' : g) + '</strong><button type="button" class="btn btn-sm btn-secondary" onclick="bumpNamed(\'' + name.replace(/'/g, "\\'") + '\',1)">+</button>' : '<strong>' + (g == null ? '–' : g) + '</strong>';
+  return '<div class="score-line"><div><div class="board-name">' + name + (recv ? ' <span class="badge badge-green">slag</span>' : '') + '</div></div><div class="flex items-center" style="gap:6px;">' + controls + '<span class="text-muted">netto ' + (net == null ? '–' : net) + '</span></div></div>';
+}
+function renderMatchCard(el, t, day) {
+  const me = myName();
+  let match = null;
+  let label = '';
+  if (day.format === 'singles') {
+    const idx = (day.matches || []).findIndex(function (m) { return m.p1 === me || m.p2 === me; });
+    const m = (day.matches || [])[isAdmin() && idx < 0 ? 0 : idx];
+    if (!m) { el.innerHTML = '<div class="card"><p>Ingen match for deg.</p></div>'; return; }
+    match = { teamA: [m.p1], teamB: [m.p2] };
+    label = 'Singler';
+  } else {
+    const idx = (day.teamMatches || []).findIndex(function (m) { return m.teamA.includes(me) || m.teamB.includes(me); });
+    match = (day.teamMatches || [])[isAdmin() && idx < 0 ? 0 : idx];
+    if (!match) { el.innerHTML = '<div class="card"><p>Ingen kamp for deg.</p></div>'; return; }
+    label = 'Fourball';
+  }
+  const h = cardHole;
+  const par = day.card.holes[h].par || 4;
+  const w = holeWinner(day, match, h);
+  const bestA = sideBest(day, match.teamA, h);
+  const bestB = sideBest(day, match.teamB, h);
+  const who = w === 'A' ? match.teamA[0] + ' vinner hullet' : w === 'B' ? match.teamB[0] + ' vinner hullet' : w === 'H' ? 'Delt hull' : 'Venter på alle slag';
+  const run = matchRun(day, match);
+  el.innerHTML = cardHead(day, 'Hull ' + (h + 1)) + '<div class="card"><div class="text-muted mb-2">' + label + ' · Par ' + par + '</div><h3 class="card-title">' + match.teamA.join(' / ') + (bestA == null ? '' : ' · beste netto ' + bestA) + '</h3>' + match.teamA.map(function (n) { return playerRow(day, n); }).join('') + '<h3 class="card-title mt-3">' + match.teamB.join(' / ') + (bestB == null ? '' : ' · beste netto ' + bestB) + '</h3>' + match.teamB.map(function (n) { return playerRow(day, n); }).join('') + '<div class="badge badge-gold mt-3">' + who + '</div><div class="mt-2">Stilling: ' + run.text + '</div>' + holeDotRow(function (i) { return holeWinner(day, match, i) != null; }) + '<button class="btn btn-primary btn-block mt-3" onclick="goHole(' + Math.min(17, h + 1) + ')">Neste hull</button><button class="btn btn-sm btn-secondary mt-3" onclick="clearMe()">Bytt spiller</button></div>' + finishButton(day);
+}
+function scramblePot(arr, hole) {
+  let pot = 1;
+  for (let i = 0; i < hole; i++) {
+    if (!arr[i]) return null;
+    pot = arr[i] === 'H' ? pot + 1 : 1;
+  }
+  return pot;
+}
+function scrambleTotals(arr) {
+  let pot = 1, a = 0, b = 0, pending = false;
+  for (let i = 0; i < 18; i++) {
+    if (!arr[i]) { pending = true; break; }
+    if (arr[i] === 'H') pot += 1;
+    else { if (arr[i] === 'A') a += pot; else b += pot; pot = 1; }
+  }
+  return { a: a, b: b, pending: pending };
+}
+function setScramble(val) {
+  const day = state.current.days[cardDay];
+  const me = myName();
+  const idx = (day.teamMatches || []).findIndex(function (m) { return m.teamA.includes(me) || m.teamB.includes(me); });
+  const use = isAdmin() && idx < 0 ? 0 : idx;
+  const match = (day.teamMatches || [])[use];
+  if (!match) return;
+  if (!isAdmin() && !match.teamA.includes(me) && !match.teamB.includes(me)) return;
+  if (day.completed && !isAdmin()) return;
+  ensureCard(day);
+  if (!day.card.scramble[use]) day.card.scramble[use] = Array(18).fill(null);
+  if (scramblePot(day.card.scramble[use], cardHole) == null) { toast('Fyll hullene foran først'); return; }
+  day.card.scramble[use][cardHole] = val;
+  saveState();
+  renderLiveCard();
+}
+function renderScrambleCard(el, t, day) {
+  const me = myName();
+  const idx = (day.teamMatches || []).findIndex(function (m) { return m.teamA.includes(me) || m.teamB.includes(me); });
+  const use = isAdmin() && idx < 0 ? 0 : idx;
+  const match = (day.teamMatches || [])[use];
+  if (!match) { el.innerHTML = '<div class="card"><p>Ingen scramble-kamp for deg.</p></div>'; return; }
+  ensureCard(day);
+  const arr = day.card.scramble[use] || Array(18).fill(null);
+  const pot = scramblePot(arr, cardHole);
+  const tot = scrambleTotals(arr);
+  const can = (isAdmin() || match.teamA.includes(me) || match.teamB.includes(me)) && (!day.completed || isAdmin());
+  const buttons = !can || pot == null ? '<p class="text-muted">Fyll hullene foran først.</p>' : '<button class="btn btn-primary btn-block mb-2" onclick="setScramble(\'A\')">' + match.teamA[0] + ' vinner</button><button class="btn btn-secondary btn-block mb-2" onclick="setScramble(\'H\')">Delt</button><button class="btn btn-secondary btn-block" onclick="setScramble(\'B\')">' + match.teamB[0] + ' vinner</button>';
+  el.innerHTML = cardHead(day, 'Hull ' + (cardHole + 1)) + '<div class="card"><div class="text-muted mb-2">Akkumulert scramble</div><div>' + match.teamA.join(' / ') + ' mot ' + match.teamB.join(' / ') + '</div><div class="badge badge-gold mt-3">Dette hullet er verdt ' + (pot == null ? '–' : pot) + '</div><div class="mt-3">' + buttons + '</div><div class="mt-3">Hullpoeng: ' + tot.a + ' – ' + tot.b + '</div>' + holeDotRow(function (i) { return !!(arr[i]); }) + '<button class="btn btn-primary btn-block mt-3" onclick="goHole(' + Math.min(17, cardHole + 1) + ')">Neste hull</button></div>' + finishButton(day);
+}
+function cardHead(day, title) {
+  return '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>' + title + '</h1><div class="sub">Dag ' + day.dayNumber + ' · ' + (FORMATS[day.format] || '') + '</div></div></div>';
+}
+function rangeSums(day, name, from, to) {
+  let par = 0, slag = 0, poeng = 0, n = 0;
+  for (let i = from; i < to; i++) {
+    const g = grossAt(day, name, i);
+    if (g == null) continue;
+    n++; par += day.card.holes[i].par || 0; slag += g;
+    const p = stablefordAt(day, name, i);
+    if (p != null) poeng += p;
+  }
+  return { par: par, slag: slag, poeng: poeng, n: n };
+}
+function sumLine(label, s) {
+  if (!s.n) return '';
+  return '<div class="flex justify-between" style="font-size:0.92rem;margin-top:4px;"><strong>' + label + '</strong><span>Par ' + s.par + ' · Slag ' + s.slag + ' · Poeng ' + s.poeng + '</span></div>';
+}
+function finishButton(day) {
+  if (!isAdmin() || day.completed) return '';
+  return '<button class="btn btn-gold btn-block mt-3" onclick="finishLiveRound()">Avslutt runden</button>';
+}
+function renderLiveCard() {
+  const el = document.getElementById('card-content');
+  const t = state.current;
+  const day = t && t.days[cardDay];
+  if (!el) return;
+  if (!day || !day.card || !day.card.ready) { el.innerHTML = '<div class="card"><p class="text-muted">Scorekortet er ikke klart.</p></div>'; return; }
+  if (!myName()) {
+    el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><h1>Hvem er du?</h1></div><div class="card">' + t.players.map(function (p, i) { return '<button class="group-choice" onclick="setMeIndex(' + i + ')">' + p.name + '</button>'; }).join('') + '<p class="text-muted">Huskes på denne telefonen.</p></div>';
+    return;
+  }
+  ensureCard(day);
+  if (day.format === 'scramble') return renderScrambleCard(el, t, day);
+  if (day.format === 'fourball' || day.format === 'singles') return renderMatchCard(el, t, day);
+  renderStablefordCard(el, t, day);
+}
+function awardFromCard(day) {
+  const t = state.current;
+  const n = t.players.length;
+  const maxPoints = n;
+  const losePts = Math.ceil(maxPoints / 2);
+  const halfPts = (maxPoints + losePts) / 2;
+  const points = {};
+  if (['stableford', 'final'].includes(day.format)) {
+    const scores = {};
+    t.players.forEach(function (p) { scores[p.name] = stablefordTotal(day, p.name); });
+    day.results = scores;
+    const ranked = t.players.map(function (p) { return { name: p.name, score: scores[p.name] || 0, hcp: p.hcp }; }).sort(function (a, b) { return b.score !== a.score ? b.score - a.score : a.hcp - b.hcp; });
+    let i = 0;
+    while (i < ranked.length) {
+      let j = i;
+      while (j < ranked.length && ranked[j].score === ranked[i].score && ranked[j].hcp === ranked[i].hcp) j++;
+      let pts = 0;
+      for (let k = i; k < j; k++) pts += maxPoints - k;
+      pts = pts / (j - i);
+      if (day.format === 'final') pts *= 2;
+      for (let k = i; k < j; k++) points[ranked[k].name] = Math.round(pts * 10) / 10;
+      i = j;
+    }
+  } else if (['fourball', 'scramble'].includes(day.format)) {
+    (day.teamMatches || []).forEach(function (m, idx) {
+      let result = null;
+      if (day.format === 'scramble') {
+        const tot = scrambleTotals(day.card.scramble[idx] || []);
+        if (!tot.pending) result = tot.a > tot.b ? 'A' : tot.b > tot.a ? 'B' : 'halved';
+      } else {
+        const run = matchRun(day, m);
+        result = run.result;
+      }
+      m.result = result;
+      if (result === 'A') { m.teamA.forEach(function (p) { points[p] = maxPoints; }); m.teamB.forEach(function (p) { points[p] = losePts; }); }
+      else if (result === 'B') { m.teamB.forEach(function (p) { points[p] = maxPoints; }); m.teamA.forEach(function (p) { points[p] = losePts; }); }
+      else if (result === 'halved') { m.teamA.concat(m.teamB).forEach(function (p) { points[p] = halfPts; }); }
+    });
+    day.results = { matches: day.teamMatches };
+  } else if (day.format === 'singles') {
+    const results = {};
+    (day.matches || []).forEach(function (m) {
+      const run = matchRun(day, { teamA: [m.p1], teamB: [m.p2] });
+      if (!run.result) return;
+      const val = run.result === 'A' ? 'p1' : run.result === 'B' ? 'p2' : 'halved';
+      results[m.p1 + '_vs_' + m.p2] = val;
+      if (val === 'p1') { points[m.p1] = maxPoints; points[m.p2] = losePts; }
+      else if (val === 'p2') { points[m.p2] = maxPoints; points[m.p1] = losePts; }
+      else { points[m.p1] = halfPts; points[m.p2] = halfPts; }
+    });
+    day.results = results;
+  }
+  day.points = points;
+}
+function finishLiveRound() {
+  if (!isAdmin()) return;
+  const day = state.current.days[cardDay];
+  awardFromCard(day);
+  day.completed = true;
+  saveState();
+  const sponsors = computeLunchSponsors(day, state.current);
+  navigate('tournament');
+  setTimeout(function () { showLunchPopup(sponsors, state.current.players.length); }, 400);
+}
+function liveDayHtml(t) {
+  const day = (t.days || []).find(function (d) { return d.card && d.card.ready && !d.completed; });
+  if (!day) return '';
+  ensureCard(day);
+  let body = '';
+  if (['stableford', 'final'].includes(day.format)) {
+    const rows = t.players.map(function (p) { return { name: p.name, pts: stablefordTotal(day, p.name) }; }).sort(function (a, b) { return b.pts - a.pts; });
+    body = rows.map(function (r, i) { return '<div class="flex justify-between" style="padding:6px 0;"><span>' + (i + 1) + '. ' + r.name + '</span><strong>' + r.pts + ' poeng</strong></div>'; }).join('');
+  } else if (day.format === 'scramble') {
+    body = (day.teamMatches || []).map(function (m, idx) {
+      const tot = scrambleTotals(day.card.scramble[idx] || []);
+      return '<div style="padding:6px 0;">' + m.teamA.join(' / ') + ' ' + tot.a + ' – ' + tot.b + ' ' + m.teamB.join(' / ') + '</div>';
+    }).join('');
+  } else if (day.format === 'fourball') {
+    body = (day.teamMatches || []).map(function (m) { return '<div style="padding:6px 0;">' + m.teamA.join(' / ') + ' mot ' + m.teamB.join(' / ') + '<div class="text-muted">' + matchRun(day, m).text + '</div></div>'; }).join('');
+  } else if (day.format === 'singles') {
+    body = (day.matches || []).map(function (m) { return '<div style="padding:6px 0;">' + m.p1 + ' mot ' + m.p2 + '<div class="text-muted">' + matchRun(day, { teamA: [m.p1], teamB: [m.p2] }).text + '</div></div>'; }).join('');
+  }
+  return '<div class="card"><h3 class="card-title">I dag så langt</h3><p class="text-muted mb-2">Familiemajor-poengene låses når runden avsluttes.</p>' + body + '</div>';
+}
+function cardFeats(t) {
+  const feats = [];
+  (t.days || []).forEach(function (day) {
+    if (!day.card || !day.card.gross) return;
+    ensureCard(day);
+    const base = { course: day.course || '', year: t.year, sted: t.sted || '', day: day.dayNumber, date: day.date || '' };
+    (t.players || []).forEach(function (p) {
+      let streak = 0, best = 0, bestHole = 0;
+      for (let i = 0; i < 18; i++) {
+        const g = grossAt(day, p.name, i);
+        if (g == null) { streak = 0; continue; }
+        const par = day.card.holes[i].par || 4;
+        const under = par - g;
+        const hole = 'Hull ' + (i + 1);
+        if (g === 1) feats.push(Object.assign({ category: 'hole-in-one', player: p.name, details: hole }, base));
+        if (under >= 3) feats.push(Object.assign({ category: 'albatross', player: p.name, details: hole }, base));
+        else if (under === 2) feats.push(Object.assign({ category: 'eagle', player: p.name, details: hole }, base));
+        if (under >= 1) { streak++; if (streak > best) { best = streak; bestHole = i + 1; } } else streak = 0;
+      }
+      if (best >= 2) feats.push(Object.assign({ category: 'birdie-streak', player: p.name, details: best + ' på rad, til hull ' + bestHole }, base));
+    });
+    const addComeback = function (names, maxDown) {
+      if (maxDown > 0) feats.push(Object.assign({ category: 'comeback', player: names.join(' / '), details: maxDown + ' hull bakpå, og vant' }, base));
+    };
+    if (day.format === 'fourball') {
+      (day.teamMatches || []).forEach(function (m) {
+        let lead = 0, downA = 0, downB = 0;
+        for (let h = 0; h < 18; h++) {
+          const w = holeWinner(day, m, h);
+          if (w === 'A') lead++;
+          else if (w === 'B') lead--;
+          if (-lead > downA) downA = -lead;
+          if (lead > downB) downB = lead;
+        }
+        const run = matchRun(day, m);
+        if (run.result === 'A' && downA > 0) addComeback(m.teamA, downA);
+        if (run.result === 'B' && downB > 0) addComeback(m.teamB, downB);
+      });
+    }
+    if (day.format === 'singles') {
+      (day.matches || []).forEach(function (m) {
+        const fake = { teamA: [m.p1], teamB: [m.p2] };
+        let lead = 0, downA = 0, downB = 0;
+        for (let h = 0; h < 18; h++) {
+          const w = holeWinner(day, fake, h);
+          if (w === 'A') lead++;
+          else if (w === 'B') lead--;
+          if (lead < -downA) downA = -lead;
+          if (lead > downB) downB = lead;
+        }
+        const run = matchRun(day, fake);
+        if (run.result === 'A' && downA > 0) addComeback([m.p1], downA);
+        if (run.result === 'B' && downB > 0) addComeback([m.p2], downB);
+      });
+    }
+  });
+  return feats;
+}
+function mergeRemoteCards(local, remote) {
+  if (!remote) return local || remote;
+  const me = localStorage.getItem(ME_KEY) || '';
+  function mergeDays(ldays, rdays) {
+    if (!ldays || !rdays) return;
+    rdays.forEach(function (rd, i) {
+      const ld = ldays[i];
+      if (!ld) return;
+      if (ld.card && !rd.card) rd.card = JSON.parse(JSON.stringify(ld.card));
+      if (!ld.card || !rd.card) return;
+      const lg = ld.card.gross || {};
+      const rg = rd.card.gross || {};
+      const names = Object.assign({}, lg, rg);
+      rd.card.gross = {};
+      Object.keys(names).forEach(function (name) {
+        const a = lg[name] || [];
+        const b = rg[name] || [];
+        rd.card.gross[name] = Array.from({ length: 18 }, function (_, h) {
+          if (name === me && a[h] != null && a[h] !== '') return a[h];
+          if (b[h] != null && b[h] !== '') return b[h];
+          return a[h] != null && a[h] !== '' ? a[h] : null;
+        });
+      });
+    });
+  }
+  if (local && local.current && remote.current) mergeDays(local.current.days, remote.current.days);
+  return remote;
+}
+function allCardFeats() {
+  const list = [];
+  (state.history || []).forEach(function (h) { list.push.apply(list, cardFeats(h)); });
+  if (state.current) list.push.apply(list, cardFeats(state.current));
+  return list;
+}
+function openHistoryPlayers(histIndex, dayNumber) {
+  historyView = { histIndex: histIndex, dayNumber: dayNumber, player: null };
+  navigate('history-card');
+}
+function openHistoryPlayer(name) {
+  historyView.player = name;
+  renderHistoryCard();
+}
+function renderHistoryCard() {
+  const el = document.getElementById('history-card-content');
+  if (!el || !historyView) return;
+  const h = state.history[historyView.histIndex];
+  const day = h && (h.days || []).find(function (d) { return d.dayNumber === historyView.dayNumber; });
+  if (!day) { el.innerHTML = '<div class="card"><p>Fant ikke dagen.</p></div>'; return; }
+  if (!historyView.player) {
+    const rows = (h.players || []).map(function (p) {
+      const pts = day.card ? stablefordTotal(day, p.name) : '';
+      return '<button class="group-choice" onclick="openHistoryPlayer(\'' + p.name.replace(/'/g, "\\'") + '\')">' + p.name + (day.card && ['stableford', 'final'].includes(day.format) ? ' · ' + pts + ' poeng' : '') + '</button>';
+    }).join('');
+    el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Dag ' + day.dayNumber + '</h1><div class="sub">' + (FORMATS[day.format] || '') + '</div></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'history-detail\')">← Tilbake</button>' + (day.card ? rows : '<p class="text-muted">Dagen ble ført uten hullkort.</p>') + '</div>';
+    return;
+  }
+  const name = historyView.player;
+  ensureCard(day);
+  let rows = '';
+  for (let i = 0; i < 18; i++) {
+    const g = grossAt(day, name, i);
+    const par = day.card.holes[i].par || 4;
+    const under = g == null ? 0 : par - g;
+    const tag = g === 1 ? ' Hole-in-one' : under >= 3 ? ' Albatross' : under === 2 ? ' Eagle' : under === 1 ? ' Birdie' : '';
+    rows += '<div class="flex justify-between" style="padding:6px 0;border-bottom:1px solid var(--gray-100);"><span>Hull ' + (i + 1) + ' · par ' + par + '</span><span>' + (g == null ? '–' : g) + (['stableford', 'final'].includes(day.format) ? ' · ' + (stablefordAt(day, name, i) == null ? '–' : stablefordAt(day, name, i) + ' p') : ' · netto ' + (netAt(day, name, i) == null ? '–' : netAt(day, name, i))) + tag + '</span></div>';
+  }
+  const out = rangeSums(day, name, 0, 9), inn = rangeSums(day, name, 9, 18), all = rangeSums(day, name, 0, 18);
+  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>' + name + '</h1><div class="sub">Dag ' + day.dayNumber + '</div></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="historyView.player=null;renderHistoryCard()">← Tilbake</button>' + rows + '<div class="mt-3">' + sumLine('Ut', out) + sumLine('Inn', inn) + sumLine('Totalt', all) + '</div></div>';
+}
+
 function renderTournament() {
   const el = document.getElementById('tournament-content');
   const banner = '<div class="page-banner"><img src="icon-192.png" alt="" /><h1>Turnering</h1></div>';
@@ -961,7 +1540,7 @@ function renderTournament() {
   if (players.length >= 2 && t.days && t.days.length) {
     const standings = calculateStandings(t);
     html += '<div class="card"><h3 class="card-title">Konkurransedager</h3><div class="day-chips">' + t.days.map((d,i) => '<div class="day-chip ' + (d.completed ? 'completed' : '') + '" onclick="openScoring(' + i + ')">Dag ' + d.dayNumber + (d.date ? ' · ' + formatDate(d.date) : '') + (d.completed ? ' ✓' : '') + '</div>').join('') + '</div>' +
-      t.days.map((d,i) => '<div class="flex justify-between items-center" style="padding:10px 0;border-bottom:1px solid var(--gray-100);"><div><strong>Dag ' + d.dayNumber + (d.date ? ' · ' + formatDate(d.date) : '') + '</strong><div class="text-muted" style="font-size:0.85rem;">' + FORMATS[d.format] + '</div>' + (d.course ? '<div class="text-muted" style="font-size:0.8rem;">📍 ' + d.course + '</div>' : '') + '</div><button class="btn btn-sm ' + (d.completed ? 'btn-secondary' : 'btn-primary') + '" onclick="openScoring(' + i + ')">' + (d.completed ? 'Se / Rediger' : 'Før resultat') + '</button></div>').join('') +
+      t.days.map((d,i) => '<div style="padding:10px 0;border-bottom:1px solid var(--gray-100);"><div class="flex justify-between items-center"><div><strong>Dag ' + d.dayNumber + (d.date ? ' · ' + formatDate(d.date) : '') + '</strong><div class="text-muted" style="font-size:0.85rem;">' + FORMATS[d.format] + '</div>' + (d.course ? '<div class="text-muted" style="font-size:0.8rem;">📍 ' + d.course + '</div>' : '') + '</div></div><div class="flex" style="gap:8px;flex-wrap:wrap;margin-top:8px;">' + dayCardButtons(d, i) + '</div></div>').join('') +
       '</div><div class="card"><h3 class="card-title">Sammenlagt</h3>' + renderStandingsTable(standings) + '<button class="btn btn-secondary btn-block mt-3" onclick="navigate(\'leaderboard\')">Full stilling</button></div><div class="card"><h3 class="card-title">Grupper</h3><button class="btn btn-secondary btn-block" onclick="navigate(\'groups\')">Åpne gruppegenerator</button></div>';
     if (t.days.some(d => d.completed)) html += '<div class="card"><button class="btn btn-gold btn-block" onclick="finishTournament()">Marker turnering som ferdig</button></div>';
   }
@@ -1420,13 +1999,18 @@ function renderHoF() {
   const el = document.getElementById('hof-content');
   const auto = getAutoRecords();
   const manual = (state.hallOfFame && state.hallOfFame.manual) ? state.hallOfFame.manual : [];
+  const fromCards = allCardFeats();
   let autoHtml = '<div class="card"><h3 class="card-title">Automatiske rekorder</h3>' + auto.map(recordLine).join('') + '</div>';
   let manualHtml = '<div class="card"><h3 class="card-title">Prestasjoner</h3>';
-  if (!manual.length) {
-    manualHtml += '<p class="text-muted">Ingen manuelle registreringer ennå. Bruk knappen «Registrer Hall of Fame» når du fører resultater.</p>';
+  const shown = {};
+  fromCards.forEach(function (m) { shown[m.category + '|' + m.player + '|' + m.day + '|' + m.year + '|' + m.details] = m; });
+  manual.forEach(function (m) { shown['m|' + m.category + '|' + m.player + '|' + (m.details || '') + '|' + (m.day || '') + '|' + (m.year || '')] = m; });
+  const allPrest = Object.values(shown);
+  if (!allPrest.length) {
+    manualHtml += '<p class="text-muted">Ingen registreringer ennå. Eagle, hole-in-one og comeback kommer av seg selv fra scorekortet. Annet kan legges inn for hånd.</p>';
   } else {
     HOF_MANUAL_CATS.forEach(cat => {
-      const items = manual.filter(m => m.category === cat.id).slice().reverse();
+      const items = allPrest.filter(m => m.category === cat.id).slice().reverse();
       if (!items.length) return;
       manualHtml += '<div class="section-title mt-3">' + cat.label + '</div>';
       items.forEach(m => {
@@ -1553,7 +2137,7 @@ function renderLeaderboard() {
     return '<div class="board-row' + (i === 0 ? ' leader' : '') + '"><div class="board-rank">' + (i + 1) + '</div><div><div class="board-name">' + s.name + '</div>' + (i === 0 ? '<div class="board-meta">leder</div>' : '<div class="bar"><span style="width:' + pct + '%"></span></div>') + '</div><div class="points-badge">' + s.total + '</div>' + (i === 0 ? '<div></div>' : gap) + '</div>';
   }).join('');
   const days = t.days.filter(d => d.completed).map(d => '<div style="margin-bottom:16px;"><div class="flex justify-between mb-1"><strong>Dag ' + d.dayNumber + '</strong><span class="text-muted" style="font-size:0.85rem;">' + FORMATS[d.format] + '</span></div>' + (d.points ? Object.entries(d.points).sort((a,b)=>b[1]-a[1]).map(([name,pts]) => '<div class="flex justify-between" style="font-size:0.9rem;"><span>' + name + '</span><span>' + pts + ' p</span></div>').join('') : '') + '</div>').join('');
-  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Stilling</h1><div class="sub">' + t.year + ' · ' + t.sted + '</div></div></div><div class="card" style="padding:0;overflow:hidden;">' + rows + '</div>' + (days ? '<div class="card"><h3 class="card-title">Per dag</h3>' + days + '</div>' : '');
+  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Stilling</h1><div class="sub">' + t.year + ' · ' + t.sted + '</div></div></div>' + liveDayHtml(t) + '<div class="card" style="padding:0;overflow:hidden;">' + rows + '</div>' + (days ? '<div class="card"><h3 class="card-title">Per dag</h3>' + days + '</div>' : '');
 }
 
 function renderGroupsMenu() {
@@ -1966,7 +2550,7 @@ function openHistoryDetail(index) {
   if (!h) return;
   const el = document.getElementById('history-detail-content');
   el.innerHTML = '<div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'history\')">← Tilbake</button><div class="section-title">Familiemajoren</div><h2 style="margin:0 0 4px;">' + h.year + ' · ' + h.sted + '</h2><div class="badge badge-gold mt-2">🏆 ' + h.winner + '</div></div><div class="card"><h3 class="card-title">Sluttstilling</h3>' + renderStandingsTable(h.standings || []) + '</div><div class="card"><h3 class="card-title">Dag for dag</h3>' +
-    (h.days || []).map(d => '<div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--gray-100);"><div class="flex justify-between mb-1"><strong>Dag ' + d.dayNumber + (d.date ? ' · ' + formatDate(d.date) : '') + '</strong><span class="badge badge-green">' + (FORMATS[d.format]||d.format) + '</span></div>' + (d.course ? '<div class="text-muted" style="font-size:0.85rem;">📍 ' + d.course + '</div>' : '') + '<button type="button" class="btn btn-sm btn-secondary mt-2" onclick="openDayMedia(' + JSON.stringify(h.year) + ',' + JSON.stringify(h.sted) + ',' + d.dayNumber + ')">Bilder</button>' + (d.points ? Object.entries(d.points).sort((a,b)=>b[1]-a[1]).map(([n,p]) => '<div class="flex justify-between" style="font-size:0.9rem;"><span>' + n + '</span><span>' + p + ' p</span></div>').join('') : '') + '</div>').join('') + '</div><div class="card"><button class="btn btn-outline btn-block" onclick="deleteHistoryTournament(' + index + ')">Slett denne turneringen</button></div>';
+    (h.days || []).map(d => '<div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--gray-100);"><div class="flex justify-between mb-1"><strong>Dag ' + d.dayNumber + (d.date ? ' · ' + formatDate(d.date) : '') + '</strong><span class="badge badge-green">' + (FORMATS[d.format]||d.format) + '</span></div>' + (d.course ? '<div class="text-muted" style="font-size:0.85rem;">📍 ' + d.course + '</div>' : '') + '<button type="button" class="btn btn-sm btn-secondary mt-2" onclick="openDayMedia(' + JSON.stringify(h.year) + ',' + JSON.stringify(h.sted) + ',' + d.dayNumber + ')">Bilder</button>' + (d.card && d.card.ready ? '<button type="button" class="btn btn-sm btn-secondary mt-2" onclick="openHistoryPlayers(' + index + ',' + d.dayNumber + ')">Scorekort</button>' : '') + (d.points ? Object.entries(d.points).sort((a,b)=>b[1]-a[1]).map(([n,p]) => '<div class="flex justify-between" style="font-size:0.9rem;"><span>' + n + '</span><span>' + p + ' p</span></div>').join('') : '') + '</div>').join('') + '</div><div class="card"><button class="btn btn-outline btn-block" onclick="deleteHistoryTournament(' + index + ')">Slett denne turneringen</button></div>';
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-history-detail').classList.add('active');
   syncChrome('history-detail');
