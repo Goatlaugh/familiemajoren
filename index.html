@@ -26,12 +26,48 @@
     .app-header { background: linear-gradient(135deg, var(--green-900), var(--green-800)); color: white; padding: 16px 20px; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); }
     .app-header-inner { max-width: 640px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
     .logo-icon-img { width: 42px; height: 42px; border-radius: 12px; object-fit: cover; flex: none; }
-    .home-banner { position: relative; margin: -20px -16px 16px; height: calc(230px + env(safe-area-inset-top)); background: #143622 url('banner.jpg') center 42% / cover no-repeat; color: white; overflow: hidden; }
+    .home-banner { position: relative; margin: -20px -16px 16px; height: calc(280px + env(safe-area-inset-top)); background: #143622 url('banner.jpg') center 40% / cover no-repeat; color: white; overflow: hidden; }
     .home-banner::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(8,30,16,.78), rgba(8,30,16,.12) 58%); }
     .home-banner-logo { position: absolute; z-index: 1; top: calc(14px + env(safe-area-inset-top)); left: 16px; width: 54px; height: 54px; border-radius: 14px; object-fit: cover; box-shadow: 0 4px 14px rgba(0,0,0,.28); }
     .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
     .photo-grid img { width: 100%; height: 140px; object-fit: cover; border-radius: 8px; background: var(--gray-100); }
     .home-banner-motto { position: absolute; z-index: 1; left: 18px; right: 18px; bottom: 16px; margin: 0; font-family: 'Playfair Display', Georgia, serif; font-size: 1.35rem; line-height: 1.25; text-shadow: 0 2px 12px rgba(0,0,0,.55); }
+    .page-banner { margin: -20px -16px 16px; background: #0f3d1a; color: white; padding: calc(16px + env(safe-area-inset-top)) 16px 16px; display: flex; align-items: center; gap: 12px; }
+    .page-banner img { width: 44px; height: 44px; border-radius: 12px; object-fit: cover; flex: none; }
+    .page-banner h1 { font-size: 1.85rem; margin: 0; color: white; line-height: 1.1; }
+    .page-banner .sub { color: var(--gold); font-weight: 600; font-size: 0.95rem; margin-top: 2px; }
+    .pill-gold { background: #e4c56a; color: #1a202c; font-weight: 700; font-size: 0.75rem; border-radius: 999px; padding: 6px 10px; white-space: nowrap; }
+    .nav-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .gold-rank { width: 28px; height: 28px; border-radius: 50%; background: var(--gold); color: white; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; flex: none; }
+    .board-row { display: grid; grid-template-columns: 32px 1fr auto auto; gap: 8px; align-items: center; padding: 14px 12px; border-bottom: 1px solid var(--gray-100); }
+    .board-row.leader { background: #fbf6e8; box-shadow: inset 4px 0 0 var(--gold); }
+    .board-rank { font-weight: 700; font-size: 1.15rem; color: var(--gray-700); }
+    .board-row.leader .board-rank { color: var(--gold); font-size: 1.45rem; }
+    .board-name { font-weight: 700; font-size: 1.05rem; }
+    .board-meta { font-size: 0.78rem; color: var(--gray-600); font-weight: 500; }
+    .bar { height: 6px; background: #e7f0e4; border-radius: 99px; margin-top: 6px; overflow: hidden; }
+    .bar > span { display: block; height: 100%; background: var(--green-700); border-radius: 99px; }
+    .gap-num { color: var(--gray-600); font-size: 0.9rem; min-width: 36px; text-align: right; }
+    .menu-list { background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .menu-row { display: flex; align-items: center; gap: 14px; width: 100%; background: white; border: none; border-bottom: 1px solid var(--gray-100); padding: 18px 16px; font-size: 1.05rem; font-weight: 600; font-family: inherit; text-align: left; cursor: pointer; color: var(--gray-800); }
+    .menu-row:last-child { border-bottom: none; }
+    .menu-row svg { width: 22px; height: 22px; stroke: #4a5568; fill: none; stroke-width: 1.7; flex: none; }
+    .menu-row .chev { margin-left: auto; color: #a0aec0; font-size: 1.3rem; font-weight: 400; }
+    .match-board { background: white; border-radius: 16px; padding: 16px; margin-bottom: 14px; box-shadow: var(--shadow); }
+    .match-sides { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; margin-bottom: 14px; }
+    .match-side { font-weight: 700; font-size: 1.15rem; line-height: 1.25; color: var(--green-900); }
+    .match-side.right { text-align: right; }
+    .match-mot { color: var(--gray-600); font-size: 0.85rem; }
+    .pick-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .pick { border: 1.5px solid var(--green-800); background: white; color: var(--green-900); border-radius: 999px; padding: 10px 4px; font-weight: 700; font-size: 0.78rem; font-family: inherit; cursor: pointer; }
+    .pick.active { background: var(--green-800); color: white; }
+    .pick.mid.active { background: #c4a35a; border-color: #c4a35a; color: white; }
+    .score-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--gray-100); }
+    .stepper { display: flex; align-items: center; background: var(--green-800); color: white; border-radius: 12px; overflow: hidden; flex: none; }
+    .stepper button { width: 40px; height: 44px; border: none; background: transparent; color: white; font-size: 1.35rem; font-weight: 600; cursor: pointer; }
+    .stepper input { width: 52px; height: 44px; border: none; border-left: 1px solid rgba(255,255,255,.25); border-right: 1px solid rgba(255,255,255,.25); background: transparent; color: white; text-align: center; font-weight: 700; font-size: 1.1rem; padding: 0; border-radius: 0; }
+    .stepper input:focus { outline: none; box-shadow: none; }
+    .btn-danger { background: white; color: #b42318; border: 1.5px solid #e8b4b0; }
     .logo-text h1 { font-size: 1.25rem; margin: 0; }
     .logo-text span { font-size: 0.7rem; opacity: 0.85; font-family: 'Inter', sans-serif; font-weight: 500; }
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--gray-200); display: flex; justify-content: space-around; padding: 6px 0 calc(6px + env(safe-area-inset-bottom)); z-index: 100; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); }
@@ -189,9 +225,19 @@
         <div class="charter-content" id="charter-full-body"></div>
       </div>
     </div>
+    <div id="page-more" class="page">
+      <div class="page-banner"><img src="icon-192.png" alt="" /><h1>Mer</h1></div>
+      <div class="menu-list">
+        <button type="button" class="menu-row" onclick="navigate('history')"><svg viewBox="0 0 24 24"><path d="M5 5h10a2 2 0 0 1 2 2v12H7a2 2 0 0 0-2 2z"/><path d="M5 5v14"/></svg>Historikk<span class="chev">›</span></button>
+        <button type="button" class="menu-row" onclick="navigate('hof')"><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="4"/><path d="M8 13.5 6 21l6-3 6 3-2-7.5"/></svg>Hall of Fame<span class="chev">›</span></button>
+        <button type="button" class="menu-row" onclick="navigate('charter')"><svg viewBox="0 0 24 24"><path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4"/><path d="M9 12h6M9 16h6"/></svg>Charter<span class="chev">›</span></button>
+        <button type="button" class="menu-row" onclick="navigate('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/></svg>Innstillinger<span class="chev">›</span></button>
+      </div>
+    </div>
     <div id="page-settings" class="page">
       <div class="card">
-        <h2 class="card-title">⚙️ Innstillinger & Backup</h2>
+        <button class="btn btn-sm btn-secondary mb-3" onclick="navigate('more')">← Tilbake</button>
+        <h2 class="card-title">Innstillinger</h2>
         <p class="text-muted mb-3">Turneringen deles automatisk med alle som har familiekoden. Eksport er bare en ekstra sikkerhetskopi.</p>
         <button class="btn btn-primary btn-block mb-2" onclick="exportData()">⬇️ Eksporter data</button>
         <button class="btn btn-secondary btn-block mb-2" onclick="document.getElementById('import-file').click()">⬆️ Importer data</button>
@@ -208,8 +254,8 @@
         <p class="text-muted" style="font-size:0.8rem;">Denne adressen skal legges inn som redirect URI hos Google:</p>
         <p id="google-redirect" class="text-muted mb-3" style="font-size:0.8rem;word-break:break-all;"></p>
         <div class="divider"></div>
-        <button class="btn btn-outline btn-block" onclick="resetAllData()">🗑️ Nullstill all data</button>
-        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.15 · Familiemajoren</p>
+        <button class="btn btn-danger btn-block" onclick="resetAllData()">Nullstill all data</button>
+        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.16 · Familiemajoren</p>
       </div>
     </div>
   </div>
@@ -220,13 +266,11 @@
   </div>
 
   <nav class="bottom-nav">
-    <button class="nav-btn active" data-page="home" onclick="navigate('home')"><span class="icon">🏠</span> Hjem</button>
-    <button class="nav-btn" data-page="tournament" onclick="navigate('tournament')"><span class="icon">⛳</span> Turnering</button>
-    <button class="nav-btn" data-page="hof" onclick="navigate('hof')"><span class="icon">🏅</span> HoF</button>
-    <button class="nav-btn" data-page="media" onclick="navigate('media')"><span class="icon">📷</span> Media</button>
-    <button class="nav-btn" data-page="history" onclick="navigate('history')"><span class="icon">📚</span> Historikk</button>
-    <button class="nav-btn" data-page="charter" onclick="navigate('charter')"><span class="icon">📜</span> Charter</button>
-    <button class="nav-btn" data-page="settings" onclick="navigate('settings')"><span class="icon">⚙️</span> Mer</button>
+    <button class="nav-btn active" data-page="home" onclick="navigate('home')"><svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z"/></svg>Hjem</button>
+    <button class="nav-btn" data-page="tournament" onclick="navigate('tournament')"><svg viewBox="0 0 24 24"><circle cx="12" cy="18" r="2.2"/><path d="M12 16V4"/><path d="M12 4h7l-2 3 2 3h-7"/></svg>Turnering</button>
+    <button class="nav-btn" data-page="leaderboard" onclick="navigate('leaderboard')"><svg viewBox="0 0 24 24"><path d="M5 19V10M12 19V5M19 19v-7"/></svg>Stilling</button>
+    <button class="nav-btn" data-page="media" onclick="navigate('media')"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.4"/><path d="m4 16 4-4 3 3 2-2 7 5"/></svg>Media</button>
+    <button class="nav-btn" data-page="more" onclick="navigate('more')"><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="18" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>Mer</button>
   </nav>
   <div id="toast" class="toast"></div>
 
@@ -515,16 +559,27 @@ function forgetCloudCode() {
   showCloudGate('enter');
 }
 
-function navigate(pageId) {
+function syncChrome(pageId) {
   currentPage = pageId;
   const header = document.querySelector('.app-header');
-  if (header) header.hidden = pageId === 'home';
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const ownBanner = pageId === 'home' || pageId === 'leaderboard' || pageId === 'scoring' || pageId === 'more';
+  if (header) header.hidden = ownBanner;
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const key = {
+    home: 'home', setup: 'tournament', tournament: 'tournament', scoring: 'tournament',
+    groups: 'tournament', 'group-detail': 'tournament', leaderboard: 'leaderboard', media: 'media',
+    more: 'more', settings: 'more', history: 'more', 'history-detail': 'more', hof: 'more',
+    charter: 'more', 'charter-full': 'more'
+  }[pageId] || 'home';
+  const navBtn = document.querySelector('.nav-btn[data-page="' + key + '"]');
+  if (navBtn) navBtn.classList.add('active');
+}
+
+function navigate(pageId) {
+  syncChrome(pageId);
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const page = document.getElementById('page-' + pageId);
   if (page) page.classList.add('active');
-  const navBtn = document.querySelector('.nav-btn[data-page="' + pageId + '"]');
-  if (navBtn) navBtn.classList.add('active');
   if (pageId === 'home') {
     renderHome();
     startCountdown();
@@ -683,7 +738,7 @@ function renderHome() {
     const t = state.current;
     const standings = calculateStandings(t);
     const leader = standings[0];
-    el.innerHTML = countdownCard(t) + '<div class="card"><div class="flex justify-between items-center mb-2"><div><div class="section-title">Pågående turnering</div><h2 style="margin:0;color:var(--green-900);">' + t.year + ' · ' + t.sted + '</h2></div><span class="badge badge-green">' + t.players.length + ' spillere</span></div><div class="divider"></div><div class="flex justify-between items-center"><div><div class="text-muted" style="font-size:0.85rem;">Leder</div><div style="font-weight:700;font-size:1.2rem;">' + (leader ? leader.name : '–') + '</div></div><div class="points-badge">' + (leader ? leader.total + ' p' : '–') + '</div></div><button class="btn btn-primary btn-block mt-3" onclick="navigate(\'tournament\')">Gå til turnering</button></div><div class="card"><h3 class="card-title">Hurtigvalg</h3><div class="flex gap-2" style="flex-wrap:wrap;"><button class="btn btn-secondary btn-sm" onclick="navigate(\'leaderboard\')">📊 Leaderboard</button><button class="btn btn-secondary btn-sm" onclick="navigate(\'groups\')">👥 Grupper</button><button class="btn btn-secondary btn-sm" onclick="navigate(\'hof\')">🏅 Hall of Fame</button></div></div>';
+    el.innerHTML = countdownCard(t) + '<div class="card" onclick="navigate(\'tournament\')" style="cursor:pointer;"><div class="section-title">Pågående</div><h2 style="margin:0 0 10px;color:var(--gray-800);">' + t.year + ' · ' + t.sted + '</h2><span class="badge badge-green">' + t.players.length + ' spillere</span><div class="divider"></div><div class="flex items-center justify-between"><div class="flex items-center gap-2"><span class="gold-rank">1</span><span style="font-weight:700;font-size:1.15rem;">' + (leader ? leader.name : '–') + '</span></div><div class="points-badge">' + (leader ? leader.total + ' p' : '–') + '</div></div></div>';
   }
 }
 
@@ -755,6 +810,7 @@ function openScoring(dayIndex) {
   currentScoringDay = dayIndex;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-scoring').classList.add('active');
+  syncChrome('scoring');
   renderScoring();
 }
 
@@ -810,7 +866,7 @@ function movePlayerToNext(name, fromIdx) {
   editableTeams = editableTeams.filter(t => t.length > 0);
   teamMatches = pairTeamsIntoMatches(editableTeams);
   renderTeamBoxes();
-  if (document.querySelector('.match-result')) renderMatchCards();
+  if (document.querySelector('.match-board')) renderMatchCards();
   else renderMatchCardsPreview();
 }
 
@@ -826,22 +882,35 @@ function renderMatchCards() {
   const container = document.getElementById('matches-container');
   if (!container) return;
   if (!teamMatches.length) { container.innerHTML = '<p class="text-muted">Generer lag først.</p>'; return; }
-  container.innerHTML = teamMatches.map((m, i) => `
-    <div class="match-card">
-      <div class="section-title">Kamp ${i + 1}</div>
-      <div><strong>Lag ${i*2 + 1}:</strong> ${m.teamA.join(', ')}</div>
-      <div class="vs">vs</div>
-      <div><strong>Lag ${i*2 + 2}:</strong> ${m.teamB.join(', ')}</div>
-      <div class="form-group mt-2" style="margin-bottom:0;">
-        <select class="match-result" data-match="${i}">
-          <option value="">– Velg resultat –</option>
-          <option value="A">Lag ${i*2 + 1} vant</option>
-          <option value="B">Lag ${i*2 + 2} vant</option>
-          <option value="halved">Uavgjort</option>
-        </select>
-      </div>
-    </div>
-  `).join('');
+  container.innerHTML = teamMatches.map((m, i) => matchBoard(i, 'team', m.teamA, m.teamB, m.result || '')).join('');
+}
+
+function renderSinglesBoards() {
+  const container = document.getElementById('singles-container');
+  if (!container) return;
+  const day = state.current && state.current.days[currentScoringDay];
+  const saved = (day && day.results) || {};
+  container.innerHTML = editableSingles.map((m, i) => {
+    const stored = saved[m.p1 + '_vs_' + m.p2] || m.result || '';
+    const code = stored === 'p1' ? 'A' : stored === 'p2' ? 'B' : stored;
+    return matchBoard(i, 'single', [m.p1], [m.p2], code);
+  }).join('');
+}
+
+function matchBoard(i, kind, left, right, result) {
+  const on = function (val) { return result === val ? ' active' : ''; };
+  return '<div class="match-board" data-kind="' + kind + '" data-match="' + i + '" data-result="' + result + '" data-p1="' + (left[0] || '') + '" data-p2="' + (right[0] || '') + '"><div class="match-sides"><div class="match-side">' + left.join('<br>') + '</div><div class="match-mot">mot</div><div class="match-side right">' + right.join('<br>') + '</div></div><div class="pick-row"><button type="button" class="pick' + on('A') + '" onclick="setMatchPick(this,\'A\')">Seier venstre</button><button type="button" class="pick mid' + on('halved') + '" onclick="setMatchPick(this,\'halved\')">Uavgjort</button><button type="button" class="pick' + on('B') + '" onclick="setMatchPick(this,\'B\')">Seier høyre</button></div></div>';
+}
+
+function setMatchPick(btn, val) {
+  const board = btn.closest('.match-board');
+  if (!board) return;
+  const next = board.dataset.result === val ? '' : val;
+  board.dataset.result = next;
+  board.querySelectorAll('.pick').forEach(function (b) {
+    const chosen = b === btn && next !== '';
+    b.classList.toggle('active', chosen);
+  });
 }
 
 function renderMatchCardsPreview() {
@@ -885,22 +954,31 @@ function renderScoring() {
 
   let scoringHTML = '';
   if (isIndividual) {
-    scoringHTML = '<p class="text-muted mb-3">Stableford-poeng. Tiebreak: lavest HCP.</p>' +
-      t.players.map(p => '<div class="score-row"><span class="score-name">' + p.name + ' <span class="text-muted" style="font-size:0.8rem;">(HCP ' + p.hcp + ')</span></span><input type="number" class="score-input individual-score" data-player="' + p.name + '" value="' + (day.results && day.results[p.name] !== undefined ? day.results[p.name] : '') + '" placeholder="0" min="0" max="100" /></div>').join('');
+    scoringHTML = t.players.map(p => '<div class="score-line"><div><div class="board-name">' + p.name + '</div><div class="board-meta">HCP ' + p.hcp + '</div></div><div class="stepper"><button type="button" onclick="bumpScore(this,-1)">−</button><input type="number" inputmode="numeric" class="individual-score" data-player="' + p.name + '" value="' + (day.results && day.results[p.name] !== undefined ? day.results[p.name] : '') + '" placeholder="0" min="0" max="150" /><button type="button" onclick="bumpScore(this,1)">+</button></div></div>').join('');
   } else if (isTeam) {
     const rec = recommendedTeamCount(t.players.length);
     scoringHTML = '<p class="text-muted mb-2"><strong>Steg 1:</strong> Sett opp lag</p><div class="form-group"><label>Antall lag</label><select id="num-teams-select" onchange="changeNumTeams()">' +
       [2,4,6,8].filter(x => x <= t.players.length && x % 2 === 0).map(x => '<option value="' + x + '"' + (editableTeams.length === x ? ' selected' : '') + '>' + x + ' lag' + (x === rec ? ' (anbefalt)' : '') + '</option>').join('') +
       '</select></div><div class="mode-btns"><div class="mode-btn ' + (groupMode==='hcp'?'active':'') + '" onclick="setGroupMode(\'hcp\')">Etter HCP</div><div class="mode-btn ' + (groupMode==='points'?'active':'') + '" onclick="setGroupMode(\'points\')">Etter poeng</div></div><button class="btn btn-sm btn-secondary mb-3" onclick="regenerateTeamsScoring()">🔄 Generer lag</button><div id="teams-container"></div><div class="divider"></div><p class="text-muted mb-2"><strong>Steg 2:</strong> Kamper</p><div id="matches-container"></div>';
   } else if (isSingles) {
-    scoringHTML = '<p class="text-muted mb-3">Matcher etter stilling.</p><button class="btn btn-sm btn-secondary mb-3" onclick="regenerateSingles()">🔄 Nytt forslag</button>' +
-      editableSingles.map((m, i) => '<div class="match-card"><div class="flex justify-between"><strong>' + m.p1 + '</strong><span class="text-muted">vs</span><strong>' + m.p2 + '</strong></div><select class="singles-result mt-2" data-p1="' + m.p1 + '" data-p2="' + m.p2 + '"><option value="">– Velg resultat –</option><option value="p1">' + m.p1 + ' vant</option><option value="p2">' + m.p2 + ' vant</option><option value="halved">Uavgjort</option></select></div>').join('');
+    scoringHTML = '<p class="text-muted mb-3">Matcher etter stilling.</p><button class="btn btn-sm btn-secondary mb-3" onclick="regenerateSingles()">Nytt forslag</button><div id="singles-container"></div>';
   }
 
-  el.innerHTML = '<div class="card"><div class="flex justify-between items-center mb-2"><button class="btn btn-sm btn-secondary" onclick="navigate(\'tournament\')">← Tilbake</button><span class="badge badge-green">Dag ' + day.dayNumber + (day.date ? ' · ' + formatDate(day.date) : '') + '</span></div><h2 style="margin:8px 0;">' + FORMATS[day.format] + '</h2><div class="form-group mt-3"><label>Bane</label><input type="text" id="scoring-course" value="' + (day.course || '') + '" placeholder="Golfbane..." /></div></div><div class="card"><h3 class="card-title">Resultater</h3>' + scoringHTML +
-    '<button class="btn btn-primary btn-block mt-3" onclick="saveScoring()">Lagre & beregn poeng</button>' +
-    '<button class="btn btn-secondary btn-block mt-2" onclick="openHoFRegister()">🏅 Registrer Hall of Fame</button></div>';
+  const shortName = day.format === 'final' ? 'Finalerunden' : (day.format === 'stableford' ? 'Stableford' : FORMATS[day.format]);
+  const pill = day.format === 'final' ? '<span class="pill-gold">Doble poeng</span>' : '';
+  el.innerHTML = '<div class="page-banner"><div style="flex:1;"><div class="flex justify-between items-center"><h1 style="font-size:1.35rem;">Dag ' + day.dayNumber + ' · ' + shortName + '</h1>' + pill + '</div><div class="sub">' + t.year + ' · ' + t.sted + '</div></div></div><div class="card"><label class="text-muted" style="font-size:0.85rem;">Bane</label><input type="text" id="scoring-course" value="' + (day.course || '') + '" placeholder="Golfbane" /></div>' +
+    (isIndividual ? '<div class="card" style="padding-top:8px;padding-bottom:8px;">' + scoringHTML + '</div>' : (isSingles ? '<div class="card">' + scoringHTML + '</div>' : '<div class="card"><h3 class="card-title">Lag</h3>' + scoringHTML + '</div>')) +
+    '<button class="btn btn-primary btn-block" onclick="saveScoring()">Lagre dagens poeng</button>' +
+    '<button class="btn btn-secondary btn-block mt-2" onclick="openHoFRegister()">Registrer Hall of Fame</button>';
   if (isTeam) { renderTeamBoxes(); renderMatchCards(); }
+  if (isSingles) renderSinglesBoards();
+}
+
+function bumpScore(btn, delta) {
+  const input = btn.parentElement.querySelector('input');
+  if (!input) return;
+  const next = Math.max(0, (parseFloat(input.value) || 0) + delta);
+  input.value = String(next);
 }
 
 function setGroupMode(m) { groupMode = m; document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active')); if (event && event.target) event.target.classList.add('active'); }
@@ -1220,9 +1298,9 @@ function saveScoring() {
       i = j;
     }
   } else if (['fourball', 'scramble'].includes(day.format)) {
-    document.querySelectorAll('.match-result').forEach(sel => {
-      const idx = parseInt(sel.dataset.match);
-      if (teamMatches[idx]) teamMatches[idx].result = sel.value || null;
+    document.querySelectorAll('.match-board[data-kind="team"]').forEach(board => {
+      const idx = parseInt(board.dataset.match);
+      if (teamMatches[idx]) teamMatches[idx].result = board.dataset.result || null;
     });
     day.teams = JSON.parse(JSON.stringify(editableTeams));
     day.teamMatches = JSON.parse(JSON.stringify(teamMatches));
@@ -1236,9 +1314,10 @@ function saveScoring() {
   } else if (day.format === 'singles') {
     day.matches = JSON.parse(JSON.stringify(editableSingles));
     const results = {};
-    document.querySelectorAll('.singles-result').forEach(sel => {
-      const p1 = sel.dataset.p1, p2 = sel.dataset.p2, val = sel.value;
-      if (!val) return;
+    document.querySelectorAll('.match-board[data-kind="single"]').forEach(board => {
+      const p1 = board.dataset.p1, p2 = board.dataset.p2, raw = board.dataset.result;
+      if (!raw) return;
+      const val = raw === 'A' ? 'p1' : raw === 'B' ? 'p2' : raw;
       results[p1 + '_vs_' + p2] = val;
       if (val === 'p1') { playerPoints[p1] = (playerPoints[p1]||0) + maxPoints; playerPoints[p2] = (playerPoints[p2]||0) + losePts; }
       else if (val === 'p2') { playerPoints[p2] = (playerPoints[p2]||0) + maxPoints; playerPoints[p1] = (playerPoints[p1]||0) + losePts; }
@@ -1295,11 +1374,17 @@ function renderStandingsTable(standings) {
 
 function renderLeaderboard() {
   const el = document.getElementById('leaderboard-content');
-  if (!state.current) { el.innerHTML = '<div class="card"><p class="text-muted">Ingen pågående turnering.</p></div>'; return; }
+  if (!state.current) { el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><h1>Stilling</h1></div><div class="card"><p class="text-muted">Ingen pågående turnering.</p></div>'; return; }
   const t = state.current;
   const standings = calculateStandings(t);
-  el.innerHTML = '<div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'tournament\')">← Tilbake</button><h2 class="card-title">📊 Sammenlagt</h2><p class="text-muted mb-3">' + t.year + ' · ' + t.sted + '</p>' + renderStandingsTable(standings) + '</div><div class="card"><h3 class="card-title">Poeng per dag</h3>' +
-    (t.days.filter(d => d.completed).map(d => '<div style="margin-bottom:16px;"><div class="flex justify-between mb-1"><strong>Dag ' + d.dayNumber + '</strong><span class="text-muted" style="font-size:0.85rem;">' + FORMATS[d.format] + '</span></div>' + (d.points ? Object.entries(d.points).sort((a,b)=>b[1]-a[1]).map(([name,pts]) => '<div class="flex justify-between" style="font-size:0.9rem;"><span>' + name + '</span><span>' + pts + ' p</span></div>').join('') : '') + '</div>').join('') || '<p class="text-muted">Ingen fullførte dager.</p>') + '</div>';
+  const leaderPts = standings.length ? standings[0].total : 0;
+  const rows = standings.map((s, i) => {
+    const pct = leaderPts > 0 ? Math.max(8, Math.round(s.total / leaderPts * 100)) : 0;
+    const gap = i === 0 ? '' : '<div class="gap-num">' + (s.total - leaderPts) + '</div>';
+    return '<div class="board-row' + (i === 0 ? ' leader' : '') + '"><div class="board-rank">' + (i + 1) + '</div><div><div class="board-name">' + s.name + '</div>' + (i === 0 ? '<div class="board-meta">leder</div>' : '<div class="bar"><span style="width:' + pct + '%"></span></div>') + '</div><div class="points-badge">' + s.total + '</div>' + (i === 0 ? '<div></div>' : gap) + '</div>';
+  }).join('');
+  const days = t.days.filter(d => d.completed).map(d => '<div style="margin-bottom:16px;"><div class="flex justify-between mb-1"><strong>Dag ' + d.dayNumber + '</strong><span class="text-muted" style="font-size:0.85rem;">' + FORMATS[d.format] + '</span></div>' + (d.points ? Object.entries(d.points).sort((a,b)=>b[1]-a[1]).map(([name,pts]) => '<div class="flex justify-between" style="font-size:0.9rem;"><span>' + name + '</span><span>' + pts + ' p</span></div>').join('') : '') + '</div>').join('');
+  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Stilling</h1><div class="sub">' + t.year + ' · ' + t.sted + '</div></div></div><div class="card" style="padding:0;overflow:hidden;">' + rows + '</div>' + (days ? '<div class="card"><h3 class="card-title">Per dag</h3>' + days + '</div>' : '');
 }
 
 function renderGroupsMenu() {
@@ -1315,6 +1400,7 @@ function openGroupDetail(type) {
   currentGroupType = type;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-group-detail').classList.add('active');
+  syncChrome('group-detail');
   renderGroupDetail();
 }
 
@@ -1713,6 +1799,7 @@ function openHistoryDetail(index) {
     (h.days || []).map(d => '<div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--gray-100);"><div class="flex justify-between mb-1"><strong>Dag ' + d.dayNumber + (d.date ? ' · ' + formatDate(d.date) : '') + '</strong><span class="badge badge-green">' + (FORMATS[d.format]||d.format) + '</span></div>' + (d.course ? '<div class="text-muted" style="font-size:0.85rem;">📍 ' + d.course + '</div>' : '') + '<button type="button" class="btn btn-sm btn-secondary mt-2" onclick="openDayMedia(' + JSON.stringify(h.year) + ',' + JSON.stringify(h.sted) + ',' + d.dayNumber + ')">Bilder</button>' + (d.points ? Object.entries(d.points).sort((a,b)=>b[1]-a[1]).map(([n,p]) => '<div class="flex justify-between" style="font-size:0.9rem;"><span>' + n + '</span><span>' + p + ' p</span></div>').join('') : '') + '</div>').join('') + '</div><div class="card"><button class="btn btn-outline btn-block" onclick="deleteHistoryTournament(' + index + ')">Slett denne turneringen</button></div>';
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-history-detail').classList.add('active');
+  syncChrome('history-detail');
 }
 
 function exportData() {
