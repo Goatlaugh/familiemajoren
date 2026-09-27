@@ -2,7 +2,7 @@
 <html lang="no">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
   <meta name="theme-color" content="#0f3d1a" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Familie-Majoren" />
@@ -21,7 +21,8 @@
       --shadow: 0 4px 20px rgba(15,61,26,0.08); --radius: 12px; --radius-sm: 8px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body { font-family: 'Inter', -apple-system, sans-serif; background: var(--gray-50); color: var(--gray-800); line-height: 1.5; min-height: 100vh; padding-bottom: 90px; }
+    html { height: 100%; background: var(--gray-50); }
+    body { font-family: 'Inter', -apple-system, sans-serif; background: var(--gray-50); color: var(--gray-800); line-height: 1.5; min-height: 100vh; min-height: 100dvh; padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
     h1, h2, h3 { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; }
     .app-header { background: linear-gradient(135deg, var(--green-900), var(--green-800)); color: white; padding: 16px 20px; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); }
     .app-header-inner { max-width: 640px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
@@ -37,7 +38,7 @@
     .page-banner h1 { font-size: 1.85rem; margin: 0; color: white; line-height: 1.1; }
     .page-banner .sub { color: var(--gold); font-weight: 600; font-size: 0.95rem; margin-top: 2px; }
     .pill-gold { background: #e4c56a; color: #1a202c; font-weight: 700; font-size: 0.75rem; border-radius: 999px; padding: 6px 10px; white-space: nowrap; }
-    .nav-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .nav-btn svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
     .gold-rank { width: 28px; height: 28px; border-radius: 50%; background: var(--gold); color: white; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; flex: none; }
     .board-row { display: grid; grid-template-columns: 32px 1fr auto auto; gap: 8px; align-items: center; padding: 14px 12px; border-bottom: 1px solid var(--gray-100); }
     .board-row.leader { background: #fbf6e8; box-shadow: inset 4px 0 0 var(--gold); }
@@ -63,16 +64,20 @@
     .pick.active { background: var(--green-800); color: white; }
     .pick.mid.active { background: #c4a35a; border-color: #c4a35a; color: white; }
     .score-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--gray-100); }
-    .stepper { display: flex; align-items: center; background: var(--green-800); color: white; border-radius: 12px; overflow: hidden; flex: none; }
-    .stepper button { width: 40px; height: 44px; border: none; background: transparent; color: white; font-size: 1.35rem; font-weight: 600; cursor: pointer; }
-    .stepper input { width: 52px; height: 44px; border: none; border-left: 1px solid rgba(255,255,255,.25); border-right: 1px solid rgba(255,255,255,.25); background: transparent; color: white; text-align: center; font-weight: 700; font-size: 1.1rem; padding: 0; border-radius: 0; }
-    .stepper input:focus { outline: none; box-shadow: none; }
+    .stepper { display: flex; align-items: stretch; background: white; color: var(--green-900); border: 1.5px solid var(--green-800); border-radius: 12px; overflow: hidden; flex: none; }
+    .stepper button { width: 44px; height: 48px; border: none; background: var(--green-800); color: white; font-size: 1.4rem; font-weight: 600; cursor: pointer; }
+    .stepper input { width: 64px; height: 48px; border: none; background: #fff; color: #0f3d1a; -webkit-text-fill-color: #0f3d1a; caret-color: #0f3d1a; text-align: center; font-weight: 700; font-size: 1.25rem; padding: 0; border-radius: 0; opacity: 1; }
+    .stepper input:focus { outline: none; box-shadow: none; background: #fff; color: #0f3d1a; -webkit-text-fill-color: #0f3d1a; }
     .btn-danger { background: white; color: #b42318; border: 1.5px solid #e8b4b0; }
     .logo-text h1 { font-size: 1.25rem; margin: 0; }
     .logo-text span { font-size: 0.7rem; opacity: 0.85; font-family: 'Inter', sans-serif; font-weight: 500; }
-    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--gray-200); display: flex; justify-content: space-around; padding: 6px 0 calc(6px + env(safe-area-inset-bottom)); z-index: 100; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); }
-    .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 4px 2px; background: none; border: none; color: var(--gray-600); font-size: 0.65rem; font-weight: 500; cursor: pointer; }
+    .bottom-nav { position: fixed; bottom: var(--vv-bottom, 0px); left: 0; right: 0; background: white; border-top: 1px solid var(--gray-200); display: flex; justify-content: space-around; padding: 8px 0 calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 100; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); }
+    .bottom-nav::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 48px; background: white; }
+    .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 2px; background: none; border: none; color: #6b7280; font-size: 0.68rem; font-weight: 500; cursor: pointer; }
     .nav-btn.active { color: var(--green-800); }
+    .nav-btn[data-page="leaderboard"] svg { stroke: none; fill: #c9a227; }
+    .nav-btn[data-page="leaderboard"].active { color: #b8922a; }
+    .nav-btn[data-page="more"] svg { fill: currentColor; stroke: none; }
     .nav-btn span.icon { font-size: 1.25rem; }
     .container { max-width: 640px; margin: 0 auto; padding: 20px 16px; }
     .page { display: none; }
@@ -255,7 +260,7 @@
         <p id="google-redirect" class="text-muted mb-3" style="font-size:0.8rem;word-break:break-all;"></p>
         <div class="divider"></div>
         <button class="btn btn-danger btn-block" onclick="resetAllData()">Nullstill all data</button>
-        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.16 · Familiemajoren</p>
+        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.17 · Familiemajoren</p>
       </div>
     </div>
   </div>
@@ -266,11 +271,11 @@
   </div>
 
   <nav class="bottom-nav">
-    <button class="nav-btn active" data-page="home" onclick="navigate('home')"><svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1z"/></svg>Hjem</button>
-    <button class="nav-btn" data-page="tournament" onclick="navigate('tournament')"><svg viewBox="0 0 24 24"><circle cx="12" cy="18" r="2.2"/><path d="M12 16V4"/><path d="M12 4h7l-2 3 2 3h-7"/></svg>Turnering</button>
-    <button class="nav-btn" data-page="leaderboard" onclick="navigate('leaderboard')"><svg viewBox="0 0 24 24"><path d="M5 19V10M12 19V5M19 19v-7"/></svg>Stilling</button>
-    <button class="nav-btn" data-page="media" onclick="navigate('media')"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.4"/><path d="m4 16 4-4 3 3 2-2 7 5"/></svg>Media</button>
-    <button class="nav-btn" data-page="more" onclick="navigate('more')"><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="18" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg>Mer</button>
+    <button class="nav-btn active" data-page="home" onclick="navigate('home')"><svg viewBox="0 0 24 24"><path d="M4 10.8 12 4l8 6.8V20a1 1 0 0 1-1 1h-4.5v-6h-5V21H5a1 1 0 0 1-1-1z"/></svg>Hjem</button>
+    <button class="nav-btn" data-page="tournament" onclick="navigate('tournament')"><svg viewBox="0 0 24 24"><path d="M12 22c2 0 3.4-1.3 3.4-3S14 16 12 16s-3.4 1.3-3.4 3 1.4 3 3.4 3z"/><path d="M12 16V3.5"/><path d="M12 3.5h6.4L16.2 6.8l2.2 3.2H12"/></svg>Turnering</button>
+    <button class="nav-btn" data-page="leaderboard" onclick="navigate('leaderboard')"><svg viewBox="0 0 24 24"><rect x="3.5" y="12" width="4.5" height="8" rx="1.2"/><rect x="9.75" y="4" width="4.5" height="16" rx="1.2"/><rect x="16" y="8.5" width="4.5" height="11.5" rx="1.2"/></svg>Stilling</button>
+    <button class="nav-btn" data-page="media" onclick="navigate('media')"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2.2"/><circle cx="8.2" cy="9.2" r="1.3"/><path d="m4.2 16.2 4-3.4 2.7 2.3 2.1-1.7 6.6 4"/></svg>Media</button>
+    <button class="nav-btn" data-page="more" onclick="navigate('more')"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="5.5" cy="12" r="1.55"/><circle cx="12" cy="12" r="1.55"/><circle cx="18.5" cy="12" r="1.55"/></svg>Mer</button>
   </nav>
   <div id="toast" class="toast"></div>
 
@@ -337,6 +342,12 @@ function registerAppInstall() {
   navigator.serviceWorker.register('sw.js').catch(function () {});
 }
 
+function fitScreen() {
+  const vv = window.visualViewport;
+  const bottom = vv ? Math.max(0, window.innerHeight - vv.offsetTop - vv.height) : 0;
+  document.documentElement.style.setProperty('--vv-bottom', bottom + 'px');
+}
+
 function init() {
   takeGoogleCode();
   loadState();
@@ -344,6 +355,12 @@ function init() {
   renderPlayerInputs();
   renderDayFormats();
   renderCharter();
+  fitScreen();
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', fitScreen);
+    window.visualViewport.addEventListener('scroll', fitScreen);
+  }
+  window.addEventListener('resize', fitScreen);
   navigate('home');
   bootCloud();
   registerAppInstall();
@@ -954,7 +971,7 @@ function renderScoring() {
 
   let scoringHTML = '';
   if (isIndividual) {
-    scoringHTML = t.players.map(p => '<div class="score-line"><div><div class="board-name">' + p.name + '</div><div class="board-meta">HCP ' + p.hcp + '</div></div><div class="stepper"><button type="button" onclick="bumpScore(this,-1)">−</button><input type="number" inputmode="numeric" class="individual-score" data-player="' + p.name + '" value="' + (day.results && day.results[p.name] !== undefined ? day.results[p.name] : '') + '" placeholder="0" min="0" max="150" /><button type="button" onclick="bumpScore(this,1)">+</button></div></div>').join('');
+    scoringHTML = t.players.map(p => '<div class="score-line"><div><div class="board-name">' + p.name + '</div><div class="board-meta">HCP ' + p.hcp + '</div></div><div class="stepper"><button type="button" onclick="bumpScore(this,-1)">−</button><input type="text" inputmode="decimal" class="individual-score" data-player="' + p.name + '" value="' + (day.results && day.results[p.name] !== undefined && day.results[p.name] !== '' ? day.results[p.name] : '') + '" placeholder="0" /><button type="button" onclick="bumpScore(this,1)">+</button></div></div>').join('');
   } else if (isTeam) {
     const rec = recommendedTeamCount(t.players.length);
     scoringHTML = '<p class="text-muted mb-2"><strong>Steg 1:</strong> Sett opp lag</p><div class="form-group"><label>Antall lag</label><select id="num-teams-select" onchange="changeNumTeams()">' +
