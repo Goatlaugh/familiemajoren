@@ -192,17 +192,20 @@
       <div id="home-content"></div>
     </div>
     <div id="page-setup" class="page">
+      <div class="page-banner"><img src="icon-192.png" alt="" /><h1 id="setup-title">Ny turnering</h1></div>
       <div class="card">
-        <h2 class="card-title">⚙️ Oppsett av turnering</h2>
-        <div class="form-group"><label>År</label><input type="number" id="setup-year" value="2026" min="2020" max="2100" /></div>
+        <button type="button" id="setup-back" class="btn btn-sm btn-secondary mb-3 hidden" onclick="navigate('tournament')">← Tilbake</button>
         <div class="form-group"><label>Sted</label><input type="text" id="setup-sted" placeholder="Alicante, Marbella, Stavanger..." /></div>
-        <div class="form-group"><label>Startdato</label><input type="date" id="setup-start" onchange="fillDayDates(false)" /></div>
+        <div class="form-group"><label>Startdato</label><input type="date" id="setup-start" onchange="syncSetupYear(); if(!document.getElementById('setup-extra').classList.contains('hidden')) fillDayDates(false)" /></div>
         <div class="form-group"><label>Sluttdato</label><input type="date" id="setup-end" /></div>
-        <div class="form-group"><label>Antall deltakere</label><input type="number" id="setup-players-count" value="6" min="2" max="16" onchange="renderPlayerInputs()" /></div>
-        <div class="form-group"><label>Spillere (navn + HCP)</label><div id="player-inputs"></div></div>
-        <div class="form-group"><label>Antall konkurransedager (min. 4)</label><input type="number" id="setup-days" value="5" min="4" max="10" onchange="renderDayFormats()" /></div>
-        <div class="form-group"><label>Format og dato per dag</label><p class="text-muted mb-2" style="font-size:0.85rem;">Standard er én dato per dag. To dager kan ha samme dato hvis dere spiller to runder samme dag.</p><div id="day-formats"></div><button type="button" class="btn btn-secondary btn-sm" onclick="fillDayDates(true)">Fyll datoer fra startdato</button></div>
-        <button class="btn btn-primary btn-block mt-3" onclick="saveSetup()">Lagre turneringsoppsett</button>
+        <p id="setup-year-line" style="margin:4px 0 18px;">År: –<br><span class="text-muted" style="font-size:0.9rem;">settes automatisk fra startdato</span></p>
+        <div id="setup-extra" class="hidden">
+          <div class="form-group"><label>Antall deltakere</label><input type="number" id="setup-players-count" value="6" min="0" max="16" onchange="renderPlayerInputs()" /></div>
+          <div class="form-group"><label>Spillere (navn + HCP)</label><div id="player-inputs"></div></div>
+          <div class="form-group"><label>Antall konkurransedager (min. 4)</label><input type="number" id="setup-days" value="5" min="4" max="10" onchange="renderDayFormats()" /></div>
+          <div class="form-group"><label>Format og dato per dag</label><p class="text-muted mb-2" style="font-size:0.85rem;">Standard er én dato per dag. To dager kan ha samme dato hvis dere spiller to runder samme dag.</p><div id="day-formats"></div><button type="button" class="btn btn-secondary btn-sm" onclick="fillDayDates(true)">Fyll datoer fra startdato</button></div>
+        </div>
+        <button class="btn btn-primary btn-block" id="setup-save" onclick="saveSetup()">Opprett turnering</button>
       </div>
     </div>
     <div id="page-tournament" class="page"><div id="tournament-content"></div></div>
@@ -262,7 +265,7 @@
         <p id="google-redirect" class="text-muted mb-3" style="font-size:0.8rem;word-break:break-all;"></p>
         <div class="divider"></div>
         <button class="btn btn-danger btn-block" onclick="resetAllData()">Nullstill all data</button>
-        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.19 · Familiemajoren</p>
+        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.20 · Familiemajoren</p>
       </div>
     </div>
   </div>
@@ -590,7 +593,7 @@ function forgetCloudCode() {
 function syncChrome(pageId) {
   currentPage = pageId;
   const header = document.querySelector('.app-header');
-  const ownBanner = pageId === 'home' || pageId === 'leaderboard' || pageId === 'scoring' || pageId === 'more';
+  const ownBanner = pageId === 'home' || pageId === 'leaderboard' || pageId === 'scoring' || pageId === 'more' || pageId === 'tournament' || pageId === 'setup';
   if (header) header.hidden = ownBanner;
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   const key = {
@@ -761,26 +764,33 @@ function countdownCard(t) {
 function renderHome() {
   const el = document.getElementById('home-content');
   if (!state.current) {
-    el.innerHTML = '<div class="card text-center"><div class="empty-state"><div class="icon">🏆</div><h2 style="margin-bottom:8px;">Velkommen til Familiemajoren</h2><p class="text-muted mb-3">Ingen pågående turnering.</p><button class="btn btn-primary" onclick="navigate(\'setup\')">Sett opp ny turnering</button></div></div>' +
+    el.innerHTML = '<div class="card text-center"><div class="empty-state"><h2 style="margin-bottom:8px;">Velkommen til Familiemajoren</h2><p class="text-muted mb-3">Ingen pågående turnering.</p><button class="btn btn-primary" onclick="openSetup(\'create\')">Ny turnering</button></div></div>' +
       (state.history.length ? '<div class="card"><h3 class="card-title">Siste mestere</h3>' + state.history.slice(-3).reverse().map(h => '<div class="flex justify-between items-center" style="padding:8px 0;border-bottom:1px solid var(--gray-100);"><span><strong>' + h.year + '</strong> · ' + h.sted + '</span><span class="badge badge-gold">🏆 ' + h.winner + '</span></div>').join('') + '</div>' : '');
   } else {
     const t = state.current;
-    const standings = calculateStandings(t);
-    const leader = standings[0];
-    el.innerHTML = countdownCard(t) + '<div class="card" onclick="navigate(\'tournament\')" style="cursor:pointer;"><div class="section-title">Pågående</div><h2 style="margin:0 0 10px;color:var(--gray-800);">' + t.year + ' · ' + t.sted + '</h2><span class="badge badge-green">' + t.players.length + ' spillere</span><div class="divider"></div><div class="flex items-center justify-between"><div class="flex items-center gap-2"><span class="gold-rank">1</span><span style="font-weight:700;font-size:1.15rem;">' + (leader ? leader.name : '–') + '</span></div><div class="points-badge">' + (leader ? leader.total + ' p' : '–') + '</div></div></div>';
+    const players = t.players || [];
+    const leader = players.length ? calculateStandings(t)[0] : null;
+    const body = players.length
+      ? '<span class="badge badge-green">' + players.length + ' spillere</span><div class="divider"></div><div class="flex items-center justify-between"><div class="flex items-center gap-2"><span class="gold-rank">1</span><span style="font-weight:700;font-size:1.15rem;">' + (leader ? leader.name : '–') + '</span></div><div class="points-badge">' + (leader ? leader.total + ' p' : '–') + '</div></div>'
+      : '<div class="badge badge-green" style="margin-top:8px;">Spillere ikke satt</div>';
+    el.innerHTML = countdownCard(t) + '<div class="card" onclick="navigate(\'tournament\')" style="cursor:pointer;"><div class="section-title">Pågående</div><h2 style="margin:0 0 10px;color:var(--gray-800);">' + t.year + ' · ' + t.sted + '</h2>' + body + '</div>';
   }
 }
 
 function renderPlayerInputs() {
-  const count = parseInt(document.getElementById('setup-players-count').value) || 6;
+  const host = document.getElementById('player-inputs');
+  if (!host) return;
+  const count = parseInt(document.getElementById('setup-players-count').value) || 0;
   let html = '';
   for (let i = 0; i < count; i++) {
     html += '<div class="player-row"><input type="text" class="player-name-input" placeholder="Navn spiller ' + (i+1) + '" /><input type="number" class="hcp-input player-hcp-input" placeholder="HCP" min="0" max="54" step="0.1" /></div>';
   }
-  document.getElementById('player-inputs').innerHTML = html;
+  host.innerHTML = html;
 }
 
 function renderDayFormats() {
+  const host = document.getElementById('day-formats');
+  if (!host) return;
   const days = parseInt(document.getElementById('setup-days').value) || 5;
   const defaults = ['stableford', 'fourball', 'scramble', 'singles', 'final'];
   const start = (document.getElementById('setup-start') && document.getElementById('setup-start').value) || '';
@@ -792,50 +802,151 @@ function renderDayFormats() {
     for (const [k, v] of Object.entries(FORMATS)) html += '<option value="' + k + '"' + (k === def ? ' selected' : '') + '>' + v + '</option>';
     html += '</select><input type="date" class="day-date-input mt-2" value="' + dateVal + '" /></div>';
   }
-  document.getElementById('day-formats').innerHTML = html;
+  host.innerHTML = html;
+}
+
+let setupMode = 'create';
+
+function yearFromDate(iso) {
+  const m = String(iso || '').match(/^(\d{4})/);
+  return m ? parseInt(m[1], 10) : new Date().getFullYear();
+}
+
+function tournamentStarted(t) {
+  return !!(t && (t.days || []).some(d => d.completed));
+}
+
+function syncSetupYear() {
+  const el = document.getElementById('setup-year-line');
+  const start = document.getElementById('setup-start');
+  if (!el || !start) return;
+  const year = start.value ? yearFromDate(start.value) : '–';
+  el.innerHTML = 'År: ' + year + '<br><span class="text-muted" style="font-size:0.9rem;">settes automatisk fra startdato</span>';
+}
+
+function openSetup(mode) {
+  if (mode === 'full' && state.current && tournamentStarted(state.current)) {
+    toast('Innstillingene er låst etter første resultat');
+    navigate('tournament');
+    return;
+  }
+  if (mode === 'create' && state.current) {
+    toast('Det finnes allerede en pågående turnering');
+    navigate('tournament');
+    return;
+  }
+  if (mode === 'full' && !state.current) mode = 'create';
+  setupMode = mode;
+  const creating = mode === 'create';
+  document.getElementById('setup-extra').classList.toggle('hidden', creating);
+  document.getElementById('setup-back').classList.toggle('hidden', creating);
+  document.getElementById('setup-title').textContent = creating ? 'Ny turnering' : 'Innstillinger';
+  document.getElementById('setup-save').textContent = creating ? 'Opprett turnering' : 'Lagre';
+  const t = state.current;
+  if (!creating && t) {
+    document.getElementById('setup-sted').value = t.sted || '';
+    document.getElementById('setup-start').value = t.startDate || '';
+    document.getElementById('setup-end').value = t.endDate || '';
+    document.getElementById('setup-players-count').value = (t.players && t.players.length) || 6;
+    renderPlayerInputs();
+    const names = document.querySelectorAll('.player-name-input');
+    const hcps = document.querySelectorAll('.player-hcp-input');
+    (t.players || []).forEach((p, i) => {
+      if (!names[i]) return;
+      names[i].value = p.name;
+      hcps[i].value = p.hcp;
+    });
+    document.getElementById('setup-days').value = (t.days && t.days.length) || 5;
+    renderDayFormats();
+    const selects = document.querySelectorAll('.day-format-select');
+    const dates = document.querySelectorAll('.day-date-input');
+    (t.days || []).forEach((d, i) => {
+      if (selects[i]) selects[i].value = d.format;
+      if (dates[i] && d.date) dates[i].value = d.date;
+    });
+  } else {
+    document.getElementById('setup-sted').value = '';
+    document.getElementById('setup-start').value = '';
+    document.getElementById('setup-end').value = '';
+  }
+  syncSetupYear();
+  navigate('setup');
 }
 
 function saveSetup() {
-  const year = parseInt(document.getElementById('setup-year').value);
+  if (setupMode === 'full' && state.current && tournamentStarted(state.current)) {
+    toast('Innstillingene er låst etter første resultat');
+    navigate('tournament');
+    return;
+  }
   const sted = document.getElementById('setup-sted').value.trim();
-  const nameInputs = document.querySelectorAll('.player-name-input');
-  const hcpInputs = document.querySelectorAll('.player-hcp-input');
-  const players = [];
-  nameInputs.forEach((inp, i) => {
-    const name = inp.value.trim();
-    if (name) players.push({ name, hcp: parseFloat(hcpInputs[i].value) || 0 });
-  });
-  if (!sted) { toast('Fyll inn sted'); return; }
-  if (players.length < 2) { toast('Minst 2 spillere'); return; }
   const startDate = document.getElementById('setup-start').value;
   const endDate = document.getElementById('setup-end').value;
+  if (!sted || !startDate || !endDate) { toast('Fyll inn sted, startdato og sluttdato'); return; }
+  if (endDate < startDate) { toast('Sluttdato kan ikke være før startdato'); return; }
+  const year = yearFromDate(startDate);
+  if (setupMode === 'create') {
+    state.current = { year, sted, startDate, endDate, players: [], days: [], createdAt: new Date().toISOString().slice(0, 10) };
+    saveState();
+    toast('Turneringen er opprettet');
+    navigate('tournament');
+    return;
+  }
+  const players = [];
+  document.querySelectorAll('.player-name-input').forEach((inp, i) => {
+    const name = inp.value.trim();
+    const hcpInput = document.querySelectorAll('.player-hcp-input')[i];
+    if (name) players.push({ name, hcp: parseFloat(hcpInput && hcpInput.value) || 0 });
+  });
+  if (players.length === 1) { toast('Minst 2 spillere, eller la listen stå tom'); return; }
   const daySelects = document.querySelectorAll('.day-format-select');
   const dateInputs = document.querySelectorAll('.day-date-input');
   const days = Array.from(daySelects).map((sel, idx) => ({
     dayNumber: idx + 1, format: sel.value, date: dateInputs[idx] ? dateInputs[idx].value : '',
     course: '', results: null, points: null,
-    teams: null, matches: null, teamMatches: null, completed: false
+    teams: null, matches: null, teamMatches: null, photos: [], completed: false
   }));
-  state.current = { year, sted, startDate, endDate, players, days, createdAt: new Date().toISOString().slice(0, 10) };
+  const createdAt = (state.current && state.current.createdAt) || new Date().toISOString().slice(0, 10);
+  state.current = { year, sted, startDate, endDate, players, days, createdAt };
   saveState();
-  toast('Turnering lagret!');
+  toast('Innstillingene er lagret');
   navigate('tournament');
 }
 
 function renderTournament() {
   const el = document.getElementById('tournament-content');
+  const banner = '<div class="page-banner"><img src="icon-192.png" alt="" /><h1>Turnering</h1></div>';
   if (!state.current) {
-    el.innerHTML = '<div class="card text-center"><div class="empty-state"><div class="icon">⛳</div><p class="mb-3">Ingen pågående turnering.</p><button class="btn btn-primary" onclick="navigate(\'setup\')">Sett opp ny turnering</button></div></div>';
+    el.innerHTML = banner + '<div class="card text-center"><p class="text-muted mb-3">Ingen pågående turnering.</p><button class="btn btn-primary btn-block" onclick="openSetup(\'create\')">Ny turnering</button></div>';
     return;
   }
   const t = state.current;
-  const standings = calculateStandings(t);
-  el.innerHTML = '<div class="card"><div class="flex justify-between items-center"><div><div class="section-title">' + t.year + '</div><h2 style="margin:0;">' + t.sted + '</h2></div><span class="badge badge-green">' + t.players.length + ' spillere</span></div></div><div class="card"><h3 class="card-title">Konkurransedager</h3><div class="day-chips">' + t.days.map((d,i) => '<div class="day-chip ' + (d.completed ? 'completed' : '') + '" onclick="openScoring(' + i + ')">Dag ' + d.dayNumber + (d.date ? ' · ' + formatDate(d.date) : '') + (d.completed ? ' ✓' : '') + '</div>').join('') + '</div>' +
-    t.days.map((d,i) => '<div class="flex justify-between items-center" style="padding:10px 0;border-bottom:1px solid var(--gray-100);"><div><strong>Dag ' + d.dayNumber + (d.date ? ' · ' + formatDate(d.date) : '') + '</strong><div class="text-muted" style="font-size:0.85rem;">' + FORMATS[d.format] + '</div>' + (d.course ? '<div class="text-muted" style="font-size:0.8rem;">📍 ' + d.course + '</div>' : '') + '</div><button class="btn btn-sm ' + (d.completed ? 'btn-secondary' : 'btn-primary') + '" onclick="openScoring(' + i + ')">' + (d.completed ? 'Se / Rediger' : 'Før resultat') + '</button></div>').join('') +
-    '</div><div class="card"><h3 class="card-title">📊 Sammenlagt</h3>' + renderStandingsTable(standings) + '<button class="btn btn-secondary btn-block mt-3" onclick="navigate(\'leaderboard\')">Full leaderboard</button></div><div class="card"><h3 class="card-title">👥 Grupper</h3><button class="btn btn-secondary btn-block" onclick="navigate(\'groups\')">Åpne gruppegenerator</button></div><div class="card"><button class="btn btn-gold btn-block" onclick="finishTournament()">🏁 Marker turnering som ferdig</button><button class="btn btn-outline btn-block mt-2" onclick="deleteCurrentTournament()">Slett denne turneringen</button></div>';
+  const players = t.players || [];
+  const locked = tournamentStarted(t);
+  const dates = [formatDate(t.startDate), formatDate(t.endDate)].filter(Boolean).join(' – ');
+  let html = banner + '<div class="card"><div class="section-title">Pågående</div><h2 style="margin:0 0 8px;">' + t.year + ' · ' + t.sted + '</h2><div class="text-muted">' + dates + '</div>' + (players.length ? '' : '<div class="badge badge-green" style="margin-top:12px;">Spillere ikke satt</div>') + '</div>';
+  if (!locked) {
+    html += '<div class="menu-list" style="margin-bottom:16px;"><button type="button" class="menu-row" onclick="openSetup(\'full\')"><svg viewBox="0 0 24 24"><path d="M19.4 13.4a7.6 7.6 0 0 0 .1-1.4 7.6 7.6 0 0 0-.1-1.4l2-1.5-2-3.5-2.4.9a7.4 7.4 0 0 0-2.4-1.4L14.2 2h-4.4l-.4 2.6a7.4 7.4 0 0 0-2.4 1.4l-2.4-.9-2 3.5 2 1.5a7.6 7.6 0 0 0-.1 1.4 7.6 7.6 0 0 0 .1 1.4l-2 1.5 2 3.5 2.4-.9a7.4 7.4 0 0 0 2.4 1.4l.4 2.6h4.4l.4-2.6a7.4 7.4 0 0 0 2.4-1.4l2.4.9 2-3.5-2-1.5z"/><circle cx="12" cy="12" r="2.7"/></svg>Turneringsinnstillinger<span class="chev">›</span></button></div>';
+    html += '<p class="text-muted" style="margin:-4px 4px 16px;">Spillere, HCP og format kan endres helt til første resultat er lagret.</p>';
+  }
+  if (players.length >= 2 && t.days && t.days.length) {
+    const standings = calculateStandings(t);
+    html += '<div class="card"><h3 class="card-title">Konkurransedager</h3><div class="day-chips">' + t.days.map((d,i) => '<div class="day-chip ' + (d.completed ? 'completed' : '') + '" onclick="openScoring(' + i + ')">Dag ' + d.dayNumber + (d.date ? ' · ' + formatDate(d.date) : '') + (d.completed ? ' ✓' : '') + '</div>').join('') + '</div>' +
+      t.days.map((d,i) => '<div class="flex justify-between items-center" style="padding:10px 0;border-bottom:1px solid var(--gray-100);"><div><strong>Dag ' + d.dayNumber + (d.date ? ' · ' + formatDate(d.date) : '') + '</strong><div class="text-muted" style="font-size:0.85rem;">' + FORMATS[d.format] + '</div>' + (d.course ? '<div class="text-muted" style="font-size:0.8rem;">📍 ' + d.course + '</div>' : '') + '</div><button class="btn btn-sm ' + (d.completed ? 'btn-secondary' : 'btn-primary') + '" onclick="openScoring(' + i + ')">' + (d.completed ? 'Se / Rediger' : 'Før resultat') + '</button></div>').join('') +
+      '</div><div class="card"><h3 class="card-title">Sammenlagt</h3>' + renderStandingsTable(standings) + '<button class="btn btn-secondary btn-block mt-3" onclick="navigate(\'leaderboard\')">Full stilling</button></div><div class="card"><h3 class="card-title">Grupper</h3><button class="btn btn-secondary btn-block" onclick="navigate(\'groups\')">Åpne gruppegenerator</button></div>';
+    if (t.days.some(d => d.completed)) html += '<div class="card"><button class="btn btn-gold btn-block" onclick="finishTournament()">Marker turnering som ferdig</button></div>';
+  }
+  html += '<div class="card"><button class="btn btn-outline btn-block" onclick="deleteCurrentTournament()">Slett denne turneringen</button></div>';
+  el.innerHTML = html;
 }
 
 function openScoring(dayIndex) {
+  const t = state.current;
+  if (!t || !(t.players || []).length || !(t.days || []).length) {
+    toast('Legg inn spillere og format under turneringsinnstillinger først');
+    navigate('tournament');
+    return;
+  }
   currentScoringDay = dayIndex;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-scoring').classList.add('active');
