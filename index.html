@@ -315,7 +315,7 @@
         <p class="text-muted" style="font-size:0.8rem;">Denne adressen skal legges inn som redirect URI hos Google:</p>
         <p id="google-redirect" class="text-muted mb-3" style="font-size:0.8rem;word-break:break-all;"></p>
         <button class="btn btn-danger btn-block" onclick="resetAllData()">Nullstill all data</button>
-        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.29 · Familiemajoren</p>
+        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.30 · Familiemajoren</p>
       </div>
     </div>
   </div>
@@ -1300,10 +1300,10 @@ function saveCardSetup(markReady) {
     if (inp.value.trim() === '') delete card.allocated[name];
     else card.allocated[name] = parseInt(inp.value, 10) || 0;
   });
-  document.querySelectorAll('.hole-par').forEach(function (inp) {
+  document.querySelectorAll('#card-setup-content .hole-par').forEach(function (inp) {
     if (inp.value !== '') card.holes[parseInt(inp.dataset.hole, 10)].par = parseInt(inp.value, 10) || 4;
   });
-  document.querySelectorAll('.hole-index').forEach(function (inp) {
+  document.querySelectorAll('#card-setup-content .hole-index').forEach(function (inp) {
     if (inp.value !== '') card.holes[parseInt(inp.dataset.hole, 10)].index = parseInt(inp.value, 10) || 1;
   });
   if (markReady) {
@@ -1335,7 +1335,46 @@ function courseBook() {
   return state.courseBook;
 }
 function blankHoles() {
-  return Array.from({ length: 18 }, function (_, i) { return { par: 4, index: i + 1 }; });
+  return Array.from({ length: 18 }, function (_, i) { return { par: 4, index: i + 1, hcp: i + 1 }; });
+}
+function holeParValue(hole) {
+  const n = parseInt(hole && hole.par, 10);
+  return n > 0 ? n : 4;
+}
+function holeHcpValue(hole, i) {
+  const raw = hole && hole.hcp != null && hole.hcp !== '' ? hole.hcp : hole && hole.index;
+  const n = parseInt(raw, 10);
+  return n > 0 ? n : (i + 1);
+}
+function holesAreDefault(holes) {
+  if (!holes || holes.length < 18) return true;
+  return holes.every(function (hole, i) { return holeParValue(hole) === 4 && holeHcpValue(hole, i) === i + 1; });
+}
+function rememberCourseHoles() {
+  const d = courseSearch.draft;
+  const tee = d && d.tees && d.tees[courseSearch.teeIndex];
+  const box = document.getElementById('cb-holes');
+  if (!tee || !box) return;
+  if (!tee.holes || tee.holes.length < 18) tee.holes = blankHoles();
+  box.querySelectorAll('.cb-par').forEach(function (inp) {
+    const i = parseInt(inp.dataset.hole, 10);
+    if (tee.holes[i] && inp.value !== '') tee.holes[i].par = parseInt(inp.value, 10) || 4;
+  });
+  box.querySelectorAll('.cb-hcp').forEach(function (inp) {
+    const i = parseInt(inp.dataset.hole, 10);
+    if (!tee.holes[i] || inp.value === '') return;
+    const n = parseInt(inp.value, 10) || 1;
+    tee.holes[i].hcp = n;
+    tee.holes[i].index = n;
+  });
+}
+function shareDefaultHoles(tees) {
+  const source = (tees || []).find(function (tee) { return tee && !holesAreDefault(tee.holes); });
+  if (!source) return;
+  tees.forEach(function (tee) {
+    if (!tee || tee === source || !holesAreDefault(tee.holes)) return;
+    tee.holes = JSON.parse(JSON.stringify(source.holes));
+  });
 }
 function blankTee(copy) {
   return {
@@ -1420,12 +1459,16 @@ function readCourseForm() {
     if (slope) tee[g].slope = slope.value.trim();
     if (rating) tee[g].rating = rating.value.trim();
   });
-  document.querySelectorAll('.cb-par').forEach(function (inp) {
-    if (inp.value !== '') tee.holes[parseInt(inp.dataset.hole, 10)].par = parseInt(inp.value, 10) || 4;
-  });
-  document.querySelectorAll('.cb-hcp').forEach(function (inp) {
-    if (inp.value !== '') tee.holes[parseInt(inp.dataset.hole, 10)].index = parseInt(inp.value, 10) || 1;
-  });
+  rememberCourseHoles();
+}
+function swapTeeNumbers(side) {
+  readCourseForm();
+  const tee = courseSearch.draft && courseSearch.draft.tees[courseSearch.teeIndex];
+  if (!tee || !tee[side]) return;
+  const slope = tee[side].slope;
+  tee[side].slope = tee[side].rating;
+  tee[side].rating = slope;
+  renderCourseSearch();
 }
 function openTeeHoles() {
   readCourseForm();
@@ -1463,10 +1506,12 @@ function saveCourseBookEntry() {
   if (!d || !d.club || !d.course) { toast('Skriv klubb og bane'); return; }
   d.tees = (d.tees || []).filter(function (t) { return String(t.name || '').trim(); });
   if (!d.tees.length) { toast('Gi minst én tee et navn'); courseSearch.draft.tees = [blankTee()]; return; }
+  shareDefaultHoles(d.tees);
   d.updatedAt = new Date().toISOString().slice(0, 10);
+  const saved = JSON.parse(JSON.stringify(d));
   const book = courseBook();
-  const idx = book.findIndex(function (c) { return c.id === d.id; });
-  if (idx >= 0) book[idx] = d; else book.push(d);
+  const idx = book.findIndex(function (c) { return c.id === saved.id; });
+  if (idx >= 0) book[idx] = saved; else book.push(saved);
   saveState();
   toast('Banen er lagret');
   courseSearch.mode = 'search';
@@ -1489,8 +1534,16 @@ function strokesForPlayer(player, tee) {
   return courseHandicap(player.hcp, slope, rating, teePar(tee));
 }
 function copyTeeHoles(tee) {
-  return (tee.holes || blankHoles()).map(function (hole, i) {
-    return { par: parseInt(hole.par, 10) || 4, index: parseInt(hole.index, 10) || (i + 1) };
+  let holes = tee && tee.holes;
+  if (holesAreDefault(holes) && courseSearch.picked) {
+    const better = (courseSearch.picked.tees || []).find(function (item) { return item && !holesAreDefault(item.holes); });
+    if (better) holes = better.holes;
+  }
+  const list = (holes && holes.length) ? holes : blankHoles();
+  return list.map(function (hole, i) {
+    const par = holeParValue(hole);
+    const index = holeHcpValue(hole, i);
+    return { par: par, index: index, hcp: index };
   });
 }
 function applyTeePlan(same, teeIndex) {
@@ -1557,10 +1610,11 @@ function renderCourseSearch() {
   }
   if (courseSearch.mode === 'holes' && courseSearch.draft) {
     const tee = courseSearch.draft.tees[courseSearch.teeIndex];
-    const rows = (tee.holes || []).map(function (hole, i) {
-      return '<div class="hole-grid"><strong>Hull ' + (i + 1) + '</strong><input type="number" class="hcp-input cb-par" data-hole="' + i + '" value="' + (hole.par || '') + '" /><input type="number" class="hcp-input cb-hcp" data-hole="' + i + '" value="' + (hole.index || '') + '" /></div>';
+    if (!tee.holes || tee.holes.length < 18) tee.holes = blankHoles();
+    const rows = (tee.holes || blankHoles()).map(function (hole, i) {
+      return '<div class="hole-grid"><strong>Hull ' + (i + 1) + '</strong><input type="number" class="hcp-input cb-par" data-hole="' + i + '" value="' + holeParValue(hole) + '" oninput="rememberCourseHoles()" /><input type="number" class="hcp-input cb-hcp" data-hole="' + i + '" value="' + holeHcpValue(hole, i) + '" oninput="rememberCourseHoles()" /></div>';
     }).join('');
-    el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>' + (courseSearch.draft.course || 'Bane') + ' · ' + (tee.name || 'Tee') + '</h1><div class="sub">' + (courseSearch.draft.club || '') + '</div></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="backToCourseForm()">← Tilbake</button>' + (courseSearch.teeIndex > 0 ? '<button type="button" class="btn btn-outline btn-block mb-3" onclick="copyPreviousTeeHoles()">Samme par og HCP som forrige tee</button>' : '') + '<div class="hole-head"><span>Hull</span><span>Par</span><span>HCP</span></div>' + rows + '<button class="btn btn-primary btn-block mt-3" onclick="saveCourseBookEntry()">Lagre bane</button></div>';
+    el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>' + (courseSearch.draft.course || 'Bane') + ' · ' + (tee.name || 'Tee') + '</h1><div class="sub">' + (courseSearch.draft.club || '') + '</div></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="backToCourseForm()">← Tilbake</button>' + (courseSearch.teeIndex > 0 ? '<button type="button" class="btn btn-outline btn-block mb-3" onclick="copyPreviousTeeHoles()">Samme par og HCP som forrige tee</button>' : '') + '<div id="cb-holes"><div class="hole-head"><span>Hull</span><span>Par</span><span>HCP</span></div>' + rows + '</div><button class="btn btn-primary btn-block mt-3" onclick="saveCourseBookEntry()">Lagre bane</button></div>';
     return;
   }
   if (courseSearch.mode === 'create' && courseSearch.draft) {
@@ -1576,8 +1630,8 @@ function renderCourseSearch() {
       field('cb-club', 'Klubb', d.club, 'Sola Golfklubb') + field('cb-course', 'Bane', d.course, 'Forus') + field('cb-place', 'Sted', d.place, 'Sola, Norge') +
       '<div class="section-title">Tee</div><div class="flex mb-3" style="gap:8px;flex-wrap:wrap;">' + chips + '</div>' +
       field('cb-tee', 'Tee-navn', tee.name, 'Gul') +
-      '<div class="section-title">Herrer</div>' + field('cb-men-slope', 'Slope', tee.men && tee.men.slope, 'Kan stå tom') + field('cb-men-rating', 'Baneverdi', tee.men && tee.men.rating, 'Kan stå tom') +
-      '<div class="section-title">Damer</div>' + field('cb-women-slope', 'Slope', tee.women && tee.women.slope, 'Kan stå tom') + field('cb-women-rating', 'Baneverdi', tee.women && tee.women.rating, 'Kan stå tom') +
+      '<div class="section-title">Herrer</div>' + field('cb-men-slope', 'Slope', tee.men && tee.men.slope, 'Kan stå tom') + '<button type="button" class="btn btn-sm btn-outline mb-3" onclick="swapTeeNumbers(\'men\')">Bytt om</button>' + field('cb-men-rating', 'Baneverdi', tee.men && tee.men.rating, 'Kan stå tom') +
+      '<div class="section-title">Damer</div>' + field('cb-women-slope', 'Slope', tee.women && tee.women.slope, 'Kan stå tom') + '<button type="button" class="btn btn-sm btn-outline mb-3" onclick="swapTeeNumbers(\'women\')">Bytt om</button>' + field('cb-women-rating', 'Baneverdi', tee.women && tee.women.rating, 'Kan stå tom') +
       '<button class="btn btn-secondary btn-block" onclick="openTeeHoles()">Neste: hullene</button><button class="btn btn-outline btn-block mt-2" onclick="addCourseTee()">Legg til tee</button><button class="btn btn-primary btn-block mt-2" onclick="saveCourseBookEntry()">Lagre bane</button><p class="text-muted mt-2">Tom slope er lov. Du kan fylle den inn senere.</p></div>';
     return;
   }
