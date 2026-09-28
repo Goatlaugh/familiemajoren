@@ -198,7 +198,10 @@
     .charter-stick input { flex: 1; background: rgba(255,255,255,0.14); color: white; border: none; border-radius: 8px; padding: 8px 10px; }
     .charter-stick input::placeholder { color: rgba(255,255,255,0.75); }
     .toc-row { display: flex; gap: 12px; width: 100%; text-align: left; background: transparent; border: none; border-bottom: 1px solid #eadfC8; padding: 14px 2px; font: inherit; cursor: pointer; }
-    .toc-row b { color: var(--gold); min-width: 28px; }
+    .hole-head, .hole-grid { display: grid; grid-template-columns: 72px 1fr 1fr; gap: 8px; align-items: center; margin-bottom: 8px; }
+    .hole-head { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; color: var(--gold); text-transform: uppercase; }
+    .hof-value { font-family: 'Playfair Display', Georgia, serif; font-size: 2.6rem; line-height: 1; color: var(--gold); margin-top: 4px; }
+    .hof-name { font-weight: 700; font-size: 1.15rem; margin-top: 6px; }
   </style>
 </head>
 <body>
@@ -233,7 +236,7 @@
       <div class="card">
         <button type="button" id="setup-back" class="btn btn-sm btn-secondary mb-3 hidden" onclick="navigate('tournament')">← Tilbake</button>
         <div class="form-group"><label>Sted</label><input type="text" id="setup-sted" placeholder="Alicante, Marbella, Stavanger..." /></div>
-        <div class="form-group"><label>Startdato</label><input type="date" id="setup-start" onchange="syncSetupYear(); if(!document.getElementById('setup-extra').classList.contains('hidden')) fillDayDates(false)" /></div>
+        <div class="form-group"><label>Startdato</label><input type="date" id="setup-start" onchange="syncSetupYear(); syncEndDate(); if(!document.getElementById('setup-extra').classList.contains('hidden')) fillDayDates(false)" /></div>
         <div class="form-group"><label>Sluttdato</label><input type="date" id="setup-end" /></div>
         <p id="setup-year-line" style="margin:4px 0 18px;">År: –<br><span class="text-muted" style="font-size:0.9rem;">settes automatisk fra startdato</span></p>
         <div id="setup-extra" class="hidden">
@@ -283,22 +286,23 @@
       </div>
     </div>
     <div id="page-settings" class="page">
+      <div class="page-banner"><img src="icon-192.png" alt="" /><h1>Innstillinger</h1></div>
       <div class="card">
-        <button class="btn btn-sm btn-secondary mb-3" onclick="navigate('more')">← Tilbake</button>
-        <h2 class="card-title">Innstillinger</h2>
-        <p class="text-muted mb-3">Turneringen deles automatisk med alle som har familiekoden. Eksport er bare en ekstra sikkerhetskopi.</p>
-        <button class="btn btn-primary btn-block mb-2" onclick="exportData()">⬇️ Eksporter data</button>
-        <button class="btn btn-secondary btn-block mb-2" onclick="document.getElementById('import-file').click()">⬆️ Importer data</button>
-        <input type="file" id="import-file" accept=".json" class="hidden" onchange="importData(event)" />
-        <button class="btn btn-outline btn-block mb-2" onclick="forgetCloudCode()">Bytt familiekode på denne telefonen</button>
-        <div class="divider"></div>
-        <h2 class="card-title">Admin</h2>
-        <p class="text-muted mb-3">Bare admin ser Forbered scorekort og kan skrive over andres slag. Koden deles ikke som et spørsmål til familien.</p>
+        <div class="flex justify-between items-center mb-3"><strong>Admin</strong><span id="admin-badge" class="badge badge-green hidden">Aktiv</span></div>
         <p id="admin-status" class="text-muted mb-3"></p>
+        <button id="leave-admin" class="btn btn-outline btn-block mb-3 hidden" onclick="leaveAdmin()">Gå ut av admin</button>
         <div class="form-group"><label>Admin-kode</label><input type="password" id="admin-pin" autocomplete="off" /></div>
         <button class="btn btn-primary btn-block mb-2" onclick="saveAdminPin()">Lagre admin-kode</button>
         <button class="btn btn-secondary btn-block mb-2" onclick="unlockAdmin()">Lås opp denne telefonen</button>
-        <div class="divider"></div>
+      </div>
+      <div class="card">
+        <p class="text-muted mb-3">Turneringen deles automatisk med alle som har familiekoden. Eksport er bare en ekstra sikkerhetskopi.</p>
+        <button class="btn btn-primary btn-block mb-2" onclick="exportData()">Eksporter data</button>
+        <button class="btn btn-secondary btn-block mb-2" onclick="document.getElementById('import-file').click()">Importer data</button>
+        <input type="file" id="import-file" accept=".json" class="hidden" onchange="importData(event)" />
+        <button class="btn btn-outline btn-block" onclick="forgetCloudCode()">Bytt familiekode på denne telefonen</button>
+      </div>
+      <div class="card">
         <p class="text-muted mb-3">Bildene lagres i ett album per år på Google-kontoen din. Appen sorterer dem på dag.</p>
         <p id="google-status" class="text-muted mb-3">Sjekker koblingen…</p>
         <div class="form-group"><label>Client ID</label><input type="text" id="google-client-id" autocomplete="off" /></div>
@@ -307,9 +311,8 @@
         <button class="btn btn-primary btn-block mb-2" onclick="startGoogleConnect()">Koble til Google Foto</button>
         <p class="text-muted" style="font-size:0.8rem;">Denne adressen skal legges inn som redirect URI hos Google:</p>
         <p id="google-redirect" class="text-muted mb-3" style="font-size:0.8rem;word-break:break-all;"></p>
-        <div class="divider"></div>
         <button class="btn btn-danger btn-block" onclick="resetAllData()">Nullstill all data</button>
-        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.25 · Familiemajoren</p>
+        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.26 · Familiemajoren</p>
       </div>
     </div>
   </div>
@@ -674,7 +677,7 @@ function seasonNavKey(pageId) {
 function syncChrome(pageId) {
   currentPage = pageId;
   const header = document.querySelector('.app-header');
-  const ownBanner = pageId === 'home' || pageId === 'leaderboard' || pageId === 'scoring' || pageId === 'more' || pageId === 'tournament' || pageId === 'setup' || pageId === 'card' || pageId === 'card-setup' || pageId === 'history-card' || pageId === 'charter' || pageId === 'charter-full';
+  const ownBanner = pageId === 'home' || pageId === 'leaderboard' || pageId === 'scoring' || pageId === 'more' || pageId === 'tournament' || pageId === 'setup' || pageId === 'card' || pageId === 'card-setup' || pageId === 'history-card' || pageId === 'charter' || pageId === 'charter-full' || pageId === 'settings' || pageId === 'hof';
   if (header) header.hidden = ownBanner;
   paintSeasonNav();
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -848,6 +851,10 @@ function watchCharterChapter() {
   }, { rootMargin: '-20% 0px -60% 0px', threshold: [0, 0.2, 0.6] });
   sections.forEach(function (s) { window.charterObs.observe(s); });
 }
+function charterMark(title) {
+  const m = String(title || '').match(/^(\d+)\./);
+  return m ? String(m[1]).padStart(2, '0') : '';
+}
 function renderCharterFull() {
   const dataEl = document.getElementById('charter-full-data');
   if (!window.CHARTER_FULL && dataEl) window.CHARTER_FULL = JSON.parse(dataEl.textContent);
@@ -860,11 +867,12 @@ function renderCharterFull() {
   const body = document.getElementById('charter-full-body');
   if (!toc || !body) return;
   toc.innerHTML = '<div class="charter-kicker">INNHOLD</div>' + (hits.length ? hits.map(function (x) {
-    const num = String(x.i + 1).padStart(2, '0');
-    return '<button type="button" class="toc-row" onclick="document.getElementById(\'full-' + x.i + '\').scrollIntoView({behavior:\'smooth\',block:\'start\'})"><b>' + num + '</b><span>' + x.c.title + '</span></button>';
+    const num = charterMark(x.c.title);
+    return '<button type="button" class="toc-row" onclick="document.getElementById(\'full-' + x.i + '\').scrollIntoView({behavior:\'smooth\',block:\'start\'})">' + (num ? '<b>' + num + '</b>' : '') + '<span>' + x.c.title + '</span></button>';
   }).join('') : '<p class="text-muted">Ingen treff.</p>');
   body.innerHTML = hits.map(function (x) {
-    return '<section class="charter-sec" id="full-' + x.i + '" data-title="' + x.c.title.replace(/"/g, '"') + '"><h3><span class="charter-num">' + String(x.i + 1).padStart(2, '0') + '</span>' + x.c.title + '</h3>' + promoteCharterTables(x.c.html) + '</section>';
+    const num = charterMark(x.c.title);
+    return '<section class="charter-sec" id="full-' + x.i + '" data-title="' + x.c.title.replace(/"/g, '"') + '"><h3>' + (num ? '<span class="charter-num">' + num + '</span>' : '') + x.c.title + '</h3>' + promoteCharterTables(x.c.html) + '</section>';
   }).join('') || '<p class="text-muted">Ingen treff.</p>';
   watchCharterChapter();
 }
@@ -932,7 +940,7 @@ function renderHome() {
     const body = players.length
       ? '<span class="badge badge-green">' + players.length + ' spillere</span><div class="divider"></div><div class="flex items-center justify-between"><div class="flex items-center gap-2"><span class="gold-rank">1</span><span style="font-weight:700;font-size:1.15rem;">' + (leader ? leader.name : '–') + '</span></div><div class="points-badge">' + (leader ? leader.total + ' p' : '–') + '</div></div>'
       : '<div class="badge badge-green" style="margin-top:8px;">Spillere ikke satt</div>';
-    el.innerHTML = countdownCard(t) + '<div class="card" onclick="navigate(\'tournament\')" style="cursor:pointer;"><div class="section-title">Pågående</div><h2 style="margin:0 0 10px;color:var(--gray-800);">' + t.year + ' · ' + t.sted + '</h2>' + body + '</div>';
+    el.innerHTML = countdownCard(t) + homeCardButton(t) + '<div class="card" onclick="navigate(\'tournament\')" style="cursor:pointer;"><div class="section-title">Pågående</div><h2 style="margin:0 0 10px;color:var(--gray-800);">' + t.year + ' · ' + t.sted + '</h2>' + body + '</div>';
   }
 }
 
@@ -975,6 +983,28 @@ function tournamentStarted(t) {
   return !!(t && (t.days || []).some(d => d.completed));
 }
 
+function syncEndDate() {
+  const start = document.getElementById('setup-start');
+  const end = document.getElementById('setup-end');
+  if (!start || !end || !start.value) return;
+  end.min = start.value;
+  if (!end.value || end.value < start.value) end.value = start.value;
+}
+function activeCardDay(t) {
+  const ready = [];
+  (t.days || []).forEach(function (d, i) {
+    if (d.card && d.card.ready && !d.completed) ready.push({ day: d, index: i });
+  });
+  if (!ready.length) return null;
+  const today = new Date();
+  const iso = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+  return ready.find(function (x) { return x.day.date === iso; }) || ready[0];
+}
+function homeCardButton(t) {
+  const hit = activeCardDay(t);
+  if (!hit) return '';
+  return '<button class="btn btn-primary btn-block" onclick="openLiveCard(' + hit.index + ')">Åpne dagens scorekort</button><p class="text-muted text-center" style="font-size:0.85rem;margin:8px 0 0;">Dag ' + hit.day.dayNumber + ' · ' + (FORMATS[hit.day.format] || '') + '</p>';
+}
 function syncSetupYear() {
   const el = document.getElementById('setup-year-line');
   const start = document.getElementById('setup-start');
@@ -1081,10 +1111,19 @@ const ADMIN_KEY = 'familiemajoren_admin_ok';
 
 function isAdmin() { return localStorage.getItem(ADMIN_KEY) === '1' && !!(state && state.adminPin); }
 function myName() { return localStorage.getItem(ME_KEY) || ''; }
+function leaveAdmin() {
+  localStorage.removeItem(ADMIN_KEY);
+  renderAdminStatus();
+  toast('Du er ute av admin');
+}
 function renderAdminStatus() {
   const el = document.getElementById('admin-status');
-  if (!el) return;
-  el.textContent = isAdmin() ? 'Denne telefonen er låst opp som admin.' : (state.adminPin ? 'Koden er satt. Lås opp denne telefonen for å forberede scorekort.' : 'Ingen admin-kode ennå.');
+  const badge = document.getElementById('admin-badge');
+  const leave = document.getElementById('leave-admin');
+  const on = isAdmin();
+  if (el) el.textContent = on ? 'Denne telefonen er låst opp som admin.' : (state.adminPin ? 'Koden er satt. Lås opp denne telefonen for å forberede scorekort.' : 'Ingen admin-kode ennå.');
+  if (badge) badge.classList.toggle('hidden', !on);
+  if (leave) leave.classList.toggle('hidden', !on);
 }
 function saveAdminPin() {
   const pin = (document.getElementById('admin-pin').value || '').trim();
@@ -1203,8 +1242,8 @@ function renderCardSetup() {
   const players = (t.players || []).map(function (p) {
     return '<div class="score-line"><div><div class="board-name">' + p.name + '</div><div class="board-meta">HCP ' + p.hcp + '</div></div><input type="number" class="hcp-input alloc-input" data-player="' + encodeURIComponent(p.name) + '" value="' + (card.allocated[p.name] != null ? card.allocated[p.name] : '') + '" placeholder="Slag" /></div>';
   }).join('');
-  const holes = card.holes.map(function (h, i) {
-    return '<div class="flex" style="gap:8px;align-items:center;margin-bottom:8px;"><strong style="width:64px;">Hull ' + (i + 1) + '</strong><input type="number" class="hcp-input hole-par" data-hole="' + i + '" value="' + (h.par || '') + '" placeholder="Par" /><input type="number" class="hcp-input hole-index" data-hole="' + i + '" value="' + (h.index || '') + '" placeholder="Index" /></div>';
+  const holes = '<div class="hole-head"><span>Hull</span><span>Par</span><span>HCP</span></div>' + card.holes.map(function (h, i) {
+    return '<div class="hole-grid"><strong>Hull ' + (i + 1) + '</strong><input type="number" class="hcp-input hole-par" data-hole="' + i + '" value="' + (h.par || '') + '" placeholder="Par" /><input type="number" class="hcp-input hole-index" data-hole="' + i + '" value="' + (h.index || '') + '" placeholder="HCP" /></div>';
   }).join('');
   let matches = '';
   if (['fourball', 'scramble'].includes(day.format)) {
@@ -1213,7 +1252,7 @@ function renderCardSetup() {
   if (day.format === 'singles') {
     matches = '<div class="card"><h3 class="card-title">Matcher</h3>' + ((day.matches && day.matches.length) ? day.matches.map(function (m, i) { return '<div class="text-muted" style="margin-bottom:6px;">Match ' + (i + 1) + ': ' + m.p1 + ' mot ' + m.p2 + '</div>'; }).join('') : '<p class="text-muted">Ingen matcher ennå.</p>') + '<button class="btn btn-sm btn-secondary mt-2" onclick="generateCardMatches()">Generer matcher</button></div>';
   }
-  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Forbered scorekort</h1><div class="sub">Dag ' + day.dayNumber + ' · ' + (FORMATS[day.format] || '') + '</div></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'tournament\')">← Tilbake</button><div class="form-group"><label>Bane</label><input type="text" id="card-course" value="' + String(day.course || '').replace(/"/g, '"') + '" placeholder="Valgfritt" /></div><h3 class="card-title">Tildelte slag</h3><p class="text-muted mb-2">Tallet fra klubbens liste. Ligger klart fra dagen før, og kan skrives over.</p>' + players + '</div>' + matches + '<div class="card"><h3 class="card-title">Banen</h3><p class="text-muted mb-2">Par og hullindex. Ligger klart fra dagen før.</p>' + holes + '</div><button class="btn btn-secondary btn-block" onclick="saveCardSetup(false)">Lagre og fortsett senere</button><button class="btn btn-primary btn-block mt-2" onclick="saveCardSetup(true)">Lagre og gjør klart</button>';
+  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Forbered scorekort</h1><div class="sub">Dag ' + day.dayNumber + ' · ' + (FORMATS[day.format] || '') + '</div></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'tournament\')">← Tilbake</button><div class="form-group"><label>Bane</label><input type="text" id="card-course" value="' + String(day.course || '').replace(/"/g, '"') + '" placeholder="Valgfritt" /></div><h3 class="card-title">Tildelte slag</h3><p class="text-muted mb-2">Tallet fra klubbens liste. Ligger klart fra dagen før, og kan skrives over.</p>' + players + '</div>' + matches + '<div class="card"><h3 class="card-title">Banen</h3><p class="text-muted mb-2">Par og bane-HCP. HCP her er hullindex, ikke spillerens handicap.</p>' + holes + '</div>' + (card.ready ? '<button class="btn btn-outline btn-block" onclick="withdrawCard()">Trekk scorekort tilbake</button>' : '') + '<button class="btn btn-secondary btn-block mt-2" onclick="saveCardSetup(false)">Lagre og fortsett senere</button><button class="btn btn-primary btn-block mt-2" onclick="saveCardSetup(true)">Lagre og gjør klart</button>';
 }
 function generateCardMatches() {
   const t = state.current;
@@ -1253,7 +1292,20 @@ function saveCardSetup(markReady) {
   saveState();
   navigate('tournament');
 }
+function withdrawCard() {
+  if (!isAdmin()) return;
+  const day = state.current.days[cardDay];
+  if (!day || !day.card) return;
+  day.card.ready = false;
+  saveState();
+  toast('Scorekortet er trukket tilbake');
+  navigate('tournament');
+}
 function openLiveCard(i) { cardDay = i; cardHole = 0; cardFull = false; navigate('card'); }
+function parHcp(day, hole) {
+  const h = (day.card && day.card.holes && day.card.holes[hole]) || {};
+  return 'Par ' + (h.par || 4) + ' – hcp ' + (h.index || (hole + 1));
+}
 function setMeIndex(i) {
   const p = state.current && state.current.players[i];
   if (p) localStorage.setItem(ME_KEY, p.name);
@@ -1383,7 +1435,7 @@ function renderStablefordCard(el, t, day) {
   const pts = g == null ? '–' : stablefordAt(day, me, h);
   const locked = !!day.completed;
   el.innerHTML = cardHead(day, 'Hull ' + (h + 1), me + ' · ' + (day.card.allocated[me] || 0) + ' slag i dag') +
-    '<div class="card"><div class="flex justify-between items-center"><strong>Par ' + par + '</strong>' + (recv ? '<span class="badge badge-green">Du har slag her</span>' : '') + '</div>' +
+    '<div class="card"><div class="flex justify-between items-center"><strong>' + parHcp(day, h) + '</strong>' + (recv ? '<span class="badge badge-green">Du har slag her</span>' : '') + '</div>' +
     wideStep(me, g, locked) + '<div class="text-center"><span class="badge badge-green">' + pts + ' poeng på hullet</span></div>' +
     holeDotRow(function (i) { return grossAt(day, me, i) != null; }) + holeNav(h) +
     '<button class="btn btn-secondary btn-block mt-3" onclick="showFullCard(true)">Hele scorekortet</button><button class="btn btn-sm btn-secondary mt-3" onclick="clearMe()">Bytt spiller</button></div>' + roundButtons(day);
@@ -1436,7 +1488,6 @@ function renderMatchCard(el, t, day) {
 }
 function matchCardHtml(day, match, locked) {
   const h = cardHole;
-  const par = day.card.holes[h].par || 4;
   const w = holeWinner(day, match, h);
   const bestA = sideBest(day, match.teamA, h);
   const bestB = sideBest(day, match.teamB, h);
@@ -1448,8 +1499,8 @@ function matchCardHtml(day, match, locked) {
   const block = function (look, names, best) {
     return '<div class="team-card" style="border-left-color:' + look.color + ';background:' + look.wash + '"><div class="flex justify-between"><strong style="color:' + look.color + '">' + look.name + '</strong><span class="text-muted">' + (best == null ? '' : 'Beste netto ' + best) + '</span></div>' + names.map(function (n) { return playerRow(day, n, locked); }).join('') + '</div>';
   };
-  return cardHead(day, 'Hull ' + (h + 1), (match.singles ? 'Singler' : 'Fourball') + ' · Par ' + par) +
-    '<div class="card">' + block(lookA, match.teamA, bestA) + block(lookB, match.teamB, bestB) +
+  return cardHead(day, 'Hull ' + (h + 1), match.singles ? 'Singler' : 'Fourball') +
+    '<div class="card"><div class="mb-2"><strong>' + parHcp(day, h) + '</strong></div>' + block(lookA, match.teamA, bestA) + block(lookB, match.teamB, bestB) +
     '<div class="gold-result">' + result + '</div><div class="status-big">' + (match.singles ? status : status) + '</div>' +
     holeDotRow(function (i) { return holeWinner(day, match, i) != null; }) + holeNav(h) +
     (locked ? '' : '<button class="btn btn-sm btn-secondary mt-3" onclick="clearMe()">Bytt spiller</button>') + '</div>';
@@ -1512,7 +1563,7 @@ function scrambleCardHtml(day, match, idx, locked) {
     return '<button type="button" class="pick' + (chosen === val ? ' on' : '') + '" onclick="setScramble(\'' + val + '\')">' + label + '</button>';
   };
   return cardHead(day, 'Hull ' + (cardHole + 1), 'Akkumulert scramble') +
-    '<div class="card"><div class="team-line" style="color:' + a.color + '"><span class="badge" style="background:' + a.color + ';color:#fff;">' + a.name + '</span> ' + match.teamA.join(', ') + '</div><div class="text-center text-muted" style="margin:8px 0;">mot</div><div class="team-line" style="color:' + b.color + '"><span class="badge" style="background:' + b.color + ';color:#fff;">' + b.name + '</span> ' + match.teamB.join(', ') + '</div>' +
+    '<div class="card"><div class="mb-2"><strong>' + parHcp(day, cardHole) + '</strong></div><div class="team-line" style="color:' + a.color + '"><span class="badge" style="background:' + a.color + ';color:#fff;">' + a.name + '</span> ' + match.teamA.join(', ') + '</div><div class="text-center text-muted" style="margin:8px 0;">mot</div><div class="team-line" style="color:' + b.color + '"><span class="badge" style="background:' + b.color + ';color:#fff;">' + b.name + '</span> ' + match.teamB.join(', ') + '</div>' +
     '<div class="gold-result">Dette hullet er verdt ' + (pot == null ? '–' : pot) + '</div><div class="mt-3">' +
     (pot == null && !chosen ? '<p class="text-muted">Fyll hullene foran først.</p>' : btn('A', a.name + ' vinner') + btn('H', 'Delt') + btn('B', b.name + ' vinner')) +
     '</div><div class="points-box">Hullpoeng: ' + a.name + ' (' + tot.a + ') – ' + b.name + ' (' + tot.b + ')</div>' +
@@ -2269,38 +2320,72 @@ function getAutoRecords() {
     { label: 'Flest dager som sammenlagtleder', rec: topCount(leaderDays), unit: 'dager' }
   ];
 }
-function recordLine(item) {
+function recordBits(r) {
+  return [r.sted, r.year, r.course, formatDate(r.date), r.day ? ('Dag ' + r.day) : ''].filter(Boolean).join(' · ');
+}
+function noteRecordPeaks(auto) {
+  if (!state.hallOfFame) state.hallOfFame = { manual: [] };
+  if (!state.hallOfFame.peaks || typeof state.hallOfFame.peaks !== 'object') state.hallOfFame.peaks = {};
+  if (!state.hallOfFame.former || typeof state.hallOfFame.former !== 'object') state.hallOfFame.former = {};
+  let changed = false;
+  auto.forEach(function (item) {
+    const rec = item.rec;
+    if (!rec || rec.value == null || rec.value === '') return;
+    const snap = { player: rec.player, value: rec.value, unit: item.unit, year: rec.year || '', sted: rec.sted || '', course: rec.course || '', date: rec.date || '', day: rec.day || '' };
+    const prev = state.hallOfFame.peaks[item.label];
+    if (!prev) {
+      state.hallOfFame.peaks[item.label] = snap;
+      changed = true;
+      return;
+    }
+    if (Number(rec.value) > Number(prev.value)) {
+      if (!Array.isArray(state.hallOfFame.former[item.label])) state.hallOfFame.former[item.label] = [];
+      state.hallOfFame.former[item.label].push(prev);
+      state.hallOfFame.peaks[item.label] = snap;
+      changed = true;
+    }
+  });
+  if (changed) saveState();
+}
+function showFormer(label) {
+  const list = (state.hallOfFame.former && state.hallOfFame.former[label]) || [];
+  const rows = list.slice().reverse().map(function (r) {
+    return '<div class="hof-entry"><strong>' + r.player + '</strong> – ' + r.value + ' ' + (r.unit || '') + '<br><span class="text-muted">' + recordBits(r) + '</span></div>';
+  }).join('');
+  showModal('<h3>' + label + '</h3><p class="text-muted mb-3">Tidligere rekorder</p>' + (rows || '<p class="text-muted">Ingen tidligere rekorder.</p>'));
+}
+function hofRecordCard(item) {
   const r = item.rec;
-  if (!r) return '<div class="hof-entry"><strong>' + item.label + '</strong><br><span class="text-muted">Ingen registrert ennå.</span></div>';
-  const bits = [formatDate(r.date), r.year, r.sted, r.course, r.day ? ('Dag ' + r.day) : ''].filter(Boolean);
-  return '<div class="hof-entry"><strong>' + item.label + '</strong><br>' + r.player + ' – ' + r.value + ' ' + item.unit + (bits.length ? '<br><span class="text-muted" style="font-size:0.85rem;">' + bits.join(' · ') + '</span>' : '') + '</div>';
+  const former = (state.hallOfFame.former && state.hallOfFame.former[item.label]) || [];
+  if (!r) return '<section class="charter-sec"><h3>' + item.label + '</h3><p class="text-muted">Ingen registrert ennå.</p></section>';
+  const btn = former.length ? '<button type="button" class="btn btn-sm btn-outline mt-2" onclick="showFormer(\'' + jsName(item.label) + '\')">Tidligere rekorder</button>' : '';
+  return '<section class="charter-sec"><h3>' + item.label + '</h3><div class="hof-value">' + r.value + '</div><div class="hof-name">' + r.player + '</div><div class="text-muted">' + recordBits(r) + '</div>' + btn + '</section>';
 }
 function renderHoF() {
   const el = document.getElementById('hof-content');
   const auto = getAutoRecords();
+  noteRecordPeaks(auto);
   const manual = (state.hallOfFame && state.hallOfFame.manual) ? state.hallOfFame.manual : [];
   const fromCards = allCardFeats();
-  let autoHtml = '<div class="card"><h3 class="card-title">Automatiske rekorder</h3>' + auto.map(recordLine).join('') + '</div>';
-  let manualHtml = '<div class="card"><h3 class="card-title">Prestasjoner</h3>';
   const shown = {};
   fromCards.forEach(function (m) { shown[m.category + '|' + m.player + '|' + m.day + '|' + m.year + '|' + m.details] = m; });
   manual.forEach(function (m) { shown['m|' + m.category + '|' + m.player + '|' + (m.details || '') + '|' + (m.day || '') + '|' + (m.year || '')] = m; });
   const allPrest = Object.values(shown);
+  let prest = '<div class="charter-kicker" style="margin-top:28px;">PRESTASJONER</div>';
   if (!allPrest.length) {
-    manualHtml += '<p class="text-muted">Ingen registreringer ennå. Eagle, hole-in-one og comeback kommer av seg selv fra scorekortet. Annet kan legges inn for hånd.</p>';
+    prest += '<p class="text-muted">Ingen registreringer ennå. Eagle, hole-in-one og comeback kommer av seg selv fra scorekortet.</p>';
   } else {
-    HOF_MANUAL_CATS.forEach(cat => {
-      const items = allPrest.filter(m => m.category === cat.id).slice().reverse();
+    HOF_MANUAL_CATS.forEach(function (cat) {
+      const items = allPrest.filter(function (m) { return m.category === cat.id; }).slice().reverse();
       if (!items.length) return;
-      manualHtml += '<div class="section-title mt-3">' + cat.label + '</div>';
-      items.forEach(m => {
+      prest += '<div class="section-title mt-3">' + cat.label + '</div>';
+      items.forEach(function (m) {
         const bits = [formatDate(m.date), m.year, m.sted, m.course, m.day ? ('Dag ' + m.day) : ''].filter(Boolean);
-        manualHtml += '<div class="hof-entry"><strong>' + m.player + '</strong>' + (m.details ? ' – ' + m.details : '') + (bits.length ? '<br><span class="text-muted" style="font-size:0.85rem;">' + bits.join(' · ') + '</span>' : '') + '</div>';
+        prest += '<div class="hof-entry"><strong>' + m.player + '</strong>' + (m.details ? ' – ' + m.details : '') + (bits.length ? '<br><span class="text-muted" style="font-size:0.85rem;">' + bits.join(' · ') + '</span>' : '') + '</div>';
       });
     });
   }
-  manualHtml += '</div>';
-  el.innerHTML = '<button type="button" class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'more\')">← Tilbake</button><div class="card"><h2 class="card-title">Hall of Fame</h2><p class="text-muted">Rekorder oppdateres automatisk fra resultater. Prestasjoner registreres for hånd.</p></div>' + autoHtml + manualHtml;
+  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><h1>Hall of Fame</h1></div><div class="charter-paper"><div class="charter-kicker">REKORDER</div>' + auto.map(hofRecordCard).join('') + prest + '</div>';
 }
 
 function saveScoring() {
