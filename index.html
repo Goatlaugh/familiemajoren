@@ -313,7 +313,7 @@
         <p class="text-muted" style="font-size:0.8rem;">Denne adressen skal legges inn som redirect URI hos Google:</p>
         <p id="google-redirect" class="text-muted mb-3" style="font-size:0.8rem;word-break:break-all;"></p>
         <button class="btn btn-danger btn-block" onclick="resetAllData()">Nullstill all data</button>
-        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.27 · Familiemajoren</p>
+        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.28 · Familiemajoren</p>
       </div>
     </div>
   </div>
@@ -1254,7 +1254,7 @@ function renderCardSetup() {
   if (day.format === 'singles') {
     matches = '<div class="card"><h3 class="card-title">Matcher</h3>' + ((day.matches && day.matches.length) ? day.matches.map(function (m, i) { return '<div class="text-muted" style="margin-bottom:6px;">Match ' + (i + 1) + ': ' + m.p1 + ' mot ' + m.p2 + '</div>'; }).join('') : '<p class="text-muted">Ingen matcher ennå.</p>') + '<button class="btn btn-sm btn-secondary mt-2" onclick="generateCardMatches()">Generer matcher</button></div>';
   }
-  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Forbered scorekort</h1><div class="sub">Dag ' + day.dayNumber + ' · ' + (FORMATS[day.format] || '') + '</div></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'tournament\')">← Tilbake</button><div class="form-group"><label>Bane</label><input type="text" id="card-course" value="' + String(day.course || '').replace(/"/g, '"') + '" placeholder="Valgfritt" /></div><button type="button" class="btn btn-outline btn-block" onclick="openCourseSearch()">Søk opp bane</button><p class="text-muted" style="font-size:0.85rem;margin:8px 0 16px;">Valgfritt. Fyller par, HCP og tildelte slag. Alt kan endres.</p><h3 class="card-title">Tildelte slag</h3><p class="text-muted mb-2">Tallet fra klubbens liste. Ligger klart fra dagen før, og kan skrives over.</p>' + players + '</div>' + matches + '<div class="card"><h3 class="card-title">Banen</h3><p class="text-muted mb-2">Par og bane-HCP. HCP her er hullindex, ikke spillerens handicap.</p>' + holes + '</div>' + (card.ready ? '<button class="btn btn-outline btn-block" onclick="withdrawCard()">Trekk scorekort tilbake</button>' : '') + '<button class="btn btn-secondary btn-block mt-2" onclick="saveCardSetup(false)">Lagre og fortsett senere</button><button class="btn btn-primary btn-block mt-2" onclick="saveCardSetup(true)">Lagre og gjør klart</button>';
+  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Forbered scorekort</h1><div class="sub">Dag ' + day.dayNumber + ' · ' + (FORMATS[day.format] || '') + '</div></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'tournament\')">← Tilbake</button><div class="form-group"><label>Bane</label><input type="text" id="card-course" value="' + String(day.course || '').replace(/"/g, '"') + '" placeholder="Valgfritt" /></div><button type="button" class="btn btn-outline btn-block" onclick="openCourseSearch()">Søk opp bane</button><p class="text-muted" style="font-size:0.85rem;margin:8px 0 16px;">Valgfritt. Søk på klubb eller bane. Alt kan endres.</p><h3 class="card-title">Tildelte slag</h3><p class="text-muted mb-2">Tallet fra klubbens liste. Ligger klart fra dagen før, og kan skrives over.</p>' + players + '</div>' + matches + '<div class="card"><h3 class="card-title">Banen</h3><p class="text-muted mb-2">Par og bane-HCP. HCP her er hullindex, ikke spillerens handicap.</p>' + holes + '</div>' + (card.ready ? '<button class="btn btn-outline btn-block" onclick="withdrawCard()">Trekk scorekort tilbake</button>' : '') + '<button class="btn btn-secondary btn-block mt-2" onclick="saveCardSetup(false)">Lagre og fortsett senere</button><button class="btn btn-primary btn-block mt-2" onclick="saveCardSetup(true)">Lagre og gjør klart</button>';
 }
 function generateCardMatches() {
   const t = state.current;
@@ -1304,9 +1304,10 @@ function withdrawCard() {
   navigate('tournament');
 }
 function openLiveCard(i) { cardDay = i; cardHole = 0; cardFull = false; navigate('card'); }
-let courseSearch = { q: '', hits: [], course: null, status: '', busy: false };
+let courseSearch = { q: '', hits: [], course: null, status: '', busy: false, timer: null };
 function openCourseSearch() {
-  courseSearch = { q: '', hits: [], course: null, status: '', busy: false };
+  if (courseSearch.timer) clearTimeout(courseSearch.timer);
+  courseSearch = { q: '', hits: [], course: null, status: '', busy: false, timer: null };
   navigate('course-search');
 }
 function coursePlace(course) {
@@ -1346,24 +1347,38 @@ async function golfCall(body) {
   if (!res.ok) throw new Error(json.error || 'Søket feilet');
   return json;
 }
-async function runCourseSearch() {
+function queueCourseSearch() {
   const input = document.getElementById('course-q');
-  courseSearch.q = input ? input.value.trim() : courseSearch.q;
-  if (courseSearch.q.length < 2) { toast('Skriv minst to bokstaver'); return; }
-  courseSearch.busy = true;
+  courseSearch.q = input ? input.value.trim() : '';
+  if (courseSearch.timer) clearTimeout(courseSearch.timer);
   courseSearch.course = null;
+  if (courseSearch.q.length < 2) {
+    courseSearch.hits = [];
+    courseSearch.busy = false;
+    courseSearch.status = courseSearch.q ? 'Skriv minst to bokstaver' : 'Skriv klubb eller bane';
+    paintCourseHits();
+    return;
+  }
+  courseSearch.busy = true;
   courseSearch.status = 'Søker…';
-  renderCourseSearch();
+  paintCourseHits();
+  courseSearch.timer = setTimeout(runCourseSearch, 350);
+}
+async function runCourseSearch() {
+  const q = courseSearch.q;
+  if (q.length < 2) return;
   try {
-    const json = await golfCall({ action: 'search', query: courseSearch.q });
+    const json = await golfCall({ action: 'search', query: q });
+    if (courseSearch.q !== q) return;
     courseSearch.hits = json.courses || [];
-    courseSearch.status = courseSearch.hits.length ? 'Velg banen' : 'Fant ingen bane. Søk på klubbnavnet.';
+    courseSearch.status = courseSearch.hits.length ? 'Velg banen' : 'Fant ingen klubb eller bane.';
   } catch (e) {
+    if (courseSearch.q !== q) return;
     courseSearch.hits = [];
     courseSearch.status = e.message || 'Søket feilet';
   }
   courseSearch.busy = false;
-  renderCourseSearch();
+  paintCourseHits();
 }
 async function pickCourse(id) {
   courseSearch.busy = true;
@@ -1409,25 +1424,34 @@ function applyCourseTee(index) {
   toast(missing ? 'Par og HCP er fylt inn. Sjekk tildelte slag.' : 'Banen er fylt inn. Se over tallene.');
   navigate('card-setup');
 }
+function courseHitButton(hit) {
+  const club = hit.club_name || '';
+  const name = hit.course_name || '';
+  const place = coursePlace(hit);
+  const line = [club && name && club !== name ? name : '', place].filter(Boolean).join(' · ');
+  return '<button type="button" class="group-choice" onclick="pickCourse(\'' + jsName(hit.id) + '\')"><strong>' + (club || name || 'Bane') + '</strong>' + (line ? '<div class="text-muted">' + line + '</div>' : '') + '</button>';
+}
+function paintCourseHits() {
+  const status = document.getElementById('course-status');
+  const hits = document.getElementById('course-hits');
+  if (status) status.textContent = courseSearch.status || '';
+  if (hits) hits.innerHTML = (courseSearch.hits || []).map(courseHitButton).join('');
+}
 function renderCourseSearch() {
   const el = document.getElementById('course-search-content');
   if (!el) return;
   const course = courseSearch.course;
-  let body = '';
   if (course && course.tees && course.tees.length) {
-    body = '<p class="text-muted mb-3">' + courseTitle(course) + '</p>' + course.tees.map(function (tee, i) {
+    const body = '<p class="text-muted mb-3">' + courseTitle(course) + '</p>' + course.tees.map(function (tee, i) {
       const bits = [tee.slope ? ('Slope ' + tee.slope) : '', tee.par ? ('Par ' + tee.par) : ''].filter(Boolean).join(' · ');
       return '<button type="button" class="group-choice" onclick="applyCourseTee(' + i + ')"><span class="tee-dot" style="background:' + teeColor(tee.name) + ';border:1px solid #d1d5db;"></span> ' + teeLabel(tee.name) + (bits ? '<div class="text-muted">' + bits + '</div>' : '') + '</button>';
     }).join('') + '<p class="text-muted">Tildelte slag regnes fra spillernes handicap. Du kan endre tallene etterpå.</p>';
-  } else {
-    body = (courseSearch.hits || []).map(function (hit) {
-      const place = coursePlace(hit);
-      return '<button type="button" class="group-choice" onclick="pickCourse(\'' + jsName(hit.id) + '\')"><strong>' + courseTitle(hit) + '</strong>' + (place ? '<div class="text-muted">' + place + '</div>' : '') + '</button>';
-    }).join('');
+    el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Velg tee</h1></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="courseSearch.course=null;renderCourseSearch()">← Tilbake</button><p class="text-muted mb-3">' + (courseSearch.status || '') + '</p>' + body + '</div>';
+    return;
   }
-  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>' + (course ? 'Velg tee' : 'Søk opp bane') + '</h1></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="' + (course ? 'courseSearch.course=null;renderCourseSearch()' : 'navigate(\'card-setup\')') + '">← Tilbake</button>' +
-    (course ? '' : '<div class="form-group"><label>Klubb</label><input type="text" id="course-q" value="' + String(courseSearch.q || '').replace(/"/g, '"') + '" placeholder="F.eks. La Manga" onkeydown="if(event.key===\'Enter\')runCourseSearch()" /></div><button class="btn btn-primary btn-block mb-3" onclick="runCourseSearch()"' + (courseSearch.busy ? ' disabled' : '') + '>Søk</button>') +
-    (courseSearch.status ? '<p class="text-muted mb-3">' + courseSearch.status + '</p>' : '') + body + '</div>';
+  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Søk opp bane</h1></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'card-setup\')">← Tilbake</button><div class="form-group"><label>Klubb eller bane</label><input type="text" id="course-q" value="' + String(courseSearch.q || '').replace(/"/g, '"') + '" placeholder="Skriv, så kommer treffene" oninput="queueCourseSearch()" /></div><p id="course-status" class="text-muted mb-3">' + (courseSearch.status || 'Skriv klubb eller bane') + '</p><div id="course-hits">' + (courseSearch.hits || []).map(courseHitButton).join('') + '</div></div>';
+  const input = document.getElementById('course-q');
+  if (input) input.focus();
 }
 function parHcp(day, hole) {
   const h = (day.card && day.card.holes && day.card.holes[hole]) || {};
