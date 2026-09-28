@@ -136,7 +136,9 @@
     .day-chip.completed { border-color: var(--green-600); }
     .player-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
     .player-row input { flex: 1; }
-    .player-row .hcp-input { width: 70px; flex: none; text-align: center; }
+    .gender-pick { display: flex; border: 1px solid var(--gray-200); border-radius: 8px; overflow: hidden; flex: none; }
+    .gender-pick button { border: 0; background: white; color: var(--gray-600); padding: 8px 7px; font-size: 0.72rem; font-weight: 700; }
+    .gender-pick button.on { background: var(--green-800); color: white; }
     .cloud-gate { position: fixed; inset: 0; z-index: 400; background: rgba(6, 40, 24, 0.78); display: flex; align-items: center; justify-content: center; padding: 20px; }
     .cloud-gate .card { width: 100%; max-width: 420px; margin: 0; }
     .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--gray-800); color: white; padding: 12px 24px; border-radius: 30px; font-size: 0.9rem; font-weight: 500; z-index: 300; opacity: 0; transition: opacity 0.3s; pointer-events: none; max-width: 90%; text-align: center; }
@@ -313,7 +315,7 @@
         <p class="text-muted" style="font-size:0.8rem;">Denne adressen skal legges inn som redirect URI hos Google:</p>
         <p id="google-redirect" class="text-muted mb-3" style="font-size:0.8rem;word-break:break-all;"></p>
         <button class="btn btn-danger btn-block" onclick="resetAllData()">Nullstill all data</button>
-        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.28 · Familiemajoren</p>
+        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.29 · Familiemajoren</p>
       </div>
     </div>
   </div>
@@ -376,6 +378,7 @@ function normalizeState(s) {
   if (!Array.isArray(s.history)) s.history = [];
   if (!s.hallOfFame || typeof s.hallOfFame !== 'object') s.hallOfFame = { manual: [] };
   if (!Array.isArray(s.hallOfFame.manual)) s.hallOfFame.manual = [];
+  if (!Array.isArray(s.courseBook)) s.courseBook = [];
   return s;
 }
 
@@ -952,7 +955,7 @@ function renderPlayerInputs() {
   const count = parseInt(document.getElementById('setup-players-count').value) || 0;
   let html = '';
   for (let i = 0; i < count; i++) {
-    html += '<div class="player-row"><input type="text" class="player-name-input" placeholder="Navn spiller ' + (i+1) + '" /><input type="number" class="hcp-input player-hcp-input" placeholder="HCP" min="0" max="54" step="0.1" /></div>';
+    html += '<div class="player-row"><input type="text" class="player-name-input" placeholder="Navn spiller ' + (i+1) + '" /><input type="number" class="hcp-input player-hcp-input" placeholder="HCP" min="0" max="54" step="0.1" /><div class="gender-pick" data-gender="M"><button type="button" class="on" data-g="M" onclick="setGender(this,\'M\')">Herre</button><button type="button" data-g="F" onclick="setGender(this,\'F\')">Dame</button></div></div>';
   }
   host.innerHTML = html;
 }
@@ -1046,6 +1049,8 @@ function openSetup(mode) {
       if (!names[i]) return;
       names[i].value = p.name;
       hcps[i].value = p.hcp;
+      const pick = document.querySelectorAll('.gender-pick')[i];
+      if (pick) setGender(pick.querySelector('[data-g="' + (p.gender === 'F' ? 'F' : 'M') + '"]'), p.gender === 'F' ? 'F' : 'M');
     });
     document.getElementById('setup-days').value = (t.days && t.days.length) || 5;
     renderDayFormats();
@@ -1087,7 +1092,7 @@ function saveSetup() {
   document.querySelectorAll('.player-name-input').forEach((inp, i) => {
     const name = inp.value.trim();
     const hcpInput = document.querySelectorAll('.player-hcp-input')[i];
-    if (name) players.push({ name, hcp: parseFloat(hcpInput && hcpInput.value) || 0 });
+    if (name) players.push({ name, hcp: parseFloat(hcpInput && hcpInput.value) || 0, gender: (document.querySelectorAll('.gender-pick')[i] && document.querySelectorAll('.gender-pick')[i].dataset.gender) === 'F' ? 'F' : 'M' });
   });
   if (players.length === 1) { toast('Minst 2 spillere, eller la listen stå tom'); return; }
   const daySelects = document.querySelectorAll('.day-format-select');
@@ -1179,8 +1184,24 @@ function grossAt(day, name, hole) {
   const n = parseInt(row[hole], 10);
   return isNaN(n) ? null : n;
 }
+function setGender(btn, value) {
+  const wrap = btn && btn.parentElement;
+  if (!wrap) return;
+  wrap.dataset.gender = value;
+  wrap.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b.dataset.g === value); });
+}
+function playerHoles(day, name) {
+  const card = day && day.card;
+  const own = card && card.playerHoles && name && card.playerHoles[name];
+  if (own && own.length) return own;
+  return (card && card.holes) || [];
+}
+function holeAt(day, name, i) {
+  const holes = name ? playerHoles(day, name) : ((day.card && day.card.holes) || []);
+  return holes[i] || { par: 4, index: i + 1 };
+}
 function receivedAt(day, name, hole) {
-  return strokesOnHole(day.card.allocated[name], (day.card.holes[hole] || {}).index);
+  return strokesOnHole(day.card.allocated[name], holeAt(day, name, hole).index);
 }
 function netAt(day, name, hole) {
   const g = grossAt(day, name, hole);
@@ -1188,7 +1209,7 @@ function netAt(day, name, hole) {
 }
 function stablefordAt(day, name, hole) {
   const g = grossAt(day, name, hole);
-  return g == null ? null : stablefordPoints(g, day.card.holes[hole].par, receivedAt(day, name, hole));
+  return g == null ? null : stablefordPoints(g, holeAt(day, name, hole).par, receivedAt(day, name, hole));
 }
 function stablefordTotal(day, name) {
   let s = 0;
@@ -1254,7 +1275,7 @@ function renderCardSetup() {
   if (day.format === 'singles') {
     matches = '<div class="card"><h3 class="card-title">Matcher</h3>' + ((day.matches && day.matches.length) ? day.matches.map(function (m, i) { return '<div class="text-muted" style="margin-bottom:6px;">Match ' + (i + 1) + ': ' + m.p1 + ' mot ' + m.p2 + '</div>'; }).join('') : '<p class="text-muted">Ingen matcher ennå.</p>') + '<button class="btn btn-sm btn-secondary mt-2" onclick="generateCardMatches()">Generer matcher</button></div>';
   }
-  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Forbered scorekort</h1><div class="sub">Dag ' + day.dayNumber + ' · ' + (FORMATS[day.format] || '') + '</div></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'tournament\')">← Tilbake</button><div class="form-group"><label>Bane</label><input type="text" id="card-course" value="' + String(day.course || '').replace(/"/g, '"') + '" placeholder="Valgfritt" /></div><button type="button" class="btn btn-outline btn-block" onclick="openCourseSearch()">Søk opp bane</button><p class="text-muted" style="font-size:0.85rem;margin:8px 0 16px;">Valgfritt. Søk på klubb eller bane. Alt kan endres.</p><h3 class="card-title">Tildelte slag</h3><p class="text-muted mb-2">Tallet fra klubbens liste. Ligger klart fra dagen før, og kan skrives over.</p>' + players + '</div>' + matches + '<div class="card"><h3 class="card-title">Banen</h3><p class="text-muted mb-2">Par og bane-HCP. HCP her er hullindex, ikke spillerens handicap.</p>' + holes + '</div>' + (card.ready ? '<button class="btn btn-outline btn-block" onclick="withdrawCard()">Trekk scorekort tilbake</button>' : '') + '<button class="btn btn-secondary btn-block mt-2" onclick="saveCardSetup(false)">Lagre og fortsett senere</button><button class="btn btn-primary btn-block mt-2" onclick="saveCardSetup(true)">Lagre og gjør klart</button>';
+  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Forbered scorekort</h1><div class="sub">Dag ' + day.dayNumber + ' · ' + (FORMATS[day.format] || '') + '</div></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'tournament\')">← Tilbake</button><div class="form-group"><label>Bane</label><input type="text" id="card-course" value="' + String(day.course || '').replace(/"/g, '"') + '" placeholder="Valgfritt" /></div><button type="button" class="btn btn-outline btn-block" onclick="openCourseSearch()">Søk opp bane</button><p class="text-muted" style="font-size:0.85rem;margin:8px 0 16px;">Valgfritt. Søker i familiens banebok. Alt kan endres.</p><h3 class="card-title">Tildelte slag</h3><p class="text-muted mb-2">Tallet fra klubbens liste. Ligger klart fra dagen før, og kan skrives over.</p>' + players + '</div>' + matches + '<div class="card"><h3 class="card-title">Banen</h3><p class="text-muted mb-2">Par og bane-HCP. HCP her er hullindex, ikke spillerens handicap.</p>' + holes + '</div>' + (card.ready ? '<button class="btn btn-outline btn-block" onclick="withdrawCard()">Trekk scorekort tilbake</button>' : '') + '<button class="btn btn-secondary btn-block mt-2" onclick="saveCardSetup(false)">Lagre og fortsett senere</button><button class="btn btn-primary btn-block mt-2" onclick="saveCardSetup(true)">Lagre og gjør klart</button>';
 }
 function generateCardMatches() {
   const t = state.current;
@@ -1304,157 +1325,269 @@ function withdrawCard() {
   navigate('tournament');
 }
 function openLiveCard(i) { cardDay = i; cardHole = 0; cardFull = false; navigate('card'); }
-let courseSearch = { q: '', hits: [], course: null, status: '', busy: false, timer: null };
+let courseSearch = { q: '', mode: 'search', draft: null, teeIndex: 0, picked: null, same: true };
 function openCourseSearch() {
-  if (courseSearch.timer) clearTimeout(courseSearch.timer);
-  courseSearch = { q: '', hits: [], course: null, status: '', busy: false, timer: null };
+  courseSearch = { q: '', mode: 'search', draft: null, teeIndex: 0, picked: null, same: true };
   navigate('course-search');
 }
-function coursePlace(course) {
-  const loc = course && course.location || {};
-  return loc.address || [loc.city, loc.country].filter(Boolean).join(', ');
+function courseBook() {
+  if (!Array.isArray(state.courseBook)) state.courseBook = [];
+  return state.courseBook;
 }
-function courseTitle(course) {
-  const club = course.club_name || '';
-  const name = course.course_name || '';
-  if (club && name && club !== name) return club + ' · ' + name;
-  return club || name || 'Bane';
+function blankHoles() {
+  return Array.from({ length: 18 }, function (_, i) { return { par: 4, index: i + 1 }; });
 }
-const TEE_NO = { yellow: 'Gul', white: 'Hvit', blue: 'Blå', red: 'Rød', black: 'Svart', gold: 'Gull', green: 'Grønn', orange: 'Oransje' };
-function teeLabel(name) {
-  const key = String(name || '').toLowerCase();
-  return TEE_NO[key] || name || 'Tee';
+function blankTee(copy) {
+  return {
+    name: '',
+    men: { slope: copy && copy.men ? copy.men.slope : '', rating: copy && copy.men ? copy.men.rating : '' },
+    women: { slope: copy && copy.women ? copy.women.slope : '', rating: copy && copy.women ? copy.women.rating : '' },
+    holes: copy && copy.holes ? JSON.parse(JSON.stringify(copy.holes)) : blankHoles()
+  };
 }
-function teeColor(name) {
-  const key = String(name || '').toLowerCase();
-  const colors = { yellow: '#eab308', white: '#f8fafc', blue: '#2563eb', red: '#dc2626', black: '#111827', gold: '#c9a227', green: '#15803d', orange: '#ea580c' };
-  return colors[key] || '#14532d';
+function courseLabel(course) {
+  if (!course) return '';
+  if (course.club && course.course && course.club !== course.course) return course.club + ' · ' + course.course;
+  return course.club || course.course || 'Bane';
 }
-async function golfCall(body) {
-  const family = localStorage.getItem(CODE_KEY);
-  if (!family) throw new Error('Skriv inn familiekoden først');
-  const res = await fetch(CLOUD_URL + '/functions/v1/golf-course', {
-    method: 'POST',
-    headers: {
-      apikey: CLOUD_KEY,
-      Authorization: 'Bearer ' + CLOUD_KEY,
-      'Content-Type': 'application/json',
-      'x-family-code': family
-    },
-    body: JSON.stringify(body)
+function filterBook(q) {
+  const n = String(q || '').trim().toLowerCase();
+  if (n.length < 2) return [];
+  return courseBook().filter(function (c) {
+    return (c.club + ' ' + c.course + ' ' + (c.place || '')).toLowerCase().indexOf(n) !== -1;
   });
-  const json = await res.json().catch(function () { return {}; });
-  if (!res.ok) throw new Error(json.error || 'Søket feilet');
-  return json;
 }
 function queueCourseSearch() {
   const input = document.getElementById('course-q');
-  courseSearch.q = input ? input.value.trim() : '';
-  if (courseSearch.timer) clearTimeout(courseSearch.timer);
-  courseSearch.course = null;
-  if (courseSearch.q.length < 2) {
-    courseSearch.hits = [];
-    courseSearch.busy = false;
-    courseSearch.status = courseSearch.q ? 'Skriv minst to bokstaver' : 'Skriv klubb eller bane';
-    paintCourseHits();
-    return;
-  }
-  courseSearch.busy = true;
-  courseSearch.status = 'Søker…';
-  paintCourseHits();
-  courseSearch.timer = setTimeout(runCourseSearch, 350);
+  courseSearch.q = input ? input.value : '';
+  const hits = document.getElementById('course-hits');
+  const status = document.getElementById('course-status');
+  const q = courseSearch.q.trim();
+  const list = filterBook(q);
+  if (status) status.textContent = q.length < 2 ? 'Skriv klubb eller bane' : (list.length ? 'Velg banen' : 'Fant ingen bane i baneboken.');
+  if (!hits) return;
+  let html = list.map(function (c) {
+    return '<div class="group-choice" style="cursor:default;"><button type="button" style="all:unset;cursor:pointer;display:block;width:100%;" onclick="useCourse(\'' + jsName(c.id) + '\')"><strong>' + (c.club || c.course) + '</strong>' + (c.course && c.course !== c.club ? '<div class="text-muted">' + c.course + (c.place ? ' · ' + c.place : '') + '</div>' : (c.place ? '<div class="text-muted">' + c.place + '</div>' : '')) + '</button>' + (isAdmin() ? '<button type="button" class="btn btn-sm btn-outline mt-2" onclick="editCourse(\'' + jsName(c.id) + '\')">Oppdater</button>' : '') + '</div>';
+  }).join('');
+  if (q.length >= 2 && !list.length) html += '<button type="button" class="btn btn-outline btn-block" onclick="startCourseCreate()">Opprett bane</button><p class="text-muted mt-2">Banen lagres for familien og kan oppdateres senere.</p>';
+  hits.innerHTML = html;
 }
-async function runCourseSearch() {
-  const q = courseSearch.q;
-  if (q.length < 2) return;
-  try {
-    const json = await golfCall({ action: 'search', query: q });
-    if (courseSearch.q !== q) return;
-    courseSearch.hits = json.courses || [];
-    courseSearch.status = courseSearch.hits.length ? 'Velg banen' : 'Fant ingen klubb eller bane.';
-  } catch (e) {
-    if (courseSearch.q !== q) return;
-    courseSearch.hits = [];
-    courseSearch.status = e.message || 'Søket feilet';
-  }
-  courseSearch.busy = false;
-  paintCourseHits();
+function startCourseCreate() {
+  if (!isAdmin()) { toast('Lås opp admin under Innstillinger'); navigate('settings'); return; }
+  courseSearch.draft = { id: 'c' + Date.now(), club: courseSearch.q.trim(), course: '', place: '', tees: [blankTee()] };
+  courseSearch.teeIndex = 0;
+  courseSearch.mode = 'create';
+  renderCourseSearch();
 }
-async function pickCourse(id) {
-  courseSearch.busy = true;
-  courseSearch.status = 'Henter tees…';
+function editCourse(id) {
+  if (!isAdmin()) { toast('Lås opp admin under Innstillinger'); return; }
+  const found = courseBook().find(function (c) { return c.id === id; });
+  if (!found) return;
+  courseSearch.draft = JSON.parse(JSON.stringify(found));
+  if (!courseSearch.draft.tees || !courseSearch.draft.tees.length) courseSearch.draft.tees = [blankTee()];
+  courseSearch.teeIndex = 0;
+  courseSearch.mode = 'create';
   renderCourseSearch();
-  try {
-    const json = await golfCall({ action: 'course', id: id });
-    courseSearch.course = json.course;
-    const tees = (json.course && json.course.tees) || [];
-    if (tees.length === 1) return applyCourseTee(0);
-    courseSearch.status = tees.length ? 'Velg tee' : 'Banen har ingen tee i databasen.';
-  } catch (e) {
-    courseSearch.status = e.message || 'Kunne ikke hente banen';
+}
+function useCourse(id) {
+  courseSearch.picked = courseBook().find(function (c) { return c.id === id; });
+  if (!courseSearch.picked) return;
+  courseSearch.mode = 'ask';
+  renderCourseSearch();
+}
+function chooseSameTee(yes) {
+  courseSearch.same = !!yes;
+  courseSearch.mode = 'tees';
+  renderCourseSearch();
+}
+function readCourseForm() {
+  const d = courseSearch.draft;
+  if (!d) return;
+  const club = document.getElementById('cb-club');
+  const course = document.getElementById('cb-course');
+  const place = document.getElementById('cb-place');
+  if (club) d.club = club.value.trim();
+  if (course) d.course = course.value.trim();
+  if (place) d.place = place.value.trim();
+  const tee = d.tees[courseSearch.teeIndex];
+  if (!tee) return;
+  const name = document.getElementById('cb-tee');
+  if (name) tee.name = name.value.trim();
+  ['men', 'women'].forEach(function (g) {
+    const slope = document.getElementById('cb-' + g + '-slope');
+    const rating = document.getElementById('cb-' + g + '-rating');
+    if (!tee[g]) tee[g] = { slope: '', rating: '' };
+    if (slope) tee[g].slope = slope.value.trim();
+    if (rating) tee[g].rating = rating.value.trim();
+  });
+  document.querySelectorAll('.cb-par').forEach(function (inp) {
+    if (inp.value !== '') tee.holes[parseInt(inp.dataset.hole, 10)].par = parseInt(inp.value, 10) || 4;
+  });
+  document.querySelectorAll('.cb-hcp').forEach(function (inp) {
+    if (inp.value !== '') tee.holes[parseInt(inp.dataset.hole, 10)].index = parseInt(inp.value, 10) || 1;
+  });
+}
+function openTeeHoles() {
+  readCourseForm();
+  courseSearch.mode = 'holes';
+  renderCourseSearch();
+}
+function backToCourseForm() {
+  readCourseForm();
+  courseSearch.mode = 'create';
+  renderCourseSearch();
+}
+function copyPreviousTeeHoles() {
+  readCourseForm();
+  const i = courseSearch.teeIndex;
+  if (i < 1) { toast('Det finnes ingen tee foran'); return; }
+  courseSearch.draft.tees[i].holes = JSON.parse(JSON.stringify(courseSearch.draft.tees[i - 1].holes));
+  renderCourseSearch();
+}
+function addCourseTee() {
+  readCourseForm();
+  const prev = courseSearch.draft.tees[courseSearch.draft.tees.length - 1];
+  courseSearch.draft.tees.push(blankTee(prev));
+  courseSearch.teeIndex = courseSearch.draft.tees.length - 1;
+  courseSearch.mode = 'create';
+  renderCourseSearch();
+}
+function pickDraftTee(i) {
+  readCourseForm();
+  courseSearch.teeIndex = i;
+  renderCourseSearch();
+}
+function saveCourseBookEntry() {
+  readCourseForm();
+  const d = courseSearch.draft;
+  if (!d || !d.club || !d.course) { toast('Skriv klubb og bane'); return; }
+  d.tees = (d.tees || []).filter(function (t) { return String(t.name || '').trim(); });
+  if (!d.tees.length) { toast('Gi minst én tee et navn'); courseSearch.draft.tees = [blankTee()]; return; }
+  d.updatedAt = new Date().toISOString().slice(0, 10);
+  const book = courseBook();
+  const idx = book.findIndex(function (c) { return c.id === d.id; });
+  if (idx >= 0) book[idx] = d; else book.push(d);
+  saveState();
+  toast('Banen er lagret');
+  courseSearch.mode = 'search';
+  courseSearch.q = d.club;
+  courseSearch.draft = null;
+  renderCourseSearch();
+}
+function ratingSide(tee, player) {
+  const side = player && player.gender === 'F' ? tee.women : tee.men;
+  return side || { slope: '', rating: '' };
+}
+function teePar(tee) {
+  return (tee.holes || []).reduce(function (sum, hole) { return sum + (parseInt(hole.par, 10) || 0); }, 0) || 72;
+}
+function strokesForPlayer(player, tee) {
+  const side = ratingSide(tee, player);
+  const slope = parseFloat(String(side.slope || '').replace(',', '.'));
+  const rating = parseFloat(String(side.rating || '').replace(',', '.'));
+  if (!slope || !rating) return null;
+  return courseHandicap(player.hcp, slope, rating, teePar(tee));
+}
+function copyTeeHoles(tee) {
+  return (tee.holes || blankHoles()).map(function (hole, i) {
+    return { par: parseInt(hole.par, 10) || 4, index: parseInt(hole.index, 10) || (i + 1) };
+  });
+}
+function applyTeePlan(same, teeIndex) {
+  const course = courseSearch.picked;
+  const day = state.current && state.current.days[cardDay];
+  if (!course || !day) return;
+  const card = ensureCard(day);
+  day.course = courseLabel(course);
+  card.playerHoles = {};
+  const players = state.current.players || [];
+  if (same) {
+    const tee = course.tees[teeIndex];
+    if (!tee) return;
+    card.holes = copyTeeHoles(tee);
+    players.forEach(function (player) {
+      const strokes = strokesForPlayer(player, tee);
+      if (strokes == null) delete card.allocated[player.name];
+      else card.allocated[player.name] = strokes;
+    });
+  } else {
+    let first = null;
+    players.forEach(function (player) {
+      const sel = document.querySelector('.player-tee[data-player="' + encodeURIComponent(player.name) + '"]');
+      const tee = course.tees[parseInt(sel && sel.value, 10)];
+      if (!tee) return;
+      if (!first) first = tee;
+      card.playerHoles[player.name] = copyTeeHoles(tee);
+      const strokes = strokesForPlayer(player, tee);
+      if (strokes == null) delete card.allocated[player.name];
+      else card.allocated[player.name] = strokes;
+    });
+    if (first) card.holes = copyTeeHoles(first);
   }
-  courseSearch.busy = false;
-  renderCourseSearch();
+  saveState();
+  toast('Banen er fylt inn. Se over tallene.');
+  navigate('card-setup');
 }
 function courseHandicap(hcp, slope, rating, par) {
   const n = Number(hcp);
   if (!Number.isFinite(n) || !slope || !rating || !par) return null;
   return Math.round(n * (Number(slope) / 113) + (Number(rating) - Number(par)));
 }
-function applyCourseTee(index) {
-  const course = courseSearch.course;
-  const tee = course && course.tees && course.tees[index];
-  const day = state.current && state.current.days[cardDay];
-  if (!tee || !day) return;
-  const card = ensureCard(day);
-  day.course = courseTitle(course);
-  const holes = tee.holes || [];
-  holes.forEach(function (hole, i) {
-    if (i > 17 || !card.holes[i]) return;
-    if (hole.par) card.holes[i].par = parseInt(hole.par, 10) || card.holes[i].par;
-    if (hole.handicap) card.holes[i].index = parseInt(hole.handicap, 10) || card.holes[i].index;
-  });
-  let missing = false;
-  (state.current.players || []).forEach(function (player) {
-    const strokes = courseHandicap(player.hcp, tee.slope, tee.rating, tee.par);
-    if (strokes == null) { missing = true; return; }
-    card.allocated[player.name] = strokes;
-  });
-  saveState();
-  toast(missing ? 'Par og HCP er fylt inn. Sjekk tildelte slag.' : 'Banen er fylt inn. Se over tallene.');
-  navigate('card-setup');
-}
-function courseHitButton(hit) {
-  const club = hit.club_name || '';
-  const name = hit.course_name || '';
-  const place = coursePlace(hit);
-  const line = [club && name && club !== name ? name : '', place].filter(Boolean).join(' · ');
-  return '<button type="button" class="group-choice" onclick="pickCourse(\'' + jsName(hit.id) + '\')"><strong>' + (club || name || 'Bane') + '</strong>' + (line ? '<div class="text-muted">' + line + '</div>' : '') + '</button>';
-}
-function paintCourseHits() {
-  const status = document.getElementById('course-status');
-  const hits = document.getElementById('course-hits');
-  if (status) status.textContent = courseSearch.status || '';
-  if (hits) hits.innerHTML = (courseSearch.hits || []).map(courseHitButton).join('');
-}
 function renderCourseSearch() {
   const el = document.getElementById('course-search-content');
   if (!el) return;
-  const course = courseSearch.course;
-  if (course && course.tees && course.tees.length) {
-    const body = '<p class="text-muted mb-3">' + courseTitle(course) + '</p>' + course.tees.map(function (tee, i) {
-      const bits = [tee.slope ? ('Slope ' + tee.slope) : '', tee.par ? ('Par ' + tee.par) : ''].filter(Boolean).join(' · ');
-      return '<button type="button" class="group-choice" onclick="applyCourseTee(' + i + ')"><span class="tee-dot" style="background:' + teeColor(tee.name) + ';border:1px solid #d1d5db;"></span> ' + teeLabel(tee.name) + (bits ? '<div class="text-muted">' + bits + '</div>' : '') + '</button>';
-    }).join('') + '<p class="text-muted">Tildelte slag regnes fra spillernes handicap. Du kan endre tallene etterpå.</p>';
-    el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Velg tee</h1></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="courseSearch.course=null;renderCourseSearch()">← Tilbake</button><p class="text-muted mb-3">' + (courseSearch.status || '') + '</p>' + body + '</div>';
+  const back = '<button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'card-setup\')">← Tilbake</button>';
+  if (courseSearch.mode === 'ask' && courseSearch.picked) {
+    el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Samme tee?</h1><div class="sub">' + courseLabel(courseSearch.picked) + '</div></div></div><div class="card">' + back + '<p class="mb-3">Spiller alle fra samme tee?</p><button class="btn btn-primary btn-block mb-2" onclick="chooseSameTee(true)">Ja</button><button class="btn btn-outline btn-block" onclick="chooseSameTee(false)">Nei, velg per spiller</button></div>';
     return;
   }
-  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Søk opp bane</h1></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'card-setup\')">← Tilbake</button><div class="form-group"><label>Klubb eller bane</label><input type="text" id="course-q" value="' + String(courseSearch.q || '').replace(/"/g, '"') + '" placeholder="Skriv, så kommer treffene" oninput="queueCourseSearch()" /></div><p id="course-status" class="text-muted mb-3">' + (courseSearch.status || 'Skriv klubb eller bane') + '</p><div id="course-hits">' + (courseSearch.hits || []).map(courseHitButton).join('') + '</div></div>';
+  if (courseSearch.mode === 'tees' && courseSearch.picked) {
+    const tees = courseSearch.picked.tees || [];
+    if (courseSearch.same) {
+      el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Velg tee</h1><div class="sub">' + courseLabel(courseSearch.picked) + '</div></div></div><div class="card">' + back + tees.map(function (tee, i) {
+        return '<button type="button" class="group-choice" onclick="applyTeePlan(true,' + i + ')"><strong>' + (tee.name || 'Tee') + '</strong><div class="text-muted">Herrer ' + (tee.men && tee.men.slope ? 'slope ' + tee.men.slope : 'uten slope') + ' · Damer ' + (tee.women && tee.women.slope ? 'slope ' + tee.women.slope : 'uten slope') + '</div></button>';
+      }).join('') + '<p class="text-muted">Mangler slope, står slagene tomme og kan skrives inn.</p></div>';
+      return;
+    }
+    const options = tees.map(function (tee, i) { return '<option value="' + i + '">' + (tee.name || ('Tee ' + (i + 1))) + '</option>'; }).join('');
+    el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Tee per spiller</h1></div></div><div class="card">' + back + (state.current.players || []).map(function (player) {
+      return '<div class="score-line"><div class="board-name">' + player.name + '</div><select class="player-tee" data-player="' + encodeURIComponent(player.name) + '">' + options + '</select></div>';
+    }).join('') + '<button class="btn btn-primary btn-block mt-3" onclick="applyTeePlan(false)">Bruk banen</button></div>';
+    return;
+  }
+  if (courseSearch.mode === 'holes' && courseSearch.draft) {
+    const tee = courseSearch.draft.tees[courseSearch.teeIndex];
+    const rows = (tee.holes || []).map(function (hole, i) {
+      return '<div class="hole-grid"><strong>Hull ' + (i + 1) + '</strong><input type="number" class="hcp-input cb-par" data-hole="' + i + '" value="' + (hole.par || '') + '" /><input type="number" class="hcp-input cb-hcp" data-hole="' + i + '" value="' + (hole.index || '') + '" /></div>';
+    }).join('');
+    el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>' + (courseSearch.draft.course || 'Bane') + ' · ' + (tee.name || 'Tee') + '</h1><div class="sub">' + (courseSearch.draft.club || '') + '</div></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="backToCourseForm()">← Tilbake</button>' + (courseSearch.teeIndex > 0 ? '<button type="button" class="btn btn-outline btn-block mb-3" onclick="copyPreviousTeeHoles()">Samme par og HCP som forrige tee</button>' : '') + '<div class="hole-head"><span>Hull</span><span>Par</span><span>HCP</span></div>' + rows + '<button class="btn btn-primary btn-block mt-3" onclick="saveCourseBookEntry()">Lagre bane</button></div>';
+    return;
+  }
+  if (courseSearch.mode === 'create' && courseSearch.draft) {
+    const d = courseSearch.draft;
+    const tee = d.tees[courseSearch.teeIndex] || blankTee();
+    const chips = d.tees.map(function (item, i) {
+      return '<button type="button" class="btn btn-sm ' + (i === courseSearch.teeIndex ? 'btn-primary' : 'btn-secondary') + '" onclick="pickDraftTee(' + i + ')">' + (item.name || ('Tee ' + (i + 1))) + '</button>';
+    }).join(' ');
+    const field = function (id, label, value, placeholder) {
+      return '<div class="form-group"><label>' + label + '</label><input type="text" id="' + id + '" value="' + String(value || '').replace(/"/g, '"') + '" placeholder="' + placeholder + '" /></div>';
+    };
+    el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>' + (d.updatedAt ? 'Oppdater bane' : 'Opprett bane') + '</h1></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="courseSearch.mode=\'search\';renderCourseSearch()">← Tilbake</button>' +
+      field('cb-club', 'Klubb', d.club, 'Sola Golfklubb') + field('cb-course', 'Bane', d.course, 'Forus') + field('cb-place', 'Sted', d.place, 'Sola, Norge') +
+      '<div class="section-title">Tee</div><div class="flex mb-3" style="gap:8px;flex-wrap:wrap;">' + chips + '</div>' +
+      field('cb-tee', 'Tee-navn', tee.name, 'Gul') +
+      '<div class="section-title">Herrer</div>' + field('cb-men-slope', 'Slope', tee.men && tee.men.slope, 'Kan stå tom') + field('cb-men-rating', 'Baneverdi', tee.men && tee.men.rating, 'Kan stå tom') +
+      '<div class="section-title">Damer</div>' + field('cb-women-slope', 'Slope', tee.women && tee.women.slope, 'Kan stå tom') + field('cb-women-rating', 'Baneverdi', tee.women && tee.women.rating, 'Kan stå tom') +
+      '<button class="btn btn-secondary btn-block" onclick="openTeeHoles()">Neste: hullene</button><button class="btn btn-outline btn-block mt-2" onclick="addCourseTee()">Legg til tee</button><button class="btn btn-primary btn-block mt-2" onclick="saveCourseBookEntry()">Lagre bane</button><p class="text-muted mt-2">Tom slope er lov. Du kan fylle den inn senere.</p></div>';
+    return;
+  }
+  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Søk opp bane</h1></div></div><div class="card">' + back + '<div class="form-group"><label>Klubb eller bane</label><input type="text" id="course-q" value="' + String(courseSearch.q || '').replace(/"/g, '"') + '" placeholder="Skriv, så kommer treffene" oninput="queueCourseSearch()" /></div><p id="course-status" class="text-muted mb-3">Skriv klubb eller bane</p><div id="course-hits"></div>' + (isAdmin() ? '<button type="button" class="btn btn-outline btn-block mt-3" onclick="startCourseCreate()">Opprett bane</button>' : '') + '</div>';
+  queueCourseSearch();
   const input = document.getElementById('course-q');
   if (input) input.focus();
 }
-function parHcp(day, hole) {
-  const h = (day.card && day.card.holes && day.card.holes[hole]) || {};
+function parHcp(day, hole, name) {
+  const h = holeAt(day, name || '', hole);
   return 'Par ' + (h.par || 4) + ' – hcp ' + (h.index || (hole + 1));
 }
 function setMeIndex(i) {
@@ -1484,7 +1617,7 @@ function bumpNamed(name, delta) {
   const day = state.current.days[cardDay];
   const cur = grossAt(day, name, cardHole);
   let next = null;
-  if (cur == null) next = delta > 0 ? (day.card.holes[cardHole].par || 4) : null;
+  if (cur == null) next = delta > 0 ? (holeAt(day, name, cardHole).par || 4) : null;
   else next = cur + delta;
   if (next != null && next < 1) next = null;
   setGross(name, cardHole, next);
@@ -1580,13 +1713,12 @@ function renderStablefordCard(el, t, day) {
   const me = myName();
   if (cardFull) return renderFullStableford(el, day, me, 'showFullCard(false)');
   const h = cardHole;
-  const par = day.card.holes[h].par || 4;
   const recv = receivedAt(day, me, h);
   const g = grossAt(day, me, h);
   const pts = g == null ? '–' : stablefordAt(day, me, h);
   const locked = !!day.completed;
   el.innerHTML = cardHead(day, 'Hull ' + (h + 1), me + ' · ' + (day.card.allocated[me] || 0) + ' slag i dag') +
-    '<div class="card"><div class="flex justify-between items-center"><strong>' + parHcp(day, h) + '</strong>' + (recv ? '<span class="badge badge-green">Du har slag her</span>' : '') + '</div>' +
+    '<div class="card"><div class="flex justify-between items-center"><strong>' + parHcp(day, h, me) + '</strong>' + (recv ? '<span class="badge badge-green">Du har slag her</span>' : '') + '</div>' +
     wideStep(me, g, locked) + '<div class="text-center"><span class="badge badge-green">' + pts + ' poeng på hullet</span></div>' +
     holeDotRow(function (i) { return grossAt(day, me, i) != null; }) + holeNav(h) +
     '<button class="btn btn-secondary btn-block mt-3" onclick="showFullCard(true)">Hele scorekortet</button><button class="btn btn-sm btn-secondary mt-3" onclick="clearMe()">Bytt spiller</button></div>' + roundButtons(day);
@@ -1594,7 +1726,7 @@ function renderStablefordCard(el, t, day) {
 function grossMark(day, name, i) {
   const g = grossAt(day, name, i);
   if (g == null) return '';
-  const under = (day.card.holes[i].par || 4) - g;
+  const under = (holeAt(day, name, i).par || 4) - g;
   if (g === 1) return ' <span class="tag-gold">Hole-in-one</span>';
   if (under >= 3) return ' <span class="tag-gold">Albatross</span>';
   if (under === 2) return ' <span class="tag-gold">Eagle</span>';
@@ -1604,7 +1736,7 @@ function renderFullStableford(el, day, name, back) {
   let rows = '';
   for (let i = 0; i < 18; i++) {
     const g = grossAt(day, name, i);
-    const par = day.card.holes[i].par || 4;
+    const par = holeAt(day, name, i).par || 4;
     const pts = stablefordAt(day, name, i);
     rows += '<div class="full-row' + (i === cardHole ? ' now' : '') + '"><span>' + (i + 1) + grossMark(day, name, i) + '</span><span>' + par + '</span><span>' + (g == null ? '–' : g) + '</span><span>' + (pts == null ? '–' : pts) + '</span></div>';
   }
@@ -1728,7 +1860,7 @@ function rangeSums(day, name, from, to) {
   for (let i = from; i < to; i++) {
     const g = grossAt(day, name, i);
     if (g == null) continue;
-    n++; par += day.card.holes[i].par || 0; slag += g;
+    n++; par += holeAt(day, name, i).par || 0; slag += g;
     const p = stablefordAt(day, name, i);
     if (p != null) poeng += p;
   }
@@ -1878,7 +2010,7 @@ function cardFeats(t) {
       for (let i = 0; i < 18; i++) {
         const g = grossAt(day, p.name, i);
         if (g == null) { streak = 0; continue; }
-        const par = day.card.holes[i].par || 4;
+        const par = holeAt(day, p.name, i).par || 4;
         const under = par - g;
         const hole = 'Hull ' + (i + 1);
         if (g === 1) feats.push(Object.assign({ category: 'hole-in-one', player: p.name, details: hole }, base));

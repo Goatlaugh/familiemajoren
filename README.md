@@ -4,7 +4,7 @@ Familie-Majoren er familiens årlige golfmesterskap, som en app på telefonen. D
 
 Appen er én nettside. Den ligger på GitHub Pages. Alle som har lenken og familiekoden, ser de samme turneringene, resultatene og bildene.
 
-Versjon nå: **1.27**
+Versjon nå: **1.29**
 
 ## Slik fungerer den for familien
 
@@ -76,10 +76,10 @@ Dette er hele appen. Ikke legg inn andre mapper.
 
 1. Ta en kopi av den gamle `index.html` før du bytter den.
 2. Last opp den nye `index.html`.
-3. Last opp den nye `sw.js` i samme omgang. Versjonsnavnet inni filen, `familiemajoren-v31`, må være et nytt tall. Ellers kan telefonen vise den gamle appen.
+3. Last opp den nye `sw.js` i samme omgang. Versjonsnavnet inni filen, `familiemajoren-v33`, må være et nytt tall. Ellers kan telefonen vise den gamle appen.
 4. Vent til GitHub Pages er ferdig. Det tar ofte ett minutt.
 5. Lukk siden helt og åpne lenken på nytt.
-6. Gå til **Mer → Innstillinger**. Der skal det stå den nye versjonen, nå **Versjon 1.27**.
+6. Gå til **Mer → Innstillinger**. Der skal det stå den nye versjonen, nå **Versjon 1.29**.
 
 Bytter du bare bildet eller ikonet, last opp den filen og øk tallet i `sw.js` likevel. Ellers kan den gamle utgaven bli hengende.
 
@@ -91,7 +91,7 @@ Alt som skal endres i appen, ligger i `index.html`. Åpne den i en teksteditor. 
 
 | Du vil endre | Søk etter |
 |---|---|
-| Versjonen som vises i appen | `Versjon 1.27` |
+| Versjonen som vises i appen | `Versjon 1.29` |
 | Kortversjonen av charteret | `const CHARTER` |
 | Det fulle charteret | `charter-full-data` |
 | Mottoet | `Ett år som mester` |
@@ -112,9 +112,11 @@ Poeng, tiebreak og de fem formatene regnes ut i funksjonene `calculateStandings`
 
 ## Søk opp bane
 
-På **Forbered scorekort** kan admin trykke **Søk opp bane**. Da søker appen etter klubben, du velger bane og tee, og par, hullindex og tildelte slag fylles inn. Alt kan skrives over.
+På **Forbered scorekort** kan admin trykke **Søk opp bane**. Søket går i familiens egen banebok, ikke i en ekstern database. Finnes ikke banen, trykker du **Opprett bane** og fyller inn klubb, bane, tee, slope og baneverdi for herrer og damer, pluss par og HCP. Tom slope er lov og kan fylles inn senere med **Oppdater**.
 
-Søket går via en funksjon i Supabase som heter `golf-course`. Nøkkelen ligger der, ikke i `index.html`. Uten den funksjonen virker resten av appen som før, og du skriver banen selv.
+Kjønn velges bare under turneringsinnstillinger, ved siden av navn og handicap. Når banen brukes, spør appen om alle spiller fra samme tee. Slag regnes ut fra spillerens handicap og riktig slope. Mangler slope, står slagene tomme.
+
+Den gamle Supabase-funksjonen `golf-course` brukes ikke lenger. Den og secret-en `GOLF_API_KEY` kan slettes. Ikke slett `google-photo`.
 
 ## Skyen
 
