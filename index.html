@@ -201,7 +201,7 @@
     .hole-head, .hole-grid { display: grid; grid-template-columns: 72px 1fr 1fr; gap: 8px; align-items: center; margin-bottom: 8px; }
     .hole-head { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; color: var(--gold); text-transform: uppercase; }
     .hof-value { font-family: 'Playfair Display', Georgia, serif; font-size: 2.6rem; line-height: 1; color: var(--gold); margin-top: 4px; }
-    .hof-name { font-weight: 700; font-size: 1.15rem; margin-top: 6px; }
+    .tee-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; margin-right: 8px; vertical-align: middle; }
   </style>
 </head>
 <body>
@@ -251,6 +251,7 @@
     <div id="page-tournament" class="page"><div id="tournament-content"></div></div>
     <div id="page-scoring" class="page"><div id="scoring-content"></div></div>
     <div id="page-card-setup" class="page"><div id="card-setup-content"></div></div>
+    <div id="page-course-search" class="page"><div id="course-search-content"></div></div>
     <div id="page-card" class="page"><div id="card-content"></div></div>
     <div id="page-history-card" class="page"><div id="history-card-content"></div></div>
     <div id="page-leaderboard" class="page"><div id="leaderboard-content"></div></div>
@@ -312,7 +313,7 @@
         <p class="text-muted" style="font-size:0.8rem;">Denne adressen skal legges inn som redirect URI hos Google:</p>
         <p id="google-redirect" class="text-muted mb-3" style="font-size:0.8rem;word-break:break-all;"></p>
         <button class="btn btn-danger btn-block" onclick="resetAllData()">Nullstill all data</button>
-        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.26 · Familiemajoren</p>
+        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.27 · Familiemajoren</p>
       </div>
     </div>
   </div>
@@ -677,7 +678,7 @@ function seasonNavKey(pageId) {
 function syncChrome(pageId) {
   currentPage = pageId;
   const header = document.querySelector('.app-header');
-  const ownBanner = pageId === 'home' || pageId === 'leaderboard' || pageId === 'scoring' || pageId === 'more' || pageId === 'tournament' || pageId === 'setup' || pageId === 'card' || pageId === 'card-setup' || pageId === 'history-card' || pageId === 'charter' || pageId === 'charter-full' || pageId === 'settings' || pageId === 'hof';
+  const ownBanner = pageId === 'home' || pageId === 'leaderboard' || pageId === 'scoring' || pageId === 'more' || pageId === 'tournament' || pageId === 'setup' || pageId === 'card' || pageId === 'card-setup' || pageId === 'course-search' || pageId === 'history-card' || pageId === 'charter' || pageId === 'charter-full' || pageId === 'settings' || pageId === 'hof';
   if (header) header.hidden = ownBanner;
   paintSeasonNav();
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -708,6 +709,7 @@ function navigate(pageId) {
   if (pageId === 'charter-full') renderCharterFull();
   if (pageId === 'settings') { loadGoogleStatus(); renderAdminStatus(); }
   if (pageId === 'card-setup') renderCardSetup();
+  if (pageId === 'course-search') renderCourseSearch();
   if (pageId === 'card') renderLiveCard();
   if (pageId === 'history-card') renderHistoryCard();
 }
@@ -1252,7 +1254,7 @@ function renderCardSetup() {
   if (day.format === 'singles') {
     matches = '<div class="card"><h3 class="card-title">Matcher</h3>' + ((day.matches && day.matches.length) ? day.matches.map(function (m, i) { return '<div class="text-muted" style="margin-bottom:6px;">Match ' + (i + 1) + ': ' + m.p1 + ' mot ' + m.p2 + '</div>'; }).join('') : '<p class="text-muted">Ingen matcher ennå.</p>') + '<button class="btn btn-sm btn-secondary mt-2" onclick="generateCardMatches()">Generer matcher</button></div>';
   }
-  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Forbered scorekort</h1><div class="sub">Dag ' + day.dayNumber + ' · ' + (FORMATS[day.format] || '') + '</div></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'tournament\')">← Tilbake</button><div class="form-group"><label>Bane</label><input type="text" id="card-course" value="' + String(day.course || '').replace(/"/g, '"') + '" placeholder="Valgfritt" /></div><h3 class="card-title">Tildelte slag</h3><p class="text-muted mb-2">Tallet fra klubbens liste. Ligger klart fra dagen før, og kan skrives over.</p>' + players + '</div>' + matches + '<div class="card"><h3 class="card-title">Banen</h3><p class="text-muted mb-2">Par og bane-HCP. HCP her er hullindex, ikke spillerens handicap.</p>' + holes + '</div>' + (card.ready ? '<button class="btn btn-outline btn-block" onclick="withdrawCard()">Trekk scorekort tilbake</button>' : '') + '<button class="btn btn-secondary btn-block mt-2" onclick="saveCardSetup(false)">Lagre og fortsett senere</button><button class="btn btn-primary btn-block mt-2" onclick="saveCardSetup(true)">Lagre og gjør klart</button>';
+  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Forbered scorekort</h1><div class="sub">Dag ' + day.dayNumber + ' · ' + (FORMATS[day.format] || '') + '</div></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'tournament\')">← Tilbake</button><div class="form-group"><label>Bane</label><input type="text" id="card-course" value="' + String(day.course || '').replace(/"/g, '"') + '" placeholder="Valgfritt" /></div><button type="button" class="btn btn-outline btn-block" onclick="openCourseSearch()">Søk opp bane</button><p class="text-muted" style="font-size:0.85rem;margin:8px 0 16px;">Valgfritt. Fyller par, HCP og tildelte slag. Alt kan endres.</p><h3 class="card-title">Tildelte slag</h3><p class="text-muted mb-2">Tallet fra klubbens liste. Ligger klart fra dagen før, og kan skrives over.</p>' + players + '</div>' + matches + '<div class="card"><h3 class="card-title">Banen</h3><p class="text-muted mb-2">Par og bane-HCP. HCP her er hullindex, ikke spillerens handicap.</p>' + holes + '</div>' + (card.ready ? '<button class="btn btn-outline btn-block" onclick="withdrawCard()">Trekk scorekort tilbake</button>' : '') + '<button class="btn btn-secondary btn-block mt-2" onclick="saveCardSetup(false)">Lagre og fortsett senere</button><button class="btn btn-primary btn-block mt-2" onclick="saveCardSetup(true)">Lagre og gjør klart</button>';
 }
 function generateCardMatches() {
   const t = state.current;
@@ -1302,6 +1304,131 @@ function withdrawCard() {
   navigate('tournament');
 }
 function openLiveCard(i) { cardDay = i; cardHole = 0; cardFull = false; navigate('card'); }
+let courseSearch = { q: '', hits: [], course: null, status: '', busy: false };
+function openCourseSearch() {
+  courseSearch = { q: '', hits: [], course: null, status: '', busy: false };
+  navigate('course-search');
+}
+function coursePlace(course) {
+  const loc = course && course.location || {};
+  return loc.address || [loc.city, loc.country].filter(Boolean).join(', ');
+}
+function courseTitle(course) {
+  const club = course.club_name || '';
+  const name = course.course_name || '';
+  if (club && name && club !== name) return club + ' · ' + name;
+  return club || name || 'Bane';
+}
+const TEE_NO = { yellow: 'Gul', white: 'Hvit', blue: 'Blå', red: 'Rød', black: 'Svart', gold: 'Gull', green: 'Grønn', orange: 'Oransje' };
+function teeLabel(name) {
+  const key = String(name || '').toLowerCase();
+  return TEE_NO[key] || name || 'Tee';
+}
+function teeColor(name) {
+  const key = String(name || '').toLowerCase();
+  const colors = { yellow: '#eab308', white: '#f8fafc', blue: '#2563eb', red: '#dc2626', black: '#111827', gold: '#c9a227', green: '#15803d', orange: '#ea580c' };
+  return colors[key] || '#14532d';
+}
+async function golfCall(body) {
+  const family = localStorage.getItem(CODE_KEY);
+  if (!family) throw new Error('Skriv inn familiekoden først');
+  const res = await fetch(CLOUD_URL + '/functions/v1/golf-course', {
+    method: 'POST',
+    headers: {
+      apikey: CLOUD_KEY,
+      Authorization: 'Bearer ' + CLOUD_KEY,
+      'Content-Type': 'application/json',
+      'x-family-code': family
+    },
+    body: JSON.stringify(body)
+  });
+  const json = await res.json().catch(function () { return {}; });
+  if (!res.ok) throw new Error(json.error || 'Søket feilet');
+  return json;
+}
+async function runCourseSearch() {
+  const input = document.getElementById('course-q');
+  courseSearch.q = input ? input.value.trim() : courseSearch.q;
+  if (courseSearch.q.length < 2) { toast('Skriv minst to bokstaver'); return; }
+  courseSearch.busy = true;
+  courseSearch.course = null;
+  courseSearch.status = 'Søker…';
+  renderCourseSearch();
+  try {
+    const json = await golfCall({ action: 'search', query: courseSearch.q });
+    courseSearch.hits = json.courses || [];
+    courseSearch.status = courseSearch.hits.length ? 'Velg banen' : 'Fant ingen bane. Søk på klubbnavnet.';
+  } catch (e) {
+    courseSearch.hits = [];
+    courseSearch.status = e.message || 'Søket feilet';
+  }
+  courseSearch.busy = false;
+  renderCourseSearch();
+}
+async function pickCourse(id) {
+  courseSearch.busy = true;
+  courseSearch.status = 'Henter tees…';
+  renderCourseSearch();
+  try {
+    const json = await golfCall({ action: 'course', id: id });
+    courseSearch.course = json.course;
+    const tees = (json.course && json.course.tees) || [];
+    if (tees.length === 1) return applyCourseTee(0);
+    courseSearch.status = tees.length ? 'Velg tee' : 'Banen har ingen tee i databasen.';
+  } catch (e) {
+    courseSearch.status = e.message || 'Kunne ikke hente banen';
+  }
+  courseSearch.busy = false;
+  renderCourseSearch();
+}
+function courseHandicap(hcp, slope, rating, par) {
+  const n = Number(hcp);
+  if (!Number.isFinite(n) || !slope || !rating || !par) return null;
+  return Math.round(n * (Number(slope) / 113) + (Number(rating) - Number(par)));
+}
+function applyCourseTee(index) {
+  const course = courseSearch.course;
+  const tee = course && course.tees && course.tees[index];
+  const day = state.current && state.current.days[cardDay];
+  if (!tee || !day) return;
+  const card = ensureCard(day);
+  day.course = courseTitle(course);
+  const holes = tee.holes || [];
+  holes.forEach(function (hole, i) {
+    if (i > 17 || !card.holes[i]) return;
+    if (hole.par) card.holes[i].par = parseInt(hole.par, 10) || card.holes[i].par;
+    if (hole.handicap) card.holes[i].index = parseInt(hole.handicap, 10) || card.holes[i].index;
+  });
+  let missing = false;
+  (state.current.players || []).forEach(function (player) {
+    const strokes = courseHandicap(player.hcp, tee.slope, tee.rating, tee.par);
+    if (strokes == null) { missing = true; return; }
+    card.allocated[player.name] = strokes;
+  });
+  saveState();
+  toast(missing ? 'Par og HCP er fylt inn. Sjekk tildelte slag.' : 'Banen er fylt inn. Se over tallene.');
+  navigate('card-setup');
+}
+function renderCourseSearch() {
+  const el = document.getElementById('course-search-content');
+  if (!el) return;
+  const course = courseSearch.course;
+  let body = '';
+  if (course && course.tees && course.tees.length) {
+    body = '<p class="text-muted mb-3">' + courseTitle(course) + '</p>' + course.tees.map(function (tee, i) {
+      const bits = [tee.slope ? ('Slope ' + tee.slope) : '', tee.par ? ('Par ' + tee.par) : ''].filter(Boolean).join(' · ');
+      return '<button type="button" class="group-choice" onclick="applyCourseTee(' + i + ')"><span class="tee-dot" style="background:' + teeColor(tee.name) + ';border:1px solid #d1d5db;"></span> ' + teeLabel(tee.name) + (bits ? '<div class="text-muted">' + bits + '</div>' : '') + '</button>';
+    }).join('') + '<p class="text-muted">Tildelte slag regnes fra spillernes handicap. Du kan endre tallene etterpå.</p>';
+  } else {
+    body = (courseSearch.hits || []).map(function (hit) {
+      const place = coursePlace(hit);
+      return '<button type="button" class="group-choice" onclick="pickCourse(\'' + jsName(hit.id) + '\')"><strong>' + courseTitle(hit) + '</strong>' + (place ? '<div class="text-muted">' + place + '</div>' : '') + '</button>';
+    }).join('');
+  }
+  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>' + (course ? 'Velg tee' : 'Søk opp bane') + '</h1></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="' + (course ? 'courseSearch.course=null;renderCourseSearch()' : 'navigate(\'card-setup\')') + '">← Tilbake</button>' +
+    (course ? '' : '<div class="form-group"><label>Klubb</label><input type="text" id="course-q" value="' + String(courseSearch.q || '').replace(/"/g, '"') + '" placeholder="F.eks. La Manga" onkeydown="if(event.key===\'Enter\')runCourseSearch()" /></div><button class="btn btn-primary btn-block mb-3" onclick="runCourseSearch()"' + (courseSearch.busy ? ' disabled' : '') + '>Søk</button>') +
+    (courseSearch.status ? '<p class="text-muted mb-3">' + courseSearch.status + '</p>' : '') + body + '</div>';
+}
 function parHcp(day, hole) {
   const h = (day.card && day.card.holes && day.card.holes[hole]) || {};
   return 'Par ' + (h.par || 4) + ' – hcp ' + (h.index || (hole + 1));
