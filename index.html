@@ -200,8 +200,11 @@
     .charter-stick input { flex: 1; background: rgba(255,255,255,0.14); color: white; border: none; border-radius: 8px; padding: 8px 10px; }
     .charter-stick input::placeholder { color: rgba(255,255,255,0.75); }
     .toc-row { display: flex; gap: 12px; width: 100%; text-align: left; background: transparent; border: none; border-bottom: 1px solid #eadfC8; padding: 14px 2px; font: inherit; cursor: pointer; }
-    .hole-head, .hole-grid { display: grid; grid-template-columns: 72px 1fr 1fr; gap: 8px; align-items: center; margin-bottom: 8px; }
+    .hole-head, .hole-grid, .hole-sum { display: grid; grid-template-columns: 72px 1fr 1fr; gap: 8px; align-items: center; margin-bottom: 8px; }
     .hole-head { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; color: var(--gold); text-transform: uppercase; }
+    .hole-sum { margin-top: 2px; margin-bottom: 2px; font-weight: 700; color: var(--green-800); }
+    .hole-sum-tot { border-top: 1px solid var(--gray-200); padding-top: 8px; margin-top: 6px; }
+    .nine-gap { height: 18px; }
     .hof-value { font-family: 'Playfair Display', Georgia, serif; font-size: 2.6rem; line-height: 1; color: var(--gold); margin-top: 4px; }
     .tee-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; margin-right: 8px; vertical-align: middle; }
   </style>
@@ -315,7 +318,7 @@
         <p class="text-muted" style="font-size:0.8rem;">Denne adressen skal legges inn som redirect URI hos Google:</p>
         <p id="google-redirect" class="text-muted mb-3" style="font-size:0.8rem;word-break:break-all;"></p>
         <button class="btn btn-danger btn-block" onclick="resetAllData()">Nullstill all data</button>
-        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.30 · Familiemajoren</p>
+        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.31 · Familiemajoren</p>
       </div>
     </div>
   </div>
@@ -1256,6 +1259,33 @@ function openCardSetup(i) {
   copyCardFromPrevious(i);
   navigate('card-setup');
 }
+function parBreak(label, kind, value) {
+  return '<div class="hole-sum hole-sum-' + kind + '"><strong>' + label + '</strong><span class="par-sum" data-sum="' + kind + '">' + value + '</span><span></span></div>';
+}
+function withParSums(rows, ut, inn) {
+  let html = '';
+  rows.forEach(function (row, i) {
+    html += row;
+    if (i === 8) html += parBreak('Ut:', 'ut', ut) + '<div class="nine-gap"></div>';
+  });
+  return html + parBreak('Inn:', 'inn', inn) + parBreak('Sum:', 'tot', ut + inn);
+}
+function paintParSums(root) {
+  if (!root) return;
+  let ut = 0, inn = 0;
+  root.querySelectorAll('.cb-par, .hole-par').forEach(function (inp) {
+    const n = parseInt(inp.value, 10) || 0;
+    if (parseInt(inp.dataset.hole, 10) < 9) ut += n; else inn += n;
+  });
+  const set = function (kind, n) {
+    const el = root.querySelector('[data-sum="' + kind + '"]');
+    if (el) el.textContent = String(n);
+  };
+  set('ut', ut);
+  set('inn', inn);
+  set('tot', ut + inn);
+}
+function paintCardParSums() { paintParSums(document.getElementById('card-holes')); }
 function renderCardSetup() {
   const el = document.getElementById('card-setup-content');
   const t = state.current;
@@ -1265,9 +1295,12 @@ function renderCardSetup() {
   const players = (t.players || []).map(function (p) {
     return '<div class="score-line"><div><div class="board-name">' + p.name + '</div><div class="board-meta">HCP ' + p.hcp + '</div></div><input type="number" class="hcp-input alloc-input" data-player="' + encodeURIComponent(p.name) + '" value="' + (card.allocated[p.name] != null ? card.allocated[p.name] : '') + '" placeholder="Slag" /></div>';
   }).join('');
-  const holes = '<div class="hole-head"><span>Hull</span><span>Par</span><span>HCP</span></div>' + card.holes.map(function (h, i) {
-    return '<div class="hole-grid"><strong>Hull ' + (i + 1) + '</strong><input type="number" class="hcp-input hole-par" data-hole="' + i + '" value="' + (h.par || '') + '" placeholder="Par" /><input type="number" class="hcp-input hole-index" data-hole="' + i + '" value="' + (h.index || '') + '" placeholder="HCP" /></div>';
-  }).join('');
+  const holeRows = card.holes.map(function (h, i) {
+    return '<div class="hole-grid"><strong>Hull ' + (i + 1) + '</strong><input type="number" class="hcp-input hole-par" data-hole="' + i + '" value="' + (h.par || '') + '" placeholder="Par" oninput="paintCardParSums()" /><input type="number" class="hcp-input hole-index" data-hole="' + i + '" value="' + (h.index || '') + '" placeholder="HCP" /></div>';
+  });
+  let ut = 0, inn = 0;
+  card.holes.forEach(function (h, i) { const n = parseInt(h.par, 10) || 0; if (i < 9) ut += n; else inn += n; });
+  const holes = '<div class="hole-head"><span>Hull</span><span>Par</span><span>HCP</span></div>' + withParSums(holeRows, ut, inn);
   let matches = '';
   if (['fourball', 'scramble'].includes(day.format)) {
     matches = '<div class="card"><h3 class="card-title">Kamper</h3>' + ((day.teamMatches && day.teamMatches.length) ? day.teamMatches.map(function (m, i) { return '<div class="text-muted" style="margin-bottom:6px;">Kamp ' + (i + 1) + ': ' + m.teamA.join(', ') + ' mot ' + m.teamB.join(', ') + '</div>'; }).join('') : '<p class="text-muted">Ingen kamper ennå.</p>') + '<button class="btn btn-sm btn-secondary mt-2" onclick="generateCardMatches()">Generer kamper</button></div>';
@@ -1275,7 +1308,7 @@ function renderCardSetup() {
   if (day.format === 'singles') {
     matches = '<div class="card"><h3 class="card-title">Matcher</h3>' + ((day.matches && day.matches.length) ? day.matches.map(function (m, i) { return '<div class="text-muted" style="margin-bottom:6px;">Match ' + (i + 1) + ': ' + m.p1 + ' mot ' + m.p2 + '</div>'; }).join('') : '<p class="text-muted">Ingen matcher ennå.</p>') + '<button class="btn btn-sm btn-secondary mt-2" onclick="generateCardMatches()">Generer matcher</button></div>';
   }
-  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Forbered scorekort</h1><div class="sub">Dag ' + day.dayNumber + ' · ' + (FORMATS[day.format] || '') + '</div></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'tournament\')">← Tilbake</button><div class="form-group"><label>Bane</label><input type="text" id="card-course" value="' + String(day.course || '').replace(/"/g, '"') + '" placeholder="Valgfritt" /></div><button type="button" class="btn btn-outline btn-block" onclick="openCourseSearch()">Søk opp bane</button><p class="text-muted" style="font-size:0.85rem;margin:8px 0 16px;">Valgfritt. Søker i familiens banebok. Alt kan endres.</p><h3 class="card-title">Tildelte slag</h3><p class="text-muted mb-2">Tallet fra klubbens liste. Ligger klart fra dagen før, og kan skrives over.</p>' + players + '</div>' + matches + '<div class="card"><h3 class="card-title">Banen</h3><p class="text-muted mb-2">Par og bane-HCP. HCP her er hullindex, ikke spillerens handicap.</p>' + holes + '</div>' + (card.ready ? '<button class="btn btn-outline btn-block" onclick="withdrawCard()">Trekk scorekort tilbake</button>' : '') + '<button class="btn btn-secondary btn-block mt-2" onclick="saveCardSetup(false)">Lagre og fortsett senere</button><button class="btn btn-primary btn-block mt-2" onclick="saveCardSetup(true)">Lagre og gjør klart</button>';
+  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Forbered scorekort</h1><div class="sub">Dag ' + day.dayNumber + ' · ' + (FORMATS[day.format] || '') + '</div></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'tournament\')">← Tilbake</button><div class="form-group"><label>Bane</label><input type="text" id="card-course" value="' + String(day.course || '').replace(/"/g, '"') + '" placeholder="Valgfritt" /></div><button type="button" class="btn btn-outline btn-block" onclick="openCourseSearch()">Søk opp bane</button><p class="text-muted" style="font-size:0.85rem;margin:8px 0 16px;">Valgfritt. Søker i familiens banebok. Alt kan endres.</p><h3 class="card-title">Tildelte slag</h3><p class="text-muted mb-2">Tallet fra klubbens liste. Ligger klart fra dagen før, og kan skrives over.</p>' + players + '</div>' + matches + '<div class="card" id="card-holes"><h3 class="card-title">Banen</h3><p class="text-muted mb-2">Par og bane-HCP. HCP her er hullindex, ikke spillerens handicap.</p>' + holes + '</div>' + (card.ready ? '<button class="btn btn-outline btn-block" onclick="withdrawCard()">Trekk scorekort tilbake</button>' : '') + '<button class="btn btn-secondary btn-block mt-2" onclick="saveCardSetup(false)">Lagre og fortsett senere</button><button class="btn btn-primary btn-block mt-2" onclick="saveCardSetup(true)">Lagre og gjør klart</button>';
 }
 function generateCardMatches() {
   const t = state.current;
@@ -1367,6 +1400,7 @@ function rememberCourseHoles() {
     tee.holes[i].hcp = n;
     tee.holes[i].index = n;
   });
+  paintParSums(box);
 }
 function shareDefaultHoles(tees) {
   const source = (tees || []).find(function (tee) { return tee && !holesAreDefault(tee.holes); });
@@ -1611,9 +1645,12 @@ function renderCourseSearch() {
   if (courseSearch.mode === 'holes' && courseSearch.draft) {
     const tee = courseSearch.draft.tees[courseSearch.teeIndex];
     if (!tee.holes || tee.holes.length < 18) tee.holes = blankHoles();
-    const rows = (tee.holes || blankHoles()).map(function (hole, i) {
+    const holeRows = (tee.holes || blankHoles()).map(function (hole, i) {
       return '<div class="hole-grid"><strong>Hull ' + (i + 1) + '</strong><input type="number" class="hcp-input cb-par" data-hole="' + i + '" value="' + holeParValue(hole) + '" oninput="rememberCourseHoles()" /><input type="number" class="hcp-input cb-hcp" data-hole="' + i + '" value="' + holeHcpValue(hole, i) + '" oninput="rememberCourseHoles()" /></div>';
-    }).join('');
+    });
+    let ut = 0, inn = 0;
+    (tee.holes || []).forEach(function (hole, i) { const n = holeParValue(hole); if (i < 9) ut += n; else inn += n; });
+    const rows = withParSums(holeRows, ut, inn);
     el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>' + (courseSearch.draft.course || 'Bane') + ' · ' + (tee.name || 'Tee') + '</h1><div class="sub">' + (courseSearch.draft.club || '') + '</div></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="backToCourseForm()">← Tilbake</button>' + (courseSearch.teeIndex > 0 ? '<button type="button" class="btn btn-outline btn-block mb-3" onclick="copyPreviousTeeHoles()">Samme par og HCP som forrige tee</button>' : '') + '<div id="cb-holes"><div class="hole-head"><span>Hull</span><span>Par</span><span>HCP</span></div>' + rows + '</div><button class="btn btn-primary btn-block mt-3" onclick="saveCourseBookEntry()">Lagre bane</button></div>';
     return;
   }
