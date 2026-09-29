@@ -143,10 +143,11 @@
     .wide-step input.num:focus { outline: none; box-shadow: none; }
     .wide-step > button:not(.tee-name):disabled { opacity: 0.35; }
     .count-step { margin: 0; }
-    .tee-step { margin: 0 0 8px; }
-    .tee-step .tee-name { flex: 1; border: 0; background: transparent; font-weight: 700; font-size: 1.15rem; color: #111827; padding: 8px; }
-    .tee-step.picked { box-shadow: inset 0 0 0 2px #14532d; }
-    .tee-step.picked .tee-name { color: #14532d; }
+    .tee-step { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; }
+    .tee-step > button:not(.tee-name) { width: 36px; height: 36px; flex: none; border: none; border-radius: 50%; background: #14532d; color: white; font-size: 1rem; line-height: 1; }
+    .tee-step > button:not(.tee-name):disabled { opacity: 0.35; }
+    .tee-step .tee-name { flex: 1; border: 1px solid var(--gray-200); background: white; border-radius: 10px; font-weight: 700; font-size: 1rem; color: #111827; padding: 8px 12px; text-align: center; }
+    .tee-step.picked .tee-name { border-color: #14532d; color: #14532d; background: #f3f4f6; }
     .cloud-gate { position: fixed; inset: 0; z-index: 400; background: rgba(6, 40, 24, 0.78); display: flex; align-items: center; justify-content: center; padding: 20px; }
     .cloud-gate .card { width: 100%; max-width: 420px; margin: 0; }
     .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--gray-800); color: white; padding: 12px 24px; border-radius: 30px; font-size: 0.9rem; font-weight: 500; z-index: 300; opacity: 0; transition: opacity 0.3s; pointer-events: none; max-width: 90%; text-align: center; }
@@ -326,7 +327,7 @@
         <p class="text-muted" style="font-size:0.8rem;">Denne adressen skal legges inn som redirect URI hos Google:</p>
         <p id="google-redirect" class="text-muted mb-3" style="font-size:0.8rem;word-break:break-all;"></p>
         <button class="btn btn-danger btn-block" onclick="resetAllData()">Nullstill all data</button>
-        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.35 · Familiemajoren</p>
+        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.36 · Familiemajoren</p>
       </div>
     </div>
   </div>
@@ -1722,7 +1723,7 @@ function renderCourseSearch() {
     const tee = d.tees[courseSearch.teeIndex] || blankTee();
     const chips = d.tees.map(function (item, i) {
       const last = i === d.tees.length - 1;
-      return '<div class="wide-step tee-step' + (i === courseSearch.teeIndex ? ' picked' : '') + '"><button type="button" onclick="moveTee(' + i + ',-1)"' + (i === 0 ? ' disabled' : '') + ' aria-label="Flytt opp">‹</button><button type="button" class="tee-name" onclick="pickDraftTee(' + i + ')">' + (item.name || ('Tee ' + (i + 1))) + '</button><button type="button" onclick="moveTee(' + i + ',1)"' + (last ? ' disabled' : '') + ' aria-label="Flytt ned">›</button></div>';
+      return '<div class="tee-step' + (i === courseSearch.teeIndex ? ' picked' : '') + '"><button type="button" onclick="moveTee(' + i + ',-1)"' + (i === 0 ? ' disabled' : '') + ' aria-label="Flytt opp">∧</button><button type="button" class="tee-name" onclick="pickDraftTee(' + i + ')">' + (item.name || ('Tee ' + (i + 1))) + '</button><button type="button" onclick="moveTee(' + i + ',1)"' + (last ? ' disabled' : '') + ' aria-label="Flytt ned">∨</button></div>';
     }).join('');
     const field = function (id, label, value, placeholder) {
       return '<div class="form-group"><label>' + label + '</label><input type="text" id="' + id + '" value="' + String(value || '').replace(/"/g, '"') + '" placeholder="' + placeholder + '" /></div>';
