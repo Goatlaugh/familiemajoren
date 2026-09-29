@@ -4,7 +4,7 @@ Familie-Majoren er familiens årlige golfmesterskap, som en app på telefonen. D
 
 Appen er én nettside. Den ligger på GitHub Pages. Alle som har lenken og familiekoden, ser de samme turneringene, resultatene og bildene.
 
-Versjon nå: **1.32**
+Versjon nå: **1.33**
 
 ## Slik fungerer den for familien
 
@@ -76,10 +76,10 @@ Dette er hele appen. Ikke legg inn andre mapper.
 
 1. Ta en kopi av den gamle `index.html` før du bytter den.
 2. Last opp den nye `index.html`.
-3. Last opp den nye `sw.js` i samme omgang. Versjonsnavnet inni filen, `familiemajoren-v36`, må være et nytt tall. Ellers kan telefonen vise den gamle appen.
+3. Last opp den nye `sw.js` i samme omgang. Versjonsnavnet inni filen, `familiemajoren-v37`, må være et nytt tall. Ellers kan telefonen vise den gamle appen.
 4. Vent til GitHub Pages er ferdig. Det tar ofte ett minutt.
 5. Lukk siden helt og åpne lenken på nytt.
-6. Gå til **Mer → Innstillinger**. Der skal det stå den nye versjonen, nå **Versjon 1.32**.
+6. Gå til **Mer → Innstillinger**. Der skal det stå den nye versjonen, nå **Versjon 1.33**.
 
 Bytter du bare bildet eller ikonet, last opp den filen og øk tallet i `sw.js` likevel. Ellers kan den gamle utgaven bli hengende.
 
@@ -91,7 +91,7 @@ Alt som skal endres i appen, ligger i `index.html`. Åpne den i en teksteditor. 
 
 | Du vil endre | Søk etter |
 |---|---|
-| Versjonen som vises i appen | `Versjon 1.32` |
+| Versjonen som vises i appen | `Versjon 1.33` |
 | Kortversjonen av charteret | `const CHARTER` |
 | Det fulle charteret | `charter-full-data` |
 | Mottoet | `Ett år som mester` |
@@ -117,6 +117,8 @@ På **Forbered scorekort** kan admin trykke **Søk opp bane**. Søket går i fam
 Kjønn velges bare under turneringsinnstillinger, ved siden av navn og handicap. Når banen brukes, spør appen om alle spiller fra samme tee. Slag regnes ut fra spillerens handicap og riktig slope. Mangler slope, står slagene tomme.
 
 Den gamle Supabase-funksjonen `golf-course` brukes ikke lenger. Den og secret-en `GOLF_API_KEY` kan slettes. Ikke slett `google-photo`.
+
+På turneringssiden ser spillerne dagene og stillingen. Turneringsinnstillinger, gruppegenerator, slett og «Marker som ferdig» vises bare for admin. **Publiser dagen** gjør at spillerne får **Før resultat**, og scorekortet hvis det er klart. **Avslutt dagen** og **Avslutt runden** skjuler føringen igjen. Scorene blir liggende, og dagen kan publiseres på nytt.
 
 ## Skyen
 

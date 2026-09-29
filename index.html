@@ -324,7 +324,7 @@
         <p class="text-muted" style="font-size:0.8rem;">Denne adressen skal legges inn som redirect URI hos Google:</p>
         <p id="google-redirect" class="text-muted mb-3" style="font-size:0.8rem;word-break:break-all;"></p>
         <button class="btn btn-danger btn-block" onclick="resetAllData()">Nullstill all data</button>
-        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.32 · Familiemajoren</p>
+        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.33 · Familiemajoren</p>
       </div>
     </div>
   </div>
@@ -1007,7 +1007,7 @@ function syncEndDate() {
 function activeCardDay(t) {
   const ready = [];
   (t.days || []).forEach(function (d, i) {
-    if (d.card && d.card.ready && !d.completed) ready.push({ day: d, index: i });
+    if (d.card && d.card.ready && d.published && !d.completed) ready.push({ day: d, index: i });
   });
   if (!ready.length) return null;
   const today = new Date();
@@ -1109,7 +1109,7 @@ function saveSetup() {
   const days = Array.from(daySelects).map((sel, idx) => ({
     dayNumber: idx + 1, format: sel.value, date: dateInputs[idx] ? dateInputs[idx].value : '',
     course: '', results: null, points: null,
-    teams: null, matches: null, teamMatches: null, photos: [], completed: false
+    teams: null, matches: null, teamMatches: null, photos: [], completed: false, published: false, shared: false
   }));
   const createdAt = (state.current && state.current.createdAt) || new Date().toISOString().slice(0, 10);
   state.current = { year, sted, startDate, endDate, players, days, createdAt };
@@ -1226,12 +1226,33 @@ function stablefordTotal(day, name) {
   return s;
 }
 function canEditName(name) { return isAdmin() || myName() === name; }
+function cardLocked(day) {
+  if (!day) return true;
+  if (day.published) return false;
+  if (isAdmin() && !day.completed) return false;
+  return true;
+}
 function dayCardButtons(d, i) {
   let html = '';
-  if (isAdmin() && !d.completed) html += '<button class="btn btn-sm btn-primary" onclick="openCardSetup(' + i + ')">Forbered scorekort</button>';
-  if (d.card && d.card.ready) html += '<button class="btn btn-sm btn-secondary" onclick="openLiveCard(' + i + ')">' + (d.completed ? 'Se scorekort' : 'Mitt scorekort') + '</button>';
-  html += '<button class="btn btn-sm ' + (d.completed ? 'btn-secondary' : 'btn-primary') + '" onclick="openScoring(' + i + ')">' + (d.completed ? 'Se / Rediger' : 'Før resultat') + '</button>';
+  const admin = isAdmin();
+  if (admin && !d.completed) html += '<button class="btn btn-sm btn-primary" onclick="openCardSetup(' + i + ')">Forbered scorekort</button>';
+  if (d.card && d.card.ready && (admin || d.published || d.shared)) {
+    const label = d.published && !d.completed ? 'Mitt scorekort' : 'Se scorekort';
+    html += '<button class="btn btn-sm btn-secondary" onclick="openLiveCard(' + i + ')">' + label + '</button>';
+  }
+  if (admin || d.published) html += '<button class="btn btn-sm ' + (d.published ? 'btn-primary' : 'btn-secondary') + '" onclick="openScoring(' + i + ')">' + (d.completed && !d.published ? 'Se / Rediger' : 'Før resultat') + '</button>';
+  if (admin) html += '<button class="btn btn-sm ' + (d.published ? 'btn-gold' : 'btn-outline') + '" onclick="toggleDayPublished(' + i + ')">' + (d.published ? 'Avslutt dagen' : 'Publiser dagen') + '</button>';
   return html;
+}
+function toggleDayPublished(i) {
+  if (!isAdmin()) return;
+  const day = state.current && state.current.days[i];
+  if (!day) return;
+  day.published = !day.published;
+  if (day.published) day.shared = true;
+  saveState();
+  toast(day.published ? 'Dagen er publisert' : 'Dagen er avsluttet');
+  renderTournament();
 }
 function cardIsBlank(day) {
   if (!day.card) return true;
@@ -1363,7 +1384,12 @@ function withdrawCard() {
   toast('Scorekortet er trukket tilbake');
   navigate('tournament');
 }
-function openLiveCard(i) { cardDay = i; cardHole = 0; cardFull = false; navigate('card'); }
+function openLiveCard(i) {
+  const day = state.current && state.current.days[i];
+  if (!day || !day.card || !day.card.ready) { toast('Scorekortet er ikke klart'); return; }
+  if (!isAdmin() && !day.published && !day.shared) { toast('Dagen er ikke publisert'); return; }
+  cardDay = i; cardHole = 0; cardFull = false; navigate('card');
+}
 let courseSearch = { q: '', mode: 'search', draft: null, teeIndex: 0, picked: null, same: true };
 function openCourseSearch() {
   courseSearch = { q: '', mode: 'search', draft: null, teeIndex: 0, picked: null, same: true };
@@ -1727,7 +1753,7 @@ function holeDotRow(filledFn) {
 }
 function setGross(name, hole, value) {
   const day = state.current.days[cardDay];
-  if (day.completed) return;
+  if (cardLocked(day)) return;
   if (!canEditName(name)) return;
   ensureCard(day);
   if (!day.card.gross[name]) day.card.gross[name] = Array(18).fill(null);
@@ -1839,7 +1865,7 @@ function renderStablefordCard(el, t, day) {
   const recv = receivedAt(day, me, h);
   const g = grossAt(day, me, h);
   const pts = g == null ? '–' : stablefordAt(day, me, h);
-  const locked = !!day.completed;
+  const locked = cardLocked(day);
   el.innerHTML = cardHead(day, 'Hull ' + (h + 1), me + ' · ' + (day.card.allocated[me] || 0) + ' slag i dag') +
     '<div class="card"><div class="flex justify-between items-center"><strong>' + parHcp(day, h, me) + '</strong>' + (recv ? '<span class="badge badge-green">Du har slag her</span>' : '') + '</div>' +
     wideStep(me, g, locked) + '<div class="text-center"><span class="badge badge-green">' + pts + ' poeng på hullet</span></div>' +
@@ -1871,7 +1897,7 @@ function playerRow(day, name, locked) {
   const g = grossAt(day, name, cardHole);
   const net = netAt(day, name, cardHole);
   const recv = receivedAt(day, name, cardHole);
-  const edit = !locked && canEditName(name) && !day.completed;
+  const edit = !cardLocked(day) && canEditName(name);
   const controls = edit
     ? '<div class="mini-step"><button type="button" onclick="bumpNamed(\'' + jsName(name) + '\',-1)">−</button><strong>' + (g == null ? '–' : g) + '</strong><button type="button" onclick="bumpNamed(\'' + jsName(name) + '\',1)">+</button></div>'
     : '<strong>' + (g == null ? '–' : g) + '</strong>';
@@ -1890,7 +1916,7 @@ function renderMatchCard(el, t, day) {
     match = (day.teamMatches || [])[isAdmin() && idx < 0 ? 0 : idx];
     if (!match) { el.innerHTML = '<div class="card"><p>Ingen kamp for deg.</p></div>'; return; }
   }
-  el.innerHTML = matchCardHtml(day, match, false) + roundButtons(day);
+  el.innerHTML = matchCardHtml(day, match, cardLocked(day)) + roundButtons(day);
 }
 function matchCardHtml(day, match, locked) {
   const h = cardHole;
@@ -1936,7 +1962,7 @@ function setScramble(val) {
   const match = (day.teamMatches || [])[use];
   if (!match) return;
   if (!isAdmin() && !match.teamA.includes(me) && !match.teamB.includes(me)) return;
-  if (day.completed) return;
+  if (cardLocked(day)) return;
   ensureCard(day);
   if (!day.card.scramble[use]) day.card.scramble[use] = Array(18).fill(null);
   if (scramblePot(day.card.scramble[use], cardHole) == null) { toast('Fyll hullene foran først'); return; }
@@ -1963,7 +1989,7 @@ function scrambleCardHtml(day, match, idx, locked) {
   const a = teamLook(day, match.teamA);
   const b = teamLook(day, match.teamB);
   const chosen = arr[cardHole];
-  const can = !locked && !day.completed && (isAdmin() || match.teamA.includes(myName()) || match.teamB.includes(myName())) && pot != null;
+  const can = !cardLocked(day) && (isAdmin() || match.teamA.includes(myName()) || match.teamB.includes(myName())) && pot != null;
   const btn = function (val, label) {
     if (!can) return '<div class="pick' + (chosen === val ? ' on' : '') + '">' + label + '</div>';
     return '<button type="button" class="pick' + (chosen === val ? ' on' : '') + '" onclick="setScramble(\'' + val + '\')">' + label + '</button>';
@@ -2097,13 +2123,15 @@ function finishLiveRound() {
   if (cardIncomplete(day) && !confirm('Er du sikker på at du vil avslutte runden? Ikke alle har ført opp.')) return;
   awardFromCard(day);
   day.completed = true;
+  day.published = false;
+  day.shared = true;
   saveState();
   const sponsors = computeLunchSponsors(day, state.current);
   navigate('tournament');
   setTimeout(function () { showLunchPopup(sponsors, state.current.players.length); }, 400);
 }
 function liveDayHtml(t) {
-  const day = (t.days || []).find(function (d) { return d.card && d.card.ready && !d.completed; });
+  const day = (t.days || []).find(function (d) { return d.card && d.card.ready && d.published && !d.completed; });
   if (!day) return '';
   ensureCard(day);
   let body = '';
@@ -2262,7 +2290,7 @@ function renderTournament() {
   const el = document.getElementById('tournament-content');
   const banner = '<div class="page-banner"><img src="icon-192.png" alt="" /><h1>Turnering</h1></div>';
   if (!state.current) {
-    el.innerHTML = banner + '<div class="card text-center"><p class="text-muted mb-3">Ingen pågående turnering.</p><button class="btn btn-primary btn-block" onclick="openSetup(\'create\')">Ny turnering</button></div>';
+    el.innerHTML = banner + '<div class="card text-center"><p class="text-muted mb-3">Ingen pågående turnering.</p>' + (isAdmin() ? '<button class="btn btn-primary btn-block" onclick="openSetup(\'create\')">Ny turnering</button>' : '') + '</div>';
     return;
   }
   const t = state.current;
@@ -2270,18 +2298,18 @@ function renderTournament() {
   const locked = tournamentStarted(t);
   const dates = [formatDate(t.startDate), formatDate(t.endDate)].filter(Boolean).join(' – ');
   let html = banner + '<div class="card"><div class="section-title">Pågående</div><h2 style="margin:0 0 8px;">' + t.year + ' · ' + t.sted + '</h2><div class="text-muted">' + dates + '</div>' + (players.length ? '' : '<div class="badge badge-green" style="margin-top:12px;">Spillere ikke satt</div>') + '</div>';
-  if (!locked) {
+  if (isAdmin() && !locked) {
     html += '<div class="menu-list" style="margin-bottom:16px;"><button type="button" class="menu-row" onclick="openSetup(\'full\')"><svg viewBox="0 0 24 24"><path d="M19.4 13.4a7.6 7.6 0 0 0 .1-1.4 7.6 7.6 0 0 0-.1-1.4l2-1.5-2-3.5-2.4.9a7.4 7.4 0 0 0-2.4-1.4L14.2 2h-4.4l-.4 2.6a7.4 7.4 0 0 0-2.4 1.4l-2.4-.9-2 3.5 2 1.5a7.6 7.6 0 0 0-.1 1.4 7.6 7.6 0 0 0 .1 1.4l-2 1.5 2 3.5 2.4-.9a7.4 7.4 0 0 0 2.4 1.4l.4 2.6h4.4l.4-2.6a7.4 7.4 0 0 0 2.4-1.4l2.4.9 2-3.5-2-1.5z"/><circle cx="12" cy="12" r="2.7"/></svg>Turneringsinnstillinger<span class="chev">›</span></button></div>';
     html += '<p class="text-muted" style="margin:-4px 4px 16px;">Spillere, HCP og format kan endres helt til første resultat er lagret.</p>';
   }
   if (players.length >= 2 && t.days && t.days.length) {
     const standings = calculateStandings(t);
-    html += '<div class="card"><h3 class="card-title">Konkurransedager</h3><div class="day-chips">' + t.days.map((d,i) => '<div class="day-chip ' + (d.completed ? 'completed' : '') + '" onclick="openScoring(' + i + ')">Dag ' + d.dayNumber + (d.date ? ' · ' + formatDate(d.date) : '') + (d.completed ? ' ✓' : '') + '</div>').join('') + '</div>' +
+    html += '<div class="card"><h3 class="card-title">Konkurransedager</h3><div class="day-chips">' + t.days.map((d,i) => '<div class="day-chip ' + (d.completed ? 'completed' : '') + '"' + ((isAdmin() || d.published) ? ' onclick="openScoring(' + i + ')"' : '') + '>Dag ' + d.dayNumber + (d.date ? ' · ' + formatDate(d.date) : '') + (d.completed ? ' ✓' : '') + '</div>').join('') + '</div>' +
       t.days.map((d,i) => '<div style="padding:10px 0;border-bottom:1px solid var(--gray-100);"><div class="flex justify-between items-center"><div><strong>Dag ' + d.dayNumber + (d.date ? ' · ' + formatDate(d.date) : '') + '</strong><div class="text-muted" style="font-size:0.85rem;">' + FORMATS[d.format] + '</div>' + (d.course ? '<div class="text-muted" style="font-size:0.8rem;">📍 ' + d.course + '</div>' : '') + '</div></div><div class="flex" style="gap:8px;flex-wrap:wrap;margin-top:8px;">' + dayCardButtons(d, i) + '</div></div>').join('') +
-      '</div><div class="card"><h3 class="card-title">Sammenlagt</h3>' + renderStandingsTable(standings) + '<button class="btn btn-secondary btn-block mt-3" onclick="navigate(\'leaderboard\')">Full stilling</button></div><div class="card"><h3 class="card-title">Grupper</h3><button class="btn btn-secondary btn-block" onclick="navigate(\'groups\')">Åpne gruppegenerator</button></div>';
-    if (t.days.some(d => d.completed)) html += '<div class="card"><button class="btn btn-gold btn-block" onclick="finishTournament()">Marker turnering som ferdig</button></div>';
+      '</div><div class="card"><h3 class="card-title">Sammenlagt</h3>' + renderStandingsTable(standings) + '<button class="btn btn-secondary btn-block mt-3" onclick="navigate(\'leaderboard\')">Full stilling</button></div>' + (isAdmin() ? '<div class="card"><h3 class="card-title">Grupper</h3><button class="btn btn-secondary btn-block" onclick="navigate(\'groups\')">Åpne gruppegenerator</button></div>' : '');
+    if (isAdmin() && t.days.some(d => d.completed)) html += '<div class="card"><button class="btn btn-gold btn-block" onclick="finishTournament()">Marker turnering som ferdig</button></div>';
   }
-  html += '<div class="card"><button class="btn btn-outline btn-block" onclick="deleteCurrentTournament()">Slett denne turneringen</button></div>';
+  html += isAdmin() ? '<div class="card"><button class="btn btn-outline btn-block" onclick="deleteCurrentTournament()">Slett denne turneringen</button></div>' : '';
   el.innerHTML = html;
 }
 
@@ -2289,6 +2317,12 @@ function openScoring(dayIndex) {
   const t = state.current;
   if (!t || !(t.players || []).length || !(t.days || []).length) {
     toast('Legg inn spillere og format under turneringsinnstillinger først');
+    navigate('tournament');
+    return;
+  }
+  const day = t.days[dayIndex];
+  if (!isAdmin() && !(day && day.published)) {
+    toast('Dagen er ikke publisert');
     navigate('tournament');
     return;
   }
@@ -2797,6 +2831,7 @@ function renderHoF() {
 function saveScoring() {
   const t = state.current;
   const day = t.days[currentScoringDay];
+  if (!isAdmin() && !day.published) { toast('Dagen er avsluttet'); return; }
   day.course = document.getElementById('scoring-course').value.trim();
   const n = t.players.length;
   const maxPoints = n;
@@ -2852,6 +2887,8 @@ function saveScoring() {
 
   day.points = playerPoints;
   day.completed = true;
+  day.published = false;
+  day.shared = true;
   saveState();
 
   // Lunch popup
