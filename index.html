@@ -148,7 +148,17 @@
     .tee-step > button:not(.tee-name):disabled { opacity: 0.35; }
     .tee-step .tee-name { flex: 1; border: 1px solid var(--gray-200); background: white; border-radius: 10px; font-weight: 700; font-size: 1rem; color: #111827; padding: 8px 12px; text-align: center; }
     .tee-step.picked .tee-name { border-color: #14532d; color: #14532d; background: #f3f4f6; }
-    .cloud-gate { position: fixed; inset: 0; z-index: 400; background: rgba(6, 40, 24, 0.78); display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .pin-page.active { display: flex; flex-direction: column; align-items: center; position: fixed; inset: 0; z-index: 200; overflow: auto; background: #0c3b24; color: white; text-align: center; padding: 48px 24px 32px; }
+    .pin-page h1 { color: white; margin: 12px 0 4px; }
+    .pin-crest { width: 72px; height: 72px; border-radius: 18px; }
+    .pin-dots { display: flex; gap: 12px; justify-content: center; margin: 22px 0 28px; min-height: 16px; }
+    .pin-dots span { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.75); }
+    .pin-dots span.on { background: #c9a227; border-color: #c9a227; }
+    .pin-pad { display: grid; grid-template-columns: repeat(3, 76px); gap: 16px; justify-content: center; }
+    .pin-pad button { width: 76px; height: 76px; border-radius: 50%; border: none; background: rgba(255,255,255,0.94); color: #0c3b24; font-size: 1.6rem; font-weight: 600; }
+    .pin-pad button.ghost { background: transparent; color: white; }
+    .pin-cancel, .pin-save { margin-top: 18px; background: none; border: none; color: rgba(255,255,255,0.85); font-size: 1rem; font-weight: 600; }
+    .section-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; color: var(--gold); margin: 18px 4px 8px; }
     .cloud-gate .card { width: 100%; max-width: 420px; margin: 0; }
     .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--gray-800); color: white; padding: 12px 24px; border-radius: 30px; font-size: 0.9rem; font-weight: 500; z-index: 300; opacity: 0; transition: opacity 0.3s; pointer-events: none; max-width: 90%; text-align: center; }
     .toast.show { opacity: 1; }
@@ -302,33 +312,56 @@
     </div>
     <div id="page-settings" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><h1>Innstillinger</h1></div>
-      <div class="card">
-        <div class="flex justify-between items-center mb-3"><strong>Admin</strong><span id="admin-badge" class="badge badge-green hidden">Aktiv</span></div>
-        <p id="admin-status" class="text-muted mb-3"></p>
-        <button id="leave-admin" class="btn btn-outline btn-block mb-3 hidden" onclick="leaveAdmin()">Gå ut av admin</button>
-        <div class="form-group"><label>Admin-kode</label><input type="password" id="admin-pin" autocomplete="off" /></div>
-        <button class="btn btn-primary btn-block mb-2" onclick="saveAdminPin()">Lagre admin-kode</button>
-        <button class="btn btn-secondary btn-block mb-2" onclick="unlockAdmin()">Lås opp denne telefonen</button>
+      <div class="menu-list">
+        <button type="button" class="menu-row" onclick="openAdminGate()"><svg viewBox="0 0 24 24"><path d="M19.4 13.4a7.6 7.6 0 0 0 .1-1.4 7.6 7.6 0 0 0-.1-1.4l2-1.5-2-3.5-2.4.9a7.4 7.4 0 0 0-2.4-1.4L14.2 2h-4.4l-.4 2.6a7.4 7.4 0 0 0-2.4 1.4l-2.4-.9-2 3.5 2 1.5a7.6 7.6 0 0 0-.1 1.4 7.6 7.6 0 0 0 .1 1.4l-2 1.5 2 3.5 2.4-.9a7.4 7.4 0 0 0 2.4 1.4l.4 2.6h4.4l.4-2.6a7.4 7.4 0 0 0 2.4-1.4l2.4.9 2-3.5-2-1.5z"/><circle cx="12" cy="12" r="2.7"/></svg>Admin<span id="admin-badge" class="badge badge-green hidden" style="margin-left:auto;">Aktiv</span><span class="chev">›</span></button>
+        <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
       </div>
-      <div class="card">
-        <p class="text-muted mb-3">Turneringen deles automatisk med alle som har familiekoden. Eksport er bare en ekstra sikkerhetskopi.</p>
-        <button class="btn btn-primary btn-block mb-2" onclick="exportData()">Eksporter data</button>
-        <button class="btn btn-secondary btn-block mb-2" onclick="document.getElementById('import-file').click()">Importer data</button>
-        <input type="file" id="import-file" accept=".json" class="hidden" onchange="importData(event)" />
-        <button class="btn btn-outline btn-block" onclick="forgetCloudCode()">Bytt familiekode på denne telefonen</button>
+      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.37 · Familiemajoren</p>
+    </div>
+    <div id="page-admin" class="page">
+      <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Admin</h1><div class="sub">Innstillinger</div></div></div>
+      <button class="btn btn-sm btn-secondary mb-3" onclick="navigate('settings')">← Innstillinger</button>
+      <div class="section-label">DENNE TELEFONEN</div>
+      <div class="menu-list">
+        <button type="button" class="menu-row" onclick="leaveAdmin()">Gå ut av admin<span class="chev">›</span></button>
+        <button type="button" class="menu-row" onclick="startChangePin()">Endre admin-kode<span class="chev">›</span></button>
       </div>
+      <div class="section-label">BANER</div>
+      <div class="menu-list">
+        <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
+      </div>
+      <div class="section-label">SKY</div>
+      <div class="menu-list">
+        <button type="button" class="menu-row" onclick="exportData()">Eksporter data<span class="chev">›</span></button>
+        <button type="button" class="menu-row" onclick="document.getElementById('import-file').click()">Importer data<span class="chev">›</span></button>
+        <button type="button" class="menu-row" onclick="forgetCloudCode()">Bytt familiekode<span class="chev">›</span></button>
+      </div>
+      <input type="file" id="import-file" accept=".json" class="hidden" onchange="importData(event)" />
+      <div class="section-label">GOOGLE FOTO</div>
       <div class="card">
-        <p class="text-muted mb-3">Bildene lagres i ett album per år på Google-kontoen din. Appen sorterer dem på dag.</p>
         <p id="google-status" class="text-muted mb-3">Sjekker koblingen…</p>
         <div class="form-group"><label>Client ID</label><input type="text" id="google-client-id" autocomplete="off" /></div>
         <div class="form-group"><label>Client secret</label><input type="password" id="google-client-secret" autocomplete="off" /></div>
         <button class="btn btn-secondary btn-block mb-2" onclick="saveGoogleApp()">Lagre Google-nøkler</button>
-        <button class="btn btn-primary btn-block mb-2" onclick="startGoogleConnect()">Koble til Google Foto</button>
-        <p class="text-muted" style="font-size:0.8rem;">Denne adressen skal legges inn som redirect URI hos Google:</p>
-        <p id="google-redirect" class="text-muted mb-3" style="font-size:0.8rem;word-break:break-all;"></p>
-        <button class="btn btn-danger btn-block" onclick="resetAllData()">Nullstill all data</button>
-        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.36 · Familiemajoren</p>
+        <button class="btn btn-primary btn-block" onclick="startGoogleConnect()">Koble til Google Foto</button>
+        <p class="text-muted mt-3" style="font-size:0.8rem;">Denne adressen skal legges inn som redirect URI hos Google:</p>
+        <p id="google-redirect" class="text-muted" style="font-size:0.8rem;word-break:break-all;"></p>
       </div>
+      <div class="section-label">FARLIG</div>
+      <div class="card"><button class="btn btn-danger btn-block" onclick="resetAllData()">Nullstill all data</button></div>
+    </div>
+    <div id="page-pin" class="page pin-page">
+      <img src="icon-192.png" alt="" class="pin-crest" />
+      <h1>Admin</h1>
+      <p id="pin-sub">Skriv admin-koden</p>
+      <div id="pin-dots" class="pin-dots"></div>
+      <div class="pin-pad">
+        <button type="button" onclick="pinDigit(1)">1</button><button type="button" onclick="pinDigit(2)">2</button><button type="button" onclick="pinDigit(3)">3</button>
+        <button type="button" onclick="pinDigit(4)">4</button><button type="button" onclick="pinDigit(5)">5</button><button type="button" onclick="pinDigit(6)">6</button>
+        <button type="button" onclick="pinDigit(7)">7</button><button type="button" onclick="pinDigit(8)">8</button><button type="button" onclick="pinDigit(9)">9</button>
+        <button type="button" class="ghost" onclick="pinBack()" aria-label="Slett">⌫</button><button type="button" onclick="pinDigit(0)">0</button><button type="button" class="ghost" id="pin-ok" onclick="pinOk()">OK</button>
+      </div>
+      <button type="button" class="pin-cancel" onclick="navigate('settings')">Avbryt</button>
     </div>
   </div>
 
@@ -685,16 +718,19 @@ function seasonNavKey(pageId) {
   return ({
     home: 'home', setup: 'tournament', tournament: 'tournament', scoring: 'tournament',
     groups: 'tournament', 'group-detail': 'tournament', leaderboard: live ? 'leaderboard' : 'history', media: 'media',
-    more: 'more', settings: 'more', history: live ? 'more' : 'history', 'history-detail': live ? 'more' : 'history', 'history-card': live ? 'more' : 'history', hof: 'more',
-    charter: 'more', 'charter-full': 'more', card: 'tournament', 'card-setup': 'tournament'
+    more: 'more', settings: 'more', admin: 'more', pin: 'more', history: live ? 'more' : 'history', 'history-detail': live ? 'more' : 'history', 'history-card': live ? 'more' : 'history', hof: 'more',
+    charter: 'more', 'charter-full': 'more', card: 'tournament', 'card-setup': 'tournament',
+    'course-search': (typeof courseSearch !== 'undefined' && courseSearch.from === 'book') ? 'more' : 'tournament'
   })[pageId] || 'home';
 }
 
 function syncChrome(pageId) {
   currentPage = pageId;
   const header = document.querySelector('.app-header');
-  const ownBanner = pageId === 'home' || pageId === 'leaderboard' || pageId === 'scoring' || pageId === 'more' || pageId === 'tournament' || pageId === 'setup' || pageId === 'card' || pageId === 'card-setup' || pageId === 'course-search' || pageId === 'history-card' || pageId === 'charter' || pageId === 'charter-full' || pageId === 'settings' || pageId === 'hof';
+  const ownBanner = pageId === 'home' || pageId === 'leaderboard' || pageId === 'scoring' || pageId === 'more' || pageId === 'tournament' || pageId === 'setup' || pageId === 'card' || pageId === 'card-setup' || pageId === 'course-search' || pageId === 'history-card' || pageId === 'charter' || pageId === 'charter-full' || pageId === 'settings' || pageId === 'admin' || pageId === 'pin' || pageId === 'hof';
   if (header) header.hidden = ownBanner;
+  const nav = document.querySelector('.bottom-nav');
+  if (nav) nav.hidden = pageId === 'pin';
   paintSeasonNav();
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   const navBtn = document.querySelector('.nav-btn[data-page="' + seasonNavKey(pageId) + '"]');
@@ -704,6 +740,11 @@ function syncChrome(pageId) {
 
 function navigate(pageId) {
   if (pageId === 'leaderboard' && !standingsLive()) pageId = 'history';
+  if (pageId === 'admin' && !isAdmin()) {
+    pinMode = 'unlock';
+    pinEntry = '';
+    pageId = 'pin';
+  }
   syncChrome(pageId);
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const page = document.getElementById('page-' + pageId);
@@ -722,7 +763,9 @@ function navigate(pageId) {
   if (pageId === 'media') renderMedia();
   if (pageId === 'charter') renderCharter();
   if (pageId === 'charter-full') renderCharterFull();
-  if (pageId === 'settings') { loadGoogleStatus(); renderAdminStatus(); }
+  if (pageId === 'settings') renderAdminStatus();
+  if (pageId === 'admin') loadGoogleStatus();
+  if (pageId === 'pin') paintPin();
   if (pageId === 'card-setup') renderCardSetup();
   if (pageId === 'course-search') renderCourseSearch();
   if (pageId === 'card') renderLiveCard();
@@ -1134,34 +1177,71 @@ function leaveAdmin() {
   localStorage.removeItem(ADMIN_KEY);
   renderAdminStatus();
   toast('Du er ute av admin');
+  navigate('settings');
 }
 function renderAdminStatus() {
-  const el = document.getElementById('admin-status');
   const badge = document.getElementById('admin-badge');
-  const leave = document.getElementById('leave-admin');
-  const on = isAdmin();
-  if (el) el.textContent = on ? 'Denne telefonen er låst opp som admin.' : (state.adminPin ? 'Koden er satt. Lås opp denne telefonen for å forberede scorekort.' : 'Ingen admin-kode ennå.');
-  if (badge) badge.classList.toggle('hidden', !on);
-  if (leave) leave.classList.toggle('hidden', !on);
+  if (badge) badge.classList.toggle('hidden', !isAdmin());
 }
-function saveAdminPin() {
-  const pin = (document.getElementById('admin-pin').value || '').trim();
-  if (pin.length < 4) { toast('Minst 4 tegn'); return; }
-  state.adminPin = pin;
+let pinEntry = '';
+let pinMode = 'unlock';
+function openAdminGate() {
+  if (isAdmin()) { navigate('admin'); return; }
+  pinMode = 'unlock';
+  pinEntry = '';
+  navigate('pin');
+}
+function startChangePin() {
+  if (!isAdmin()) { openAdminGate(); return; }
+  pinMode = 'change';
+  pinEntry = '';
+  navigate('pin');
+}
+function savedPin() { return state && state.adminPin ? String(state.adminPin).trim() : ''; }
+function paintPin() {
+  const known = pinMode === 'unlock' && savedPin() ? savedPin().length : 0;
+  const count = Math.max(known || 4, pinEntry.length);
+  const dots = document.getElementById('pin-dots');
+  if (dots) {
+    let html = '';
+    for (let i = 0; i < count; i++) html += '<span class="' + (i < pinEntry.length ? 'on' : '') + '"></span>';
+    dots.innerHTML = html;
+  }
+  const sub = document.getElementById('pin-sub');
+  if (sub) sub.textContent = pinMode === 'change' || !savedPin() ? (savedPin() ? 'Ny admin-kode' : 'Lag en admin-kode') : 'Skriv admin-koden';
+  const ok = document.getElementById('pin-ok');
+  if (ok) ok.classList.toggle('hidden', pinMode === 'unlock' && !!savedPin());
+}
+function acceptPin(message) {
   localStorage.setItem(ADMIN_KEY, '1');
+  pinEntry = '';
+  toast(message || 'Telefonen er låst opp');
+  navigate('admin');
+}
+function pinDigit(d) {
+  if (pinEntry.length >= 12) return;
+  pinEntry += String(d);
+  paintPin();
+  const code = savedPin();
+  if (pinMode === 'unlock' && code && pinEntry.length === code.length) {
+    if (pinEntry === code) acceptPin();
+    else { pinEntry = ''; paintPin(); toast('Feil kode'); }
+  }
+}
+function pinBack() {
+  pinEntry = pinEntry.slice(0, -1);
+  paintPin();
+}
+function commitPin() {
+  if (pinEntry.length < 4) { toast('Minst 4 tegn'); return; }
+  state.adminPin = pinEntry;
   saveState();
-  document.getElementById('admin-pin').value = '';
-  renderAdminStatus();
-  toast('Admin-koden er lagret på denne telefonen');
+  acceptPin('Admin-koden er lagret');
 }
-function unlockAdmin() {
-  const pin = (document.getElementById('admin-pin').value || '').trim();
-  if (!state.adminPin) { toast('Lag en admin-kode først'); return; }
-  if (pin !== state.adminPin) { toast('Feil kode'); return; }
-  localStorage.setItem(ADMIN_KEY, '1');
-  document.getElementById('admin-pin').value = '';
-  renderAdminStatus();
-  toast('Telefonen er låst opp');
+function pinOk() {
+  if (pinMode === 'change' || !savedPin()) { commitPin(); return; }
+  if (pinEntry === savedPin()) acceptPin();
+  else { pinEntry = ''; paintPin(); toast('Feil kode'); }
 }
 function ensureCard(day) {
   if (!day.card) day.card = { ready: false, holes: [], allocated: {}, gross: {}, scramble: {} };
@@ -1399,7 +1479,11 @@ function openLiveCard(i) {
 }
 let courseSearch = { q: '', mode: 'search', draft: null, teeIndex: 0, picked: null, same: true };
 function openCourseSearch() {
-  courseSearch = { q: '', mode: 'search', draft: null, teeIndex: 0, picked: null, same: true };
+  courseSearch = { q: '', mode: 'search', draft: null, teeIndex: 0, picked: null, same: true, from: 'card' };
+  navigate('course-search');
+}
+function openCourseBook() {
+  courseSearch = { q: '', mode: 'search', draft: null, teeIndex: 0, picked: null, same: true, from: 'book' };
   navigate('course-search');
 }
 function courseBook() {
@@ -1479,7 +1563,8 @@ function queueCourseSearch() {
   if (status) status.textContent = q.length < 2 ? 'Skriv klubb eller bane' : (list.length ? 'Velg banen' : 'Fant ingen bane i baneboken.');
   if (!hits) return;
   let html = list.map(function (c) {
-    return '<div class="group-choice" style="cursor:default;"><button type="button" style="all:unset;cursor:pointer;display:block;width:100%;" onclick="useCourse(\'' + jsName(c.id) + '\')"><strong>' + (c.club || c.course) + '</strong>' + (c.course && c.course !== c.club ? '<div class="text-muted">' + c.course + (c.place ? ' · ' + c.place : '') + '</div>' : (c.place ? '<div class="text-muted">' + c.place + '</div>' : '')) + '</button>' + (isAdmin() ? '<button type="button" class="btn btn-sm btn-outline mt-2" onclick="editCourse(\'' + jsName(c.id) + '\')">Oppdater</button>' : '') + '</div>';
+    const open = courseSearch.from === 'book' ? "editCourse('" + jsName(c.id) + "')" : "useCourse('" + jsName(c.id) + "')";
+    return '<div class="group-choice" style="cursor:default;"><button type="button" style="all:unset;cursor:pointer;display:block;width:100%;" onclick="' + open + '"><strong>' + (c.club || c.course) + '</strong>' + (c.course && c.course !== c.club ? '<div class="text-muted">' + c.course + (c.place ? ' · ' + c.place : '') + '</div>' : (c.place ? '<div class="text-muted">' + c.place + '</div>' : '')) + '</button>' + (isAdmin() && courseSearch.from !== 'book' ? '<button type="button" class="btn btn-sm btn-outline mt-2" onclick="editCourse(\'' + jsName(c.id) + '\')">Oppdater</button>' : '') + '</div>';
   }).join('');
   if (q.length >= 2 && !list.length) html += '<button type="button" class="btn btn-outline btn-block" onclick="startCourseCreate()">Opprett bane</button><p class="text-muted mt-2">Banen lagres for familien og kan oppdateres senere.</p>';
   hits.innerHTML = html;
@@ -1687,7 +1772,7 @@ function courseHandicap(hcp, slope, rating, par) {
 function renderCourseSearch() {
   const el = document.getElementById('course-search-content');
   if (!el) return;
-  const back = '<button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'card-setup\')">← Tilbake</button>';
+  const back = '<button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'' + (courseSearch.from === 'book' ? 'settings' : 'card-setup') + '\')">← Tilbake</button>';
   if (courseSearch.mode === 'ask' && courseSearch.picked) {
     el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Samme tee?</h1><div class="sub">' + courseLabel(courseSearch.picked) + '</div></div></div><div class="card">' + back + '<p class="mb-3">Spiller alle fra samme tee?</p><button class="btn btn-primary btn-block mb-2" onclick="chooseSameTee(true)">Ja</button><button class="btn btn-outline btn-block" onclick="chooseSameTee(false)">Nei, velg per spiller</button></div>';
     return;
@@ -1737,7 +1822,7 @@ function renderCourseSearch() {
       '<button class="btn btn-secondary btn-block" onclick="openTeeHoles()">Neste: hullene</button><button class="btn btn-outline btn-block mt-2" onclick="addCourseTee()">Legg til tee</button><button class="btn btn-primary btn-block mt-2" onclick="saveCourseBookEntry()">Lagre bane</button><p class="text-muted mt-2">Tom slope er lov. Du kan fylle den inn senere.</p></div>';
     return;
   }
-  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Søk opp bane</h1></div></div><div class="card">' + back + '<div class="form-group"><label>Klubb eller bane</label><input type="text" id="course-q" value="' + String(courseSearch.q || '').replace(/"/g, '"') + '" placeholder="Skriv, så kommer treffene" oninput="queueCourseSearch()" /></div><p id="course-status" class="text-muted mb-3">Skriv klubb eller bane</p><div id="course-hits"></div>' + (isAdmin() ? '<button type="button" class="btn btn-outline btn-block mt-3" onclick="startCourseCreate()">Opprett bane</button>' : '') + '</div>';
+  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>' + (courseSearch.from === 'book' ? 'Baner' : 'Søk opp bane') + '</h1></div></div><div class="card">' + back + '<div class="form-group"><label>Klubb eller bane</label><input type="text" id="course-q" value="' + String(courseSearch.q || '').replace(/"/g, '"') + '" placeholder="Skriv, så kommer treffene" oninput="queueCourseSearch()" /></div><p id="course-status" class="text-muted mb-3">Skriv klubb eller bane</p><div id="course-hits"></div>' + (isAdmin() ? '<button type="button" class="btn btn-outline btn-block mt-3" onclick="startCourseCreate()">Opprett bane</button>' : '') + '</div>';
   queueCourseSearch();
   const input = document.getElementById('course-q');
   if (input) input.focus();
