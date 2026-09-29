@@ -36,7 +36,7 @@
     .hole-dots button.done { background: var(--green-800); }
     .hole-dots button.now { background: #c9a227; }
     .wide-step { display: flex; align-items: center; background: #f3f4f6; border-radius: 999px; padding: 8px; margin: 18px 0 6px; }
-    .wide-step button { width: 64px; height: 64px; border: none; border-radius: 50%; background: #14532d; color: white; font-size: 2rem; line-height: 1; }
+    .wide-step > button:not(.tee-name) { width: 64px; height: 64px; border: none; border-radius: 50%; background: #14532d; color: white; font-size: 2rem; line-height: 1; }
     .wide-step .num { flex: 1; text-align: center; font-size: 3rem; font-weight: 700; color: #111827; }
     .hole-nav { display: flex; gap: 10px; margin-top: 8px; }
     .hole-nav .btn { flex: 1; }
@@ -137,14 +137,16 @@
     .player-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
     .player-row input { flex: 1; }
     .gender-pick { display: flex; border: 1px solid var(--gray-200); border-radius: 8px; overflow: hidden; flex: none; }
-    .gender-pick button { border: 0; background: white; color: var(--gray-600); padding: 8px 7px; font-size: 0.72rem; font-weight: 700; }
-    .stepper { display: flex; align-items: center; gap: 8px; }
-    .stepper input { flex: 1; }
-    .step-arrows { display: flex; flex-direction: column; gap: 4px; flex: none; }
-    .step-arrows button { width: 36px; height: 22px; border: 1px solid var(--gray-200); border-radius: 6px; background: white; color: var(--green-800); font-weight: 700; line-height: 1; }
-    .step-arrows button:disabled { opacity: 0.35; }
-    .tee-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-    .tee-row .tee-pick { flex: 1; text-align: left; }
+    .gender-pick button { border: 0; background: white; color: var(--gray-600); padding: 8px 7px; font-size: 0.72rem; font-weight: 700; cursor: pointer; position: relative; z-index: 1; }
+    .gender-pick button.on { background: var(--green-800); color: white; }
+    .wide-step input.num { flex: 1; width: auto; height: auto; border: none; background: transparent; text-align: center; font-size: 2rem; font-weight: 700; color: #111827; -webkit-text-fill-color: #111827; caret-color: #111827; padding: 0; border-radius: 0; }
+    .wide-step input.num:focus { outline: none; box-shadow: none; }
+    .wide-step > button:not(.tee-name):disabled { opacity: 0.35; }
+    .count-step { margin: 0; }
+    .tee-step { margin: 0 0 8px; }
+    .tee-step .tee-name { flex: 1; border: 0; background: transparent; font-weight: 700; font-size: 1.15rem; color: #111827; padding: 8px; }
+    .tee-step.picked { box-shadow: inset 0 0 0 2px #14532d; }
+    .tee-step.picked .tee-name { color: #14532d; }
     .cloud-gate { position: fixed; inset: 0; z-index: 400; background: rgba(6, 40, 24, 0.78); display: flex; align-items: center; justify-content: center; padding: 20px; }
     .cloud-gate .card { width: 100%; max-width: 420px; margin: 0; }
     .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--gray-800); color: white; padding: 12px 24px; border-radius: 30px; font-size: 0.9rem; font-weight: 500; z-index: 300; opacity: 0; transition: opacity 0.3s; pointer-events: none; max-width: 90%; text-align: center; }
@@ -251,9 +253,9 @@
         <div class="form-group"><label>Sluttdato</label><input type="date" id="setup-end" /></div>
         <p id="setup-year-line" style="margin:4px 0 18px;">År: –<br><span class="text-muted" style="font-size:0.9rem;">settes automatisk fra startdato</span></p>
         <div id="setup-extra" class="hidden">
-          <div class="form-group"><label>Antall deltakere</label><div class="stepper"><input type="number" id="setup-players-count" value="6" min="0" max="16" onchange="renderPlayerInputs()" /><div class="step-arrows"><button type="button" onclick="stepCount('setup-players-count',1)" aria-label="Flere">↑</button><button type="button" onclick="stepCount('setup-players-count',-1)" aria-label="Færre">↓</button></div></div></div>
+          <div class="form-group"><label>Antall deltakere</label><div class="wide-step count-step"><button type="button" onclick="stepCount('setup-players-count',-1)" aria-label="Færre">−</button><input type="number" class="num" id="setup-players-count" value="6" min="0" max="16" onchange="renderPlayerInputs()" /><button type="button" onclick="stepCount('setup-players-count',1)" aria-label="Flere">+</button></div></div>
           <div class="form-group"><label>Spillere (navn + HCP)</label><div id="player-inputs"></div></div>
-          <div class="form-group"><label>Antall konkurransedager (min. 4)</label><div class="stepper"><input type="number" id="setup-days" value="5" min="4" max="10" onchange="renderDayFormats()" /><div class="step-arrows"><button type="button" onclick="stepCount('setup-days',1)" aria-label="Flere dager">↑</button><button type="button" onclick="stepCount('setup-days',-1)" aria-label="Færre dager">↓</button></div></div></div>
+          <div class="form-group"><label>Antall konkurransedager (min. 4)</label><div class="wide-step count-step"><button type="button" onclick="stepCount('setup-days',-1)" aria-label="Færre dager">−</button><input type="number" class="num" id="setup-days" value="5" min="4" max="10" onchange="renderDayFormats()" /><button type="button" onclick="stepCount('setup-days',1)" aria-label="Flere dager">+</button></div></div>
           <div class="form-group"><label>Format og dato per dag</label><p class="text-muted mb-2" style="font-size:0.85rem;">Standard er én dato per dag. To dager kan ha samme dato hvis dere spiller to runder samme dag.</p><div id="day-formats"></div><button type="button" class="btn btn-secondary btn-sm" onclick="fillDayDates(true)">Fyll datoer fra startdato</button></div>
         </div>
         <button class="btn btn-primary btn-block" id="setup-save" onclick="saveSetup()">Opprett turnering</button>
@@ -324,7 +326,7 @@
         <p class="text-muted" style="font-size:0.8rem;">Denne adressen skal legges inn som redirect URI hos Google:</p>
         <p id="google-redirect" class="text-muted mb-3" style="font-size:0.8rem;word-break:break-all;"></p>
         <button class="btn btn-danger btn-block" onclick="resetAllData()">Nullstill all data</button>
-        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.34 · Familiemajoren</p>
+        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.35 · Familiemajoren</p>
       </div>
     </div>
   </div>
@@ -1193,6 +1195,10 @@ function grossAt(day, name, hole) {
   const n = parseInt(row[hole], 10);
   return isNaN(n) ? null : n;
 }
+function tildeltTekst(n) {
+  n = parseInt(n, 10) || 0;
+  return n === 1 ? '1 tildelt slag' : (n + ' tildelte slag');
+}
 function setGender(btn, value) {
   const wrap = btn && btn.parentElement;
   if (!wrap) return;
@@ -1716,7 +1722,7 @@ function renderCourseSearch() {
     const tee = d.tees[courseSearch.teeIndex] || blankTee();
     const chips = d.tees.map(function (item, i) {
       const last = i === d.tees.length - 1;
-      return '<div class="tee-row"><div class="step-arrows"><button type="button" onclick="moveTee(' + i + ',-1)"' + (i === 0 ? ' disabled' : '') + ' aria-label="Flytt opp">↑</button><button type="button" onclick="moveTee(' + i + ',1)"' + (last ? ' disabled' : '') + ' aria-label="Flytt ned">↓</button></div><button type="button" class="btn btn-sm tee-pick ' + (i === courseSearch.teeIndex ? 'btn-primary' : 'btn-secondary') + '" onclick="pickDraftTee(' + i + ')">' + (item.name || ('Tee ' + (i + 1))) + '</button></div>';
+      return '<div class="wide-step tee-step' + (i === courseSearch.teeIndex ? ' picked' : '') + '"><button type="button" onclick="moveTee(' + i + ',-1)"' + (i === 0 ? ' disabled' : '') + ' aria-label="Flytt opp">‹</button><button type="button" class="tee-name" onclick="pickDraftTee(' + i + ')">' + (item.name || ('Tee ' + (i + 1))) + '</button><button type="button" onclick="moveTee(' + i + ',1)"' + (last ? ' disabled' : '') + ' aria-label="Flytt ned">›</button></div>';
     }).join('');
     const field = function (id, label, value, placeholder) {
       return '<div class="form-group"><label>' + label + '</label><input type="text" id="' + id + '" value="' + String(value || '').replace(/"/g, '"') + '" placeholder="' + placeholder + '" /></div>';
@@ -1866,8 +1872,8 @@ function renderStablefordCard(el, t, day) {
   const g = grossAt(day, me, h);
   const pts = g == null ? '–' : stablefordAt(day, me, h);
   const locked = cardLocked(day);
-  el.innerHTML = cardHead(day, 'Hull ' + (h + 1), me + ' · ' + (day.card.allocated[me] || 0) + ' slag i dag') +
-    '<div class="card"><div class="flex justify-between items-center"><strong>' + parHcp(day, h, me) + '</strong>' + (recv ? '<span class="badge badge-green">Du har slag her</span>' : '') + '</div>' +
+  el.innerHTML = cardHead(day, 'Hull ' + (h + 1), me + ' · ' + tildeltTekst(day.card.allocated[me] || 0)) +
+    '<div class="card"><div class="flex justify-between items-center"><strong>' + parHcp(day, h, me) + '</strong>' + (recv ? '<span class="badge badge-green">Du har ' + tildeltTekst(recv) + ' her</span>' : '') + '</div>' +
     wideStep(me, g, locked) + '<div class="text-center"><span class="badge badge-green">' + pts + ' poeng på hullet</span></div>' +
     holeDotRow(function (i) { return grossAt(day, me, i) != null; }) + holeNav(h) +
     '<button class="btn btn-secondary btn-block mt-3" onclick="showFullCard(true)">Hele scorekortet</button><button class="btn btn-sm btn-secondary mt-3" onclick="clearMe()">Bytt spiller</button></div>' + roundButtons(day);
@@ -1901,7 +1907,7 @@ function playerRow(day, name, locked) {
   const controls = edit
     ? '<div class="mini-step"><button type="button" onclick="bumpNamed(\'' + jsName(name) + '\',-1)">−</button><strong>' + (g == null ? '–' : g) + '</strong><button type="button" onclick="bumpNamed(\'' + jsName(name) + '\',1)">+</button></div>'
     : '<strong>' + (g == null ? '–' : g) + '</strong>';
-  return '<div class="fb-row"><div>' + name + (recv ? ' <span class="badge badge-green">slag</span>' : '') + '</div><div class="flex items-center" style="gap:10px;">' + controls + '<span class="text-muted">netto ' + (net == null ? '–' : net) + '</span></div></div>';
+  return '<div class="fb-row"><div>' + name + (recv ? ' <span class="badge badge-green">' + tildeltTekst(recv) + '</span>' : '') + '</div><div class="flex items-center" style="gap:10px;">' + controls + '<span class="text-muted">netto ' + (net == null ? '–' : net) + '</span></div></div>';
 }
 function renderMatchCard(el, t, day) {
   const me = myName();
