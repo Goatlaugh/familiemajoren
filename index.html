@@ -324,7 +324,7 @@
         <p class="text-muted" style="font-size:0.8rem;">Denne adressen skal legges inn som redirect URI hos Google:</p>
         <p id="google-redirect" class="text-muted mb-3" style="font-size:0.8rem;word-break:break-all;"></p>
         <button class="btn btn-danger btn-block" onclick="resetAllData()">Nullstill all data</button>
-        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.33 · Familiemajoren</p>
+        <p class="text-muted mt-3" style="font-size:0.8rem;">Versjon 1.34 · Familiemajoren</p>
       </div>
     </div>
   </div>
@@ -1007,7 +1007,7 @@ function syncEndDate() {
 function activeCardDay(t) {
   const ready = [];
   (t.days || []).forEach(function (d, i) {
-    if (d.card && d.card.ready && d.published && !d.completed) ready.push({ day: d, index: i });
+    if (d.card && d.card.ready && d.published) ready.push({ day: d, index: i });
   });
   if (!ready.length) return null;
   const today = new Date();
@@ -2131,7 +2131,7 @@ function finishLiveRound() {
   setTimeout(function () { showLunchPopup(sponsors, state.current.players.length); }, 400);
 }
 function liveDayHtml(t) {
-  const day = (t.days || []).find(function (d) { return d.card && d.card.ready && d.published && !d.completed; });
+  const day = (t.days || []).find(function (d) { return d.card && d.card.ready && d.published; });
   if (!day) return '';
   ensureCard(day);
   let body = '';
