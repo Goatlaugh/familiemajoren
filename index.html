@@ -226,6 +226,78 @@
     .nine-gap { height: 18px; }
     .hof-value { font-family: 'Playfair Display', Georgia, serif; font-size: 2.6rem; line-height: 1; color: var(--gold); margin-top: 4px; }
     .tee-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; margin-right: 8px; vertical-align: middle; }
+    body.tone-match { background: #071a10; }
+    body.tone-match #page-home { margin: -20px -16px -20px; }
+    body.tone-match #page-card,
+    body.tone-match #page-leaderboard,
+    body.tone-match #page-history-card,
+    body.tone-match #page-home { color: #f7f4ee; }
+    .home-stage { min-height: calc(100dvh - 78px - env(safe-area-inset-bottom, 0px)); background: #071a10; color: #f7f4ee; display: flex; flex-direction: column; }
+    .home-photo { position: relative; height: 46vh; min-height: 240px; background: #143622 url('banner.jpg') center 40% / cover no-repeat; }
+    .home-photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, #071a10 0%, rgba(7,26,16,0.05) 42%, rgba(7,26,16,0.28) 100%); }
+    .home-photo .home-banner-logo { width: 64px; height: 64px; border-radius: 16px; left: 18px; }
+    .home-copy { position: relative; z-index: 1; margin-top: -92px; padding: 0 22px 28px; }
+    .home-motto { font-family: 'Playfair Display', Georgia, serif; font-weight: 600; font-size: clamp(1.85rem, 7.2vw, 2.35rem); line-height: 1.12; color: white; margin: 0; }
+    .home-kicker { margin-top: 22px; color: #e4c56a; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; }
+    .home-status { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(2.2rem, 9vw, 2.8rem); line-height: 1.05; margin: 6px 0 18px; color: white; font-weight: 600; }
+    .btn-poster { display: block; width: 100%; border: none; background: #d4b15e; color: #142018; font-weight: 700; font-size: 1.02rem; font-family: inherit; border-radius: 14px; padding: 16px 18px; cursor: pointer; }
+    .home-dayline { text-align: center; margin: 12px 0 0; font-weight: 700; color: white; }
+    .home-lead { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%; margin-top: 18px; padding: 16px; background: transparent; color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 14px; font-family: inherit; font-size: 1.15rem; font-weight: 600; cursor: pointer; text-align: left; }
+    .home-lead .pts { color: #e4c56a; font-family: 'Playfair Display', Georgia, serif; font-size: 1.45rem; font-weight: 600; white-space: nowrap; }
+    .home-champs { margin-top: 26px; }
+    .home-champ { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.12); }
+    .inst-head { text-align: center; padding-top: calc(8px + env(safe-area-inset-top)); }
+    .inst-kicker { color: #e4c56a; letter-spacing: 0.16em; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; }
+    .inst-title { font-size: clamp(3rem, 15vw, 4.5rem); color: white; line-height: 0.95; margin: 8px 0 8px; }
+    .inst-title.ask { font-size: clamp(2.2rem, 10vw, 2.8rem); }
+    .inst-sub { color: rgba(232, 214, 160, 0.92); font-size: 0.98rem; }
+    .inst-body { padding-bottom: 8px; }
+    .stroke-who { text-align: center; margin-top: 26px; letter-spacing: 0.16em; text-transform: uppercase; font-size: 0.75rem; font-weight: 700; color: rgba(255,255,255,0.62); }
+    .stroke-hero { display: flex; align-items: center; justify-content: center; gap: 26px; margin: 4px 0 8px; }
+    .stroke-hero button { width: 54px; height: 54px; border-radius: 50%; border: 1.5px solid rgba(228,197,106,0.9); background: transparent; color: #e4c56a; font-size: 1.8rem; line-height: 1; cursor: pointer; }
+    .stroke-num { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(5rem, 22vw, 6.4rem); line-height: 0.85; color: white; min-width: 1.1em; text-align: center; }
+    .stroke-pts { display: table; margin: 4px auto 8px; background: #d4b15e; color: #142018; font-weight: 700; border-radius: 999px; padding: 6px 14px; font-size: 0.92rem; }
+    .hole-cast { margin-top: 14px; }
+    .cast-row { display: flex; justify-content: space-between; align-items: baseline; padding: 11px 2px; border-bottom: 1px solid rgba(255,255,255,0.12); font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.45rem, 6vw, 1.85rem); color: rgba(255,255,255,0.72); }
+    .cast-row.mine { color: white; }
+    .cast-row.flash { animation: castIn 1.8s ease; }
+    @keyframes castIn { 0% { background: rgba(212,177,94,0.38); color: white; } 100% { background: transparent; } }
+    .inst-link { display: block; width: 100%; background: none; border: none; color: #e4c56a; font-family: 'Playfair Display', Georgia, serif; font-size: 1.25rem; font-weight: 600; padding: 12px 8px 4px; cursor: pointer; }
+    body.tone-match .hole-dots { flex-wrap: nowrap; gap: 0; justify-content: space-between; margin: 18px 0 4px; }
+    body.tone-match .hole-dots button { flex: 1; width: auto; height: 28px; border: none; border-radius: 0; background: transparent; position: relative; }
+    body.tone-match .hole-dots button::after { content: ""; position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; border-radius: 50%; transform: translate(-50%, -50%); box-sizing: border-box; border: 1.5px solid rgba(255,255,255,0.38); }
+    body.tone-match .hole-dots button.done::after { background: #8fbf9a; border-color: #8fbf9a; }
+    body.tone-match .hole-dots button.now::after { width: 12px; height: 12px; background: #e4c56a; border-color: #e4c56a; }
+    body.tone-match .card { background: transparent; box-shadow: none; color: inherit; }
+    body.tone-match .text-muted { color: rgba(247,244,238,0.62); }
+    body.tone-match .team-card { background: rgba(255,255,255,0.04) !important; color: #f7f4ee; box-shadow: none; }
+    body.tone-match .fb-row { border-top-color: rgba(255,255,255,0.12); }
+    body.tone-match .status-big { color: white; }
+    body.tone-match .points-box { background: transparent; border-color: rgba(255,255,255,0.18); color: white; }
+    body.tone-match .full-head { color: rgba(247,244,238,0.55); background: transparent; }
+    body.tone-match .full-row { color: #f7f4ee; border-top-color: rgba(255,255,255,0.12); }
+    body.tone-match .full-row.now { background: rgba(228,197,106,0.14); }
+    body.tone-match .group-choice { background: transparent; color: #f7f4ee; border-color: rgba(255,255,255,0.28); text-align: center; }
+    .board-stage { padding-top: calc(12px + env(safe-area-inset-top)); padding-bottom: 12px; }
+    .board-kicker { text-align: center; color: #e4c56a; letter-spacing: 0.22em; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; }
+    .board-place { text-align: center; color: rgba(247,244,238,0.78); margin: 8px 0 28px; }
+    .board-hero-rank { color: #e4c56a; font-family: 'Playfair Display', Georgia, serif; font-size: 1.35rem; line-height: 1; }
+    .board-hero-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+    .board-hero-name { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(2.4rem, 12vw, 4rem); line-height: 0.92; color: white; word-break: break-word; }
+    .board-hero-pts { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(2.6rem, 12vw, 3.6rem); color: #e4c56a; line-height: 0.9; }
+    .board-hero-tag { color: rgba(247,244,238,0.55); margin-top: 8px; }
+    .board-rule { height: 1px; background: rgba(228,197,106,0.7); margin: 16px 0 4px; }
+    .board-line { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; align-items: baseline; padding: 13px 0; border-bottom: 1px solid rgba(255,255,255,0.12); }
+    .board-line-name { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.35rem, 5.5vw, 1.7rem); color: white; }
+    .board-line-pts { font-variant-numeric: tabular-nums; font-size: 1.15rem; }
+    .board-line-gap { color: #e4c56a; min-width: 36px; text-align: right; font-variant-numeric: tabular-nums; }
+    .board-today { text-align: center; color: rgba(247,244,238,0.72); margin: 28px 0 4px; }
+    .board-days { margin-top: 28px; }
+    .board-days h3 { font-family: 'Inter', sans-serif; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: #e4c56a; font-weight: 700; margin: 0 0 8px; }
+    .board-day { margin-top: 16px; }
+    .board-day-h { display: flex; justify-content: space-between; gap: 8px; font-size: 0.92rem; margin-bottom: 4px; }
+    .board-day-h span { color: rgba(247,244,238,0.55); }
+    .board-day-line { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; font-size: 0.95rem; }
   </style>
 </head>
 <body>
@@ -249,11 +321,7 @@
       <button class="btn btn-primary btn-block" id="cloud-gate-btn" onclick="submitCloudGate()">Fortsett</button>
     </div>
     <div id="page-home" class="page active">
-      <div class="home-banner">
-        <img class="home-banner-logo" src="icon-192.png" alt="" />
-        <p class="home-banner-motto">Ett år som mester.<br>Ett år med skryterett.</p>
-      </div>
-      <div id="home-content"></div>
+      <div id="home-stage" class="home-stage"></div>
     </div>
     <div id="page-setup" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><h1 id="setup-title">Ny turnering</h1></div>
@@ -316,7 +384,7 @@
         <button type="button" class="menu-row" onclick="openAdminGate()"><svg viewBox="0 0 24 24"><path d="M19.4 13.4a7.6 7.6 0 0 0 .1-1.4 7.6 7.6 0 0 0-.1-1.4l2-1.5-2-3.5-2.4.9a7.4 7.4 0 0 0-2.4-1.4L14.2 2h-4.4l-.4 2.6a7.4 7.4 0 0 0-2.4 1.4l-2.4-.9-2 3.5 2 1.5a7.6 7.6 0 0 0-.1 1.4 7.6 7.6 0 0 0 .1 1.4l-2 1.5 2 3.5 2.4-.9a7.4 7.4 0 0 0 2.4 1.4l.4 2.6h4.4l.4-2.6a7.4 7.4 0 0 0 2.4-1.4l2.4.9 2-3.5-2-1.5z"/><circle cx="12" cy="12" r="2.7"/></svg>Admin<span id="admin-badge" class="badge badge-green hidden" style="margin-left:auto;">Aktiv</span><span class="chev">›</span></button>
         <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
       </div>
-      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.39 · Familiemajoren</p>
+      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.40 · Familiemajoren</p>
     </div>
     <div id="page-admin" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Admin</h1><div class="sub">Innstillinger</div></div></div>
@@ -776,6 +844,10 @@ function seasonNavKey(pageId) {
 
 function syncChrome(pageId) {
   currentPage = pageId;
+  const matchTone = pageId === 'home' || pageId === 'leaderboard' || pageId === 'card' || pageId === 'history-card';
+  document.body.classList.toggle('tone-match', matchTone);
+  const theme = document.querySelector('meta[name="theme-color"]');
+  if (theme) theme.setAttribute('content', matchTone ? '#071a10' : '#ffffff');
   const header = document.querySelector('.app-header');
   const ownBanner = pageId === 'home' || pageId === 'leaderboard' || pageId === 'scoring' || pageId === 'more' || pageId === 'tournament' || pageId === 'setup' || pageId === 'card' || pageId === 'card-setup' || pageId === 'course-search' || pageId === 'history-card' || pageId === 'charter' || pageId === 'charter-full' || pageId === 'settings' || pageId === 'admin' || pageId === 'pin' || pageId === 'hof';
   if (header) header.hidden = ownBanner;
@@ -1042,19 +1114,39 @@ function countdownCard(t) {
 }
 
 function renderHome() {
-  const el = document.getElementById('home-content');
+  const el = document.getElementById('home-stage');
+  if (!el) return;
+  const photo = '<div class="home-photo"><img class="home-banner-logo" src="icon-192.png" alt="" /></div>';
+  const motto = '<h1 class="home-motto">Ett år som mester.<br>Ett år med skryterett.</h1>';
   if (!state.current) {
-    el.innerHTML = '<div class="card text-center"><div class="empty-state"><h2 style="margin-bottom:8px;">Velkommen til Familiemajoren</h2><p class="text-muted mb-3">Ingen pågående turnering.</p><button class="btn btn-primary" onclick="openSetup(\'create\')">Ny turnering</button></div></div>' +
-      (state.history.length ? '<div class="card"><h3 class="card-title">Siste mestere</h3>' + state.history.slice(-3).reverse().map(h => '<div class="flex justify-between items-center" style="padding:8px 0;border-bottom:1px solid var(--gray-100);"><span><strong>' + h.year + '</strong> · ' + h.sted + '</span><span class="badge badge-gold">🏆 ' + h.winner + '</span></div>').join('') + '</div>' : '');
-  } else {
-    const t = state.current;
-    const players = t.players || [];
-    const leader = players.length ? calculateStandings(t)[0] : null;
-    const body = players.length
-      ? '<span class="badge badge-green">' + players.length + ' spillere</span><div class="divider"></div><div class="flex items-center justify-between"><div class="flex items-center gap-2"><span class="gold-rank">1</span><span style="font-weight:700;font-size:1.15rem;">' + (leader ? leader.name : '–') + '</span></div><div class="points-badge">' + (leader ? leader.total + ' p' : '–') + '</div></div>'
-      : '<div class="badge badge-green" style="margin-top:8px;">Spillere ikke satt</div>';
-    el.innerHTML = countdownCard(t) + homeCardButton(t) + '<div class="card" onclick="navigate(\'tournament\')" style="cursor:pointer;"><div class="section-title">Pågående</div><h2 style="margin:0 0 10px;color:var(--gray-800);">' + t.year + ' · ' + t.sted + '</h2>' + body + '</div>';
+    const champs = state.history.length
+      ? '<div class="home-champs"><div class="home-kicker">Siste mestere</div>' + state.history.slice(-3).reverse().map(function (h) {
+        return '<div class="home-champ"><span>' + h.year + ' · ' + (h.sted || '') + '</span><span>' + (h.winner || '') + '</span></div>';
+      }).join('') + '</div>'
+      : '';
+    el.innerHTML = photo + '<div class="home-copy">' + motto + '<div class="home-status">Velkommen</div><button class="btn-poster" onclick="openSetup(\'create\')">Ny turnering</button>' + champs + '</div>';
+    return;
   }
+  const t = state.current;
+  const started = countdownText(t.startDate) === 'Turneringen er i gang';
+  const status = !t.startDate ? '' : (started ? 'I gang' : '<span id="countdown-value">' + countdownText(t.startDate) + '</span>');
+  const kicker = [t.sted, t.year].filter(Boolean).join(' · ');
+  const hit = activeCardDay(t);
+  const cta = hit
+    ? '<button class="btn-poster" onclick="openLiveCard(' + hit.index + ')">Åpne dagens scorekort</button><p class="home-dayline">Dag ' + hit.day.dayNumber + ' · ' + formatShort(hit.day.format) + '</p>'
+    : '';
+  let lead = '';
+  const players = t.players || [];
+  if (players.length) {
+    const leader = calculateStandings(t)[0];
+    if (leader) {
+      const dest = standingsLive() ? 'leaderboard' : 'tournament';
+      lead = '<button type="button" class="home-lead" onclick="navigate(\'' + dest + '\')"><span>' + leader.name + ' leder</span><span class="pts">' + leader.total + ' poeng</span></button>';
+    }
+  } else {
+    lead = '<button type="button" class="home-lead" onclick="navigate(\'tournament\')"><span>Spillere ikke satt</span></button>';
+  }
+  el.innerHTML = photo + '<div class="home-copy">' + motto + (kicker ? '<div class="home-kicker">' + kicker + '</div>' : '') + (status ? '<div class="home-status">' + status + '</div>' : '') + cta + lead + '</div>';
 }
 
 function renderPlayerInputs() {
@@ -2090,19 +2182,53 @@ function wideStep(name, value, locked) {
   return '<div class="wide-step"><button type="button" onclick="bumpNamed(\'' + jsName(name) + '\',-1)">−</button><div class="num">' + shown + '</div><button type="button" onclick="bumpNamed(\'' + jsName(name) + '\',1)">+</button></div>';
 }
 function showFullCard(on) { cardFull = !!on; renderLiveCard(); }
+function formatShort(key) {
+  return ({ stableford: 'Stableford', fourball: 'Fourball', scramble: 'Scramble', singles: 'Singler', final: 'Finale' })[key] || (FORMATS[key] || '');
+}
+function strokeHero(name, value, locked) {
+  const shown = value == null ? '–' : value;
+  if (locked) return '<div class="stroke-hero"><div class="stroke-num">' + shown + '</div></div>';
+  return '<div class="stroke-hero"><button type="button" onclick="bumpNamed(\'' + jsName(name) + '\',-1)" aria-label="Færre slag">−</button><div class="stroke-num">' + shown + '</div><button type="button" onclick="bumpNamed(\'' + jsName(name) + '\',1)" aria-label="Flere slag">+</button></div>';
+}
+let lastCast = null;
+function noteHoleFlashes(day, hole) {
+  const flashes = {};
+  const me = myName();
+  const next = {};
+  (state.current.players || []).forEach(function (p) {
+    const g = grossAt(day, p.name, hole);
+    const key = cardDay + '|' + p.name + '|' + hole;
+    next[key] = g;
+    if (lastCast && Object.prototype.hasOwnProperty.call(lastCast, key) && lastCast[key] !== g && g != null && p.name !== me) flashes[p.name + '|' + hole] = true;
+  });
+  lastCast = Object.assign({}, lastCast || {}, next);
+  return flashes;
+}
 function renderStablefordCard(el, t, day) {
   const me = myName();
   if (cardFull) return renderFullStableford(el, day, me, 'showFullCard(false)');
   const h = cardHole;
+  const holeInfo = holeAt(day, me, h);
   const recv = receivedAt(day, me, h);
   const g = grossAt(day, me, h);
-  const pts = g == null ? '–' : stablefordAt(day, me, h);
+  const pts = g == null ? null : stablefordAt(day, me, h);
   const locked = cardLocked(day);
-  el.innerHTML = cardHead(day, 'Hull ' + (h + 1), me + ' · ' + tildeltTekst(day.card.allocated[me] || 0)) +
-    '<div class="card"><div class="flex justify-between items-center"><strong>' + parHcp(day, h, me) + '</strong>' + (recv ? '<span class="badge badge-green">Du har ' + tildeltTekst(recv) + ' her</span>' : '') + '</div>' +
-    wideStep(me, g, locked) + '<div class="text-center"><span class="badge badge-green">' + pts + ' poeng på hullet</span></div>' +
-    holeDotRow(function (i) { return grossAt(day, me, i) != null; }) + holeNav(h) +
-    '<button class="btn btn-secondary btn-block mt-3" onclick="showFullCard(true)">Hele scorekortet</button><button class="btn btn-sm btn-secondary mt-3" onclick="clearMe()">Bytt spiller</button></div>' + roundButtons(day);
+  let parLine = 'Par ' + (holeInfo.par || 4) + ' · indeks ' + (holeInfo.index || (h + 1));
+  if (recv) parLine += ' · ' + tildeltTekst(recv);
+  const flashes = noteHoleFlashes(day, h);
+  const cast = (t.players || []).map(function (p) {
+    const pg = grossAt(day, p.name, h);
+    const cls = 'cast-row' + (p.name === me ? ' mine' : '') + (flashes[p.name + '|' + h] ? ' flash' : '');
+    return '<div class="' + cls + '"><span>' + p.name + '</span><span>' + (pg == null ? '–' : pg) + '</span></div>';
+  }).join('');
+  const finish = (h === 17 && currentPage !== 'history-card') ? '<button class="btn btn-gold btn-block mt-3" onclick="leaveCard()">Fullfør runde</button>' : '';
+  el.innerHTML = cardHead(day, 'Hull ' + (h + 1), parLine) +
+    '<div class="inst-body"><div class="stroke-who">' + me + '</div>' + strokeHero(me, g, locked) +
+    '<div class="stroke-pts">' + (pts == null ? '–' : (pts + ' poeng')) + '</div>' +
+    holeDotRow(function (i) { return grossAt(day, me, i) != null; }) +
+    '<div class="hole-cast">' + cast + '</div>' +
+    '<button type="button" class="inst-link" onclick="showFullCard(true)">Hele scorekortet</button>' +
+    '<button type="button" class="inst-link" onclick="clearMe()">Bytt spiller</button>' + finish + '</div>' + roundButtons(day);
 }
 function grossMark(day, name, i) {
   const g = grossAt(day, name, i);
@@ -2122,7 +2248,7 @@ function renderFullStableford(el, day, name, back) {
     rows += '<div class="full-row' + (i === cardHole ? ' now' : '') + '"><span>' + (i + 1) + grossMark(day, name, i) + '</span><span>' + par + '</span><span>' + (g == null ? '–' : g) + '</span><span>' + (pts == null ? '–' : pts) + '</span></div>';
   }
   const out = rangeSums(day, name, 0, 9), inn = rangeSums(day, name, 9, 18), all = rangeSums(day, name, 0, 18);
-  el.innerHTML = cardHead(day, 'Hele scorekortet', name + ' · ' + (FORMATS[day.format] || '')) +
+  el.innerHTML = cardHead(day, 'Hele scorekortet', name) +
     '<div class="card"><div class="full-table"><div class="full-head"><span>Hull</span><span>Par</span><span>Slag</span><span>Poeng</span></div>' + rows + '</div><div class="mt-3">' + sumLine('Ut', out) + sumLine('Inn', inn) + sumLine('Totalt', all) + '</div><button class="btn btn-secondary btn-block mt-3" onclick="' + back + '">Tilbake til hullet</button></div>';
 }
 function playerRow(day, name, locked) {
@@ -2163,7 +2289,7 @@ function matchCardHtml(day, match, locked) {
   const block = function (look, names, best) {
     return '<div class="team-card" style="border-left-color:' + look.color + ';background:' + look.wash + '"><div class="flex justify-between"><strong style="color:' + look.color + '">' + look.name + '</strong><span class="text-muted">' + (best == null ? '' : 'Beste netto ' + best) + '</span></div>' + names.map(function (n) { return playerRow(day, n, locked); }).join('') + '</div>';
   };
-  return cardHead(day, 'Hull ' + (h + 1), match.singles ? 'Singler' : 'Fourball') +
+  return cardHead(day, 'Hull ' + (h + 1), parHcp(day, h).replace(' – hcp ', ' · indeks ')) +
     '<div class="card"><div class="mb-2"><strong>' + parHcp(day, h) + '</strong></div>' + block(lookA, match.teamA, bestA) + block(lookB, match.teamB, bestB) +
     '<div class="gold-result">' + result + '</div><div class="status-big">' + (match.singles ? status : status) + '</div>' +
     holeDotRow(function (i) { return holeWinner(day, match, i) != null; }) + holeNav(h) +
@@ -2228,7 +2354,7 @@ function scrambleCardHtml(day, match, idx, locked) {
     if (!can) return '<div class="pick' + (chosen === val ? ' on' : '') + '">' + label + '</div>';
     return '<button type="button" class="pick' + (chosen === val ? ' on' : '') + '" onclick="setScramble(\'' + val + '\')">' + label + '</button>';
   };
-  return cardHead(day, 'Hull ' + (cardHole + 1), 'Akkumulert scramble') +
+  return cardHead(day, 'Hull ' + (cardHole + 1), parHcp(day, cardHole).replace(' – hcp ', ' · indeks ')) +
     '<div class="card"><div class="mb-2"><strong>' + parHcp(day, cardHole) + '</strong></div><div class="team-line" style="color:' + a.color + '"><span class="badge" style="background:' + a.color + ';color:#fff;">' + a.name + '</span> ' + match.teamA.join(', ') + '</div><div class="text-center text-muted" style="margin:8px 0;">mot</div><div class="team-line" style="color:' + b.color + '"><span class="badge" style="background:' + b.color + ';color:#fff;">' + b.name + '</span> ' + match.teamB.join(', ') + '</div>' +
     '<div class="gold-result">Dette hullet er verdt ' + (pot == null ? '–' : pot) + '</div><div class="mt-3">' +
     (pot == null && !chosen ? '<p class="text-muted">Fyll hullene foran først.</p>' : btn('A', a.name + ' vinner') + btn('H', 'Delt') + btn('B', b.name + ' vinner')) +
@@ -2236,7 +2362,8 @@ function scrambleCardHtml(day, match, idx, locked) {
     holeDotRow(function (i) { return !!scrambleVal(arr[i]); }) + holeNav(cardHole) + '</div>';
 }
 function cardHead(day, title, sub) {
-  return '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>' + title + '</h1><div class="sub">' + (sub || ('Dag ' + day.dayNumber + ' · ' + (FORMATS[day.format] || ''))) + '</div></div></div>';
+  const ask = title === 'Hvem er du?' ? ' ask' : '';
+  return '<div class="inst-head"><div class="inst-kicker">Dag ' + day.dayNumber + ' · ' + formatShort(day.format) + '</div><h1 class="inst-title' + ask + '">' + title + '</h1>' + (sub ? '<div class="inst-sub">' + sub + '</div>' : '') + '</div>';
 }
 function rangeSums(day, name, from, to) {
   let par = 0, slag = 0, poeng = 0, n = 0;
@@ -2271,9 +2398,9 @@ function renderLiveCard() {
   const t = state.current;
   const day = t && t.days[cardDay];
   if (!el) return;
-  if (!day || !day.card || !day.card.ready) { el.innerHTML = '<div class="card"><p class="text-muted">Scorekortet er ikke klart.</p></div>'; return; }
+  if (!day || !day.card || !day.card.ready) { el.innerHTML = '<div class="inst-head"><h1 class="inst-title ask">Scorekortet er ikke klart.</h1></div>'; return; }
   if (!myName()) {
-    el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><h1>Hvem er du?</h1></div><div class="card">' + t.players.map(function (p, i) { return '<button class="group-choice" onclick="setMeIndex(' + i + ')">' + p.name + '</button>'; }).join('') + '<p class="text-muted">Huskes på denne telefonen.</p></div>';
+    el.innerHTML = '<div class="inst-head"><div class="inst-kicker">Scorekort</div><h1 class="inst-title ask">Hvem er du?</h1><div class="inst-sub">Huskes på denne telefonen.</div></div><div class="inst-body">' + t.players.map(function (p, i) { return '<button class="group-choice" onclick="setMeIndex(' + i + ')">' + p.name + '</button>'; }).join('') + '</div>';
     return;
   }
   ensureCard(day);
@@ -3356,19 +3483,71 @@ function renderStandingsTable(standings) {
     '</tbody></table></div>';
 }
 
+function todayWhisper(t) {
+  const days = t.days || [];
+  let day = null;
+  for (let i = days.length - 1; i >= 0; i--) {
+    const d = days[i];
+    if (d.card && d.card.ready && d.published && !d.completed) { day = d; break; }
+  }
+  if (!day) {
+    for (let i = days.length - 1; i >= 0; i--) {
+      const d = days[i];
+      if (d.card && d.card.ready && d.published) { day = d; break; }
+    }
+  }
+  if (!day) return '';
+  ensureCard(day);
+  if (['stableford', 'final'].includes(day.format)) {
+    let best = null;
+    (t.players || []).forEach(function (p) {
+      const pts = stablefordTotal(day, p.name);
+      if (!best || pts > best.pts) best = { name: p.name, pts: pts };
+    });
+    if (!best) return '';
+    return '<p class="board-today">I dag så langt · ' + best.name + ' ' + best.pts + ' poeng</p>';
+  }
+  let body = '';
+  if (day.format === 'scramble') {
+    body = (day.teamMatches || []).map(function (m, idx) {
+      const tot = scrambleTotals((day.card.scramble && day.card.scramble[idx]) || []);
+      return '<div class="board-day-line"><span>' + teamLook(day, m.teamA).name + ' mot ' + teamLook(day, m.teamB).name + '</span><span>' + tot.a + '–' + tot.b + '</span></div>';
+    }).join('');
+  } else if (day.format === 'fourball') {
+    body = (day.teamMatches || []).map(function (m) {
+      const st = teamStatus(day, m);
+      return '<div class="board-day-line"><span>' + st.a.name + ' mot ' + st.b.name + '</span><span>' + st.text + '</span></div>';
+    }).join('');
+  } else if (day.format === 'singles') {
+    body = (day.matches || []).map(function (m) {
+      return '<div class="board-day-line"><span>' + m.p1 + ' mot ' + m.p2 + '</span><span>' + matchRun(day, { teamA: [m.p1], teamB: [m.p2] }).text + '</span></div>';
+    }).join('');
+  }
+  if (!body) return '';
+  return '<div class="board-days"><h3>I dag så langt</h3>' + body + '</div>';
+}
 function renderLeaderboard() {
   const el = document.getElementById('leaderboard-content');
-  if (!state.current) { el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><h1>Stilling</h1></div><div class="card"><p class="text-muted">Ingen pågående turnering.</p></div>'; return; }
+  if (!state.current) { el.innerHTML = '<div class="board-stage"><div class="board-kicker">Stilling</div><p class="board-today">Ingen pågående turnering.</p></div>'; return; }
   const t = state.current;
   const standings = calculateStandings(t);
-  const leaderPts = standings.length ? standings[0].total : 0;
-  const rows = standings.map((s, i) => {
-    const pct = leaderPts > 0 ? Math.max(8, Math.round(s.total / leaderPts * 100)) : 0;
-    const gap = i === 0 ? '' : '<div class="gap-num">' + (s.total - leaderPts) + '</div>';
-    return '<div class="board-row' + (i === 0 ? ' leader' : '') + '"><div class="board-rank">' + (i + 1) + '</div><div><div class="board-name">' + s.name + '</div>' + (i === 0 ? '<div class="board-meta">leder</div>' : '<div class="bar"><span style="width:' + pct + '%"></span></div>') + '</div><div class="points-badge">' + s.total + '</div>' + (i === 0 ? '<div></div>' : gap) + '</div>';
+  const leader = standings[0];
+  let hero = '<p class="board-today">Ingen poeng ennå.</p>';
+  let rows = '';
+  if (leader) {
+    hero = '<div class="board-hero"><div class="board-hero-rank">1</div><div class="board-hero-row"><div class="board-hero-name">' + leader.name + '</div><div class="board-hero-pts">' + leader.total + '</div></div><div class="board-hero-tag">leder</div></div>';
+    rows = standings.slice(1).map(function (s) {
+      const gap = s.total - leader.total;
+      return '<div class="board-line"><span class="board-line-name">' + s.name + '</span><span class="board-line-pts">' + s.total + '</span><span class="board-line-gap">' + gap + '</span></div>';
+    }).join('');
+  }
+  const days = t.days.filter(function (d) { return d.completed; }).map(function (d) {
+    const lines = d.points ? Object.entries(d.points).sort(function (a, b) { return b[1] - a[1]; }).map(function (pair) {
+      return '<div class="board-day-line"><span>' + pair[0] + '</span><span>' + pair[1] + '</span></div>';
+    }).join('') : '';
+    return '<div class="board-day"><div class="board-day-h"><strong>Dag ' + d.dayNumber + '</strong><span>' + (FORMATS[d.format] || '') + '</span></div>' + lines + '</div>';
   }).join('');
-  const days = t.days.filter(d => d.completed).map(d => '<div style="margin-bottom:16px;"><div class="flex justify-between mb-1"><strong>Dag ' + d.dayNumber + '</strong><span class="text-muted" style="font-size:0.85rem;">' + FORMATS[d.format] + '</span></div>' + (d.points ? Object.entries(d.points).sort((a,b)=>b[1]-a[1]).map(([name,pts]) => '<div class="flex justify-between" style="font-size:0.9rem;"><span>' + name + '</span><span>' + pts + ' p</span></div>').join('') : '') + '</div>').join('');
-  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Stilling</h1><div class="sub">' + t.year + ' · ' + t.sted + '</div></div></div>' + liveDayHtml(t) + '<div class="card" style="padding:0;overflow:hidden;">' + rows + '</div>' + (days ? '<div class="card"><h3 class="card-title">Per dag</h3>' + days + '</div>' : '');
+  el.innerHTML = '<div class="board-stage"><div class="board-kicker">Stilling</div><div class="board-place">' + t.year + ' · ' + (t.sted || '') + '</div>' + hero + (rows ? '<div class="board-rule"></div>' + rows : '') + todayWhisper(t) + (days ? '<div class="board-days"><h3>Per dag</h3>' + days + '</div>' : '') + '</div>';
 }
 
 function renderGroupsMenu() {
