@@ -268,6 +268,10 @@
     body.tone-match .hole-dots button::after { content: ""; position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; border-radius: 50%; transform: translate(-50%, -50%); box-sizing: border-box; border: 1.5px solid rgba(255,255,255,0.38); }
     body.tone-match .hole-dots button.done::after { background: #8fbf9a; border-color: #8fbf9a; }
     body.tone-match .hole-dots button.now::after { width: 12px; height: 12px; background: #e4c56a; border-color: #e4c56a; }
+    .hole-step { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0 8px; }
+    .hole-step button { height: 64px; border-radius: 16px; border: 1.5px solid rgba(228,197,106,0.9); background: transparent; color: #f7f4ee; font-family: 'Playfair Display', Georgia, serif; font-size: 1.45rem; font-weight: 600; cursor: pointer; }
+    .hole-step button.finish { font-size: 1.15rem; }
+    .hole-step button:disabled { opacity: 0.28; cursor: default; }
     body.tone-match .card { background: transparent; box-shadow: none; color: inherit; }
     body.tone-match .text-muted { color: rgba(247,244,238,0.62); }
     body.tone-match .team-card { background: rgba(255,255,255,0.04) !important; color: #f7f4ee; box-shadow: none; }
@@ -384,7 +388,7 @@
         <button type="button" class="menu-row" onclick="openAdminGate()"><svg viewBox="0 0 24 24"><path d="M19.4 13.4a7.6 7.6 0 0 0 .1-1.4 7.6 7.6 0 0 0-.1-1.4l2-1.5-2-3.5-2.4.9a7.4 7.4 0 0 0-2.4-1.4L14.2 2h-4.4l-.4 2.6a7.4 7.4 0 0 0-2.4 1.4l-2.4-.9-2 3.5 2 1.5a7.6 7.6 0 0 0-.1 1.4 7.6 7.6 0 0 0 .1 1.4l-2 1.5 2 3.5 2.4-.9a7.4 7.4 0 0 0 2.4 1.4l.4 2.6h4.4l.4-2.6a7.4 7.4 0 0 0 2.4-1.4l2.4.9 2-3.5-2-1.5z"/><circle cx="12" cy="12" r="2.7"/></svg>Admin<span id="admin-badge" class="badge badge-green hidden" style="margin-left:auto;">Aktiv</span><span class="chev">›</span></button>
         <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
       </div>
-      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.40 · Familiemajoren</p>
+      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.41 · Familiemajoren</p>
     </div>
     <div id="page-admin" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Admin</h1><div class="sub">Innstillinger</div></div></div>
@@ -2153,9 +2157,15 @@ function teamStatus(day, match) {
 }
 function jsName(name) { return String(name).replace(/\\/g, '\\\\').replace(/'/g, "\\'"); }
 function holeNav(hole) {
-  let html = '<div class="hole-nav"><button class="btn btn-secondary" onclick="goHole(' + Math.max(0, hole - 1) + ')">Forrige hull</button><button class="btn btn-primary" onclick="goHole(' + Math.min(17, hole + 1) + ')">Neste hull</button></div>';
-  if (hole === 17 && currentPage !== 'history-card') html += '<button class="btn btn-gold btn-block mt-3" onclick="leaveCard()">Fullfør runde</button>';
-  return html;
+  const atStart = hole <= 0;
+  const atEnd = hole >= 17;
+  const live = currentPage !== 'history-card';
+  const prev = '<button type="button"' + (atStart ? ' disabled' : ' onclick="goHole(' + (hole - 1) + ')"') + '>Forrige</button>';
+  let next;
+  if (atEnd && live) next = '<button type="button" class="finish" onclick="leaveCard()">Fullfør runde</button>';
+  else if (atEnd) next = '<button type="button" class="finish" disabled>Neste</button>';
+  else next = '<button type="button" onclick="goHole(' + (hole + 1) + ')">Neste</button>';
+  return '<div class="hole-step">' + prev + next + '</div>';
 }
 function missingHolesForMe(day) {
   const me = myName();
@@ -2221,14 +2231,14 @@ function renderStablefordCard(el, t, day) {
     const cls = 'cast-row' + (p.name === me ? ' mine' : '') + (flashes[p.name + '|' + h] ? ' flash' : '');
     return '<div class="' + cls + '"><span>' + p.name + '</span><span>' + (pg == null ? '–' : pg) + '</span></div>';
   }).join('');
-  const finish = (h === 17 && currentPage !== 'history-card') ? '<button class="btn btn-gold btn-block mt-3" onclick="leaveCard()">Fullfør runde</button>' : '';
   el.innerHTML = cardHead(day, 'Hull ' + (h + 1), parLine) +
     '<div class="inst-body"><div class="stroke-who">' + me + '</div>' + strokeHero(me, g, locked) +
     '<div class="stroke-pts">' + (pts == null ? '–' : (pts + ' poeng')) + '</div>' +
     holeDotRow(function (i) { return grossAt(day, me, i) != null; }) +
+    holeNav(h) +
     '<div class="hole-cast">' + cast + '</div>' +
     '<button type="button" class="inst-link" onclick="showFullCard(true)">Hele scorekortet</button>' +
-    '<button type="button" class="inst-link" onclick="clearMe()">Bytt spiller</button>' + finish + '</div>' + roundButtons(day);
+    '<button type="button" class="inst-link" onclick="clearMe()">Bytt spiller</button></div>' + roundButtons(day);
 }
 function grossMark(day, name, i) {
   const g = grossAt(day, name, i);
