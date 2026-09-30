@@ -316,7 +316,7 @@
         <button type="button" class="menu-row" onclick="openAdminGate()"><svg viewBox="0 0 24 24"><path d="M19.4 13.4a7.6 7.6 0 0 0 .1-1.4 7.6 7.6 0 0 0-.1-1.4l2-1.5-2-3.5-2.4.9a7.4 7.4 0 0 0-2.4-1.4L14.2 2h-4.4l-.4 2.6a7.4 7.4 0 0 0-2.4 1.4l-2.4-.9-2 3.5 2 1.5a7.6 7.6 0 0 0-.1 1.4 7.6 7.6 0 0 0 .1 1.4l-2 1.5 2 3.5 2.4-.9a7.4 7.4 0 0 0 2.4 1.4l.4 2.6h4.4l.4-2.6a7.4 7.4 0 0 0 2.4-1.4l2.4.9 2-3.5-2-1.5z"/><circle cx="12" cy="12" r="2.7"/></svg>Admin<span id="admin-badge" class="badge badge-green hidden" style="margin-left:auto;">Aktiv</span><span class="chev">›</span></button>
         <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
       </div>
-      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.38 · Familiemajoren</p>
+      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.39 · Familiemajoren</p>
     </div>
     <div id="page-admin" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Admin</h1><div class="sub">Innstillinger</div></div></div>
@@ -410,6 +410,8 @@ let cloudUpdatedAt = null;
 let cloudSaving = false;
 let cloudPoll = null;
 let cloudPollBound = false;
+let cloudPulling = false;
+let lastPullAt = 0;
 let applyingRemote = false;
 let pushTimer = null;
 
@@ -506,6 +508,7 @@ function schedulePush() {
 async function pushCloud(code) {
   if (!code) return;
   cloudSaving = true;
+  let followPull = false;
   try {
     let remote = null;
     try {
@@ -524,13 +527,19 @@ async function pushCloud(code) {
         if (day && day.completed && day.card && day.card.ready) awardFromCard(day);
       });
     }
-    const res = await cloudRpc('save_state', { p_password: code, p_data: merged });
-    if (res && res.updated_at) cloudUpdatedAt = res.updated_at;
+    await cloudRpc('save_state', { p_password: code, p_data: merged });
+    applyingRemote = true;
+    applyMergedScores(merged, local);
+    try { localStorage.setItem('familiemajoren_v1', JSON.stringify(state)); } catch (err) {}
+    applyingRemote = false;
+    if (currentPage === 'card') renderLiveCard();
+    followPull = true;
   } catch (e) {
     toast('Lagret på telefonen, men ikke i skyen');
   } finally {
     cloudSaving = false;
   }
+  if (followPull) pullCloud(true);
 }
 
 async function cloudRpc(name, body) {
@@ -657,15 +666,20 @@ function refreshVisible() {
   if (page === 'history-card') return renderHistoryCard();
 }
 
-async function pullCloud() {
-  if (!cloudOn || cloudSaving || editingNow()) return;
+async function pullCloud(force) {
+  if (!cloudOn || cloudSaving || cloudPulling || editingNow()) return;
   const code = localStorage.getItem(CODE_KEY);
   if (!code) return;
+  if (!force && Date.now() - lastPullAt < (currentPage === 'card' ? 1800 : 7800)) return;
+  cloudPulling = true;
+  lastPullAt = Date.now();
   try {
     const loaded = await cloudRpc('load_state', { p_password: code });
     if (!loaded || !loaded.updated_at || loaded.updated_at === cloudUpdatedAt) return;
-    applyingRemote = true;
     const remote = normalizeState(loaded.data);
+    const again = dirtyDiffers(remote) || scrambleNewer(remote);
+    const before = currentPage === 'card' ? cardLiveSignature() : '';
+    applyingRemote = true;
     const carriedCourses = Array.isArray(remote.courseBook) ? remote.courseBook : [];
     state = mergeRemoteCards(state, remote);
     cloudUpdatedAt = loaded.updated_at;
@@ -675,16 +689,20 @@ async function pullCloud() {
     }
     localStorage.setItem('familiemajoren_v1', JSON.stringify(state));
     applyingRemote = false;
-    refreshVisible();
+    const after = currentPage === 'card' ? cardLiveSignature() : '';
+    if (currentPage !== 'card' || before !== after) refreshVisible();
+    if (again) schedulePush();
     pullCourses();
   } catch (e) {
     applyingRemote = false;
+  } finally {
+    cloudPulling = false;
   }
 }
 
 function startCloudPoll() {
   if (cloudPoll) clearInterval(cloudPoll);
-  cloudPoll = setInterval(pullCloud, 8000);
+  cloudPoll = setInterval(function () { pullCloud(false); }, 2000);
   if (!cloudPollBound) {
     cloudPollBound = true;
     document.addEventListener('visibilitychange', function () {
@@ -800,7 +818,10 @@ function navigate(pageId) {
   if (pageId === 'pin') paintPin();
   if (pageId === 'card-setup') renderCardSetup();
   if (pageId === 'course-search') renderCourseSearch();
-  if (pageId === 'card') renderLiveCard();
+  if (pageId === 'card') {
+    renderLiveCard();
+    pullCloud(true);
+  }
   if (pageId === 'history-card') renderHistoryCard();
 }
 
@@ -2440,23 +2461,98 @@ function scrambleTime(cell) {
   if (cell && typeof cell === 'object') return cell.t || 0;
   return 0;
 }
-function overlayGross(targetDay, dayIndex, sourceDay, admin) {
+function sameCell(a, b) {
+  const x = a == null || a === '' ? null : a;
+  const y = b == null || b === '' ? null : b;
+  return x === y;
+}
+function parseDirtyKey(key) {
+  const first = key.indexOf('|');
+  const last = key.lastIndexOf('|');
+  return { day: parseInt(key.slice(0, first), 10), name: key.slice(first + 1, last), hole: parseInt(key.slice(last + 1), 10) };
+}
+function grossCell(day, name, hole) {
+  const row = day && day.card && day.card.gross && day.card.gross[name];
+  return row ? row[hole] : null;
+}
+function dirtyDiffers(remote) {
+  const days = remote && remote.current && remote.current.days;
+  if (!days || !state.current) return false;
+  const keys = Object.keys(dirtyHoles);
+  for (let n = 0; n < keys.length; n++) {
+    if (!dirtyHoles[keys[n]]) continue;
+    const p = parseDirtyKey(keys[n]);
+    if (!sameCell(grossCell(state.current.days[p.day], p.name, p.hole), grossCell(days[p.day], p.name, p.hole))) return true;
+  }
+  return false;
+}
+function scrambleNewer(remote) {
+  const localDays = state.current && state.current.days;
+  const remoteDays = remote && remote.current && remote.current.days;
+  if (!localDays || !remoteDays) return false;
+  for (let i = 0; i < localDays.length; i++) {
+    const local = localDays[i] && localDays[i].card && localDays[i].card.scramble;
+    if (!local) continue;
+    const remoteScr = (remoteDays[i] && remoteDays[i].card && remoteDays[i].card.scramble) || {};
+    const idxs = Object.keys(local);
+    for (let k = 0; k < idxs.length; k++) {
+      const a = local[idxs[k]] || [];
+      const b = remoteScr[idxs[k]] || [];
+      for (let h = 0; h < 18; h++) if (scrambleTime(a[h]) > scrambleTime(b[h])) return true;
+    }
+  }
+  return false;
+}
+function cardLiveSignature() {
+  const day = state.current && state.current.days[cardDay];
+  if (!day || !day.card) return '';
+  return JSON.stringify([day.card.gross, day.card.scramble, day.completed, day.published, cardHole, myName()]);
+}
+function applyMergedScores(merged, snapshot) {
+  if (!merged || !merged.current || !state.current) return;
+  (merged.current.days || []).forEach(function (md, i) {
+    const ld = state.current.days[i];
+    const sd = snapshot && snapshot.current && snapshot.current.days && snapshot.current.days[i];
+    if (!ld || !md || !md.card) return;
+    ensureCard(ld);
+    const mg = md.card.gross || {};
+    const sg = (sd && sd.card && sd.card.gross) || {};
+    Object.keys(mg).forEach(function (name) {
+      if (!ld.card.gross[name]) ld.card.gross[name] = Array(18).fill(null);
+      const src = mg[name] || [];
+      const snap = sg[name] || [];
+      const live = ld.card.gross[name];
+      for (let h = 0; h < 18; h++) {
+        if (dirtyHoles[dirtyGrossKey(i, name, h)] && !sameCell(live[h], snap[h])) continue;
+        live[h] = src[h] == null || src[h] === '' ? null : src[h];
+      }
+    });
+    const ms = md.card.scramble || {};
+    const ss = (sd && sd.card && sd.card.scramble) || {};
+    Object.keys(ms).forEach(function (idx) {
+      if (!ld.card.scramble[idx]) ld.card.scramble[idx] = Array(18).fill(null);
+      const mArr = ms[idx] || [];
+      const sArr = ss[idx] || [];
+      const lArr = ld.card.scramble[idx];
+      for (let h = 0; h < 18; h++) {
+        if (scrambleTime(lArr[h]) > scrambleTime(sArr[h]) && scrambleTime(lArr[h]) > scrambleTime(mArr[h])) continue;
+        lArr[h] = mArr[h];
+      }
+    });
+  });
+}
+function overlayGross(targetDay, dayIndex, sourceDay) {
   const me = myName();
   const sg = (sourceDay && sourceDay.card && sourceDay.card.gross) || {};
   if (!targetDay.card) return;
   if (!targetDay.card.gross) targetDay.card.gross = {};
   Object.keys(sg).forEach(function (name) {
-    if (!admin && name !== me) return;
     const src = sg[name] || [];
     if (!targetDay.card.gross[name]) targetDay.card.gross[name] = Array(18).fill(null);
     for (let h = 0; h < 18; h++) {
       const dirty = !!dirtyHoles[dirtyGrossKey(dayIndex, name, h)];
       const has = src[h] != null && src[h] !== '';
-      if (admin) {
-        if (dirty || (name === me && has)) targetDay.card.gross[name][h] = src[h];
-      } else if (dirty || has) {
-        targetDay.card.gross[name][h] = src[h];
-      }
+      if (dirty || (name === me && has)) targetDay.card.gross[name][h] = src[h];
     }
   });
 }
@@ -2502,7 +2598,7 @@ function mergeOutgoing(remote, local) {
       if (!ld.card) return;
       ld.card.gross = JSON.parse(JSON.stringify((rd && rd.card && rd.card.gross) || ld.card.gross || {}));
       ld.card.scramble = JSON.parse(JSON.stringify((rd && rd.card && rd.card.scramble) || ld.card.scramble || {}));
-      overlayGross(ld, i, local.current.days[i], true);
+      overlayGross(ld, i, local.current.days[i]);
       overlayScramble(ld, local.current.days[i]);
     });
     out.current = localCur;
@@ -2514,7 +2610,7 @@ function mergeOutgoing(remote, local) {
       const rd = out.current.days && out.current.days[i];
       if (!rd || !ld || !ld.card) return;
       if (!rd.card) rd.card = { ready: false, holes: [], allocated: {}, gross: {}, scramble: {} };
-      overlayGross(rd, i, ld, false);
+      overlayGross(rd, i, ld);
       overlayScramble(rd, ld);
     });
   }
@@ -2539,7 +2635,7 @@ function mergeRemoteCards(local, remote) {
         const a = lg[name] || [];
         const b = rg[name] || [];
         rd.card.gross[name] = Array.from({ length: 18 }, function (_, h) {
-          const dirty = name === me && !!dirtyHoles[dirtyGrossKey(i, name, h)];
+          const dirty = !!dirtyHoles[dirtyGrossKey(i, name, h)];
           if (dirty) return a[h];
           if (name === me && a[h] != null && a[h] !== '') return a[h];
           if (b[h] != null && b[h] !== '') return b[h];

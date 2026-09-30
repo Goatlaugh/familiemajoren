@@ -4,7 +4,7 @@ Familie-Majoren er familiens årlige golfmesterskap, som en app på telefonen. D
 
 Appen er én nettside. Den ligger på GitHub Pages. Alle som har lenken og familiekoden, ser de samme turneringene, resultatene og bildene.
 
-Versjon nå: **1.38**
+Versjon nå: **1.39**
 
 ## Slik fungerer den for familien
 
@@ -29,7 +29,7 @@ Hver dag har et format:
 - Ryder Cup Singler
 - Finalerunden, med doble poeng
 
-Admin forbereder scorekortet om morgenen: bane, par, hullindex og tildelte slag. Spillerne fører selv. På hull 18 kan alle trykke **Fullfør runde**. Det lukker bare kortet og åpner Stilling. Runden er ikke avsluttet.
+Admin forbereder scorekortet om morgenen: bane, par, hullindex og tildelte slag. Spillerne fører selv. Mens scorekortet er åpent, hentes de andres slag omtrent hvert andre sekund. Dine slag blir ikke byttet ut med andres. På hull 18 kan alle trykke **Fullfør runde**. Det lukker bare kortet og åpner Stilling. Runden er ikke avsluttet.
 
 Bare admin avslutter runden. Da deles Familiemajor-poengene ut, og lunsjregelen vises. Er ikke alle ført opp, kommer det et spørsmål først. Admin kan låse opp kortet igjen.
 
@@ -76,10 +76,10 @@ Dette er hele appen. Ikke legg inn andre mapper.
 
 1. Ta en kopi av den gamle `index.html` før du bytter den.
 2. Last opp den nye `index.html`.
-3. Last opp den nye `sw.js` i samme omgang. Versjonsnavnet inni filen, `familiemajoren-v42`, må være et nytt tall. Ellers kan telefonen vise den gamle appen.
+3. Last opp den nye `sw.js` i samme omgang. Versjonsnavnet inni filen, `familiemajoren-v43`, må være et nytt tall. Ellers kan telefonen vise den gamle appen.
 4. Vent til GitHub Pages er ferdig. Det tar ofte ett minutt.
 5. Lukk siden helt og åpne lenken på nytt.
-6. Gå til **Mer → Innstillinger**. Der skal det stå den nye versjonen, nå **Versjon 1.38**.
+6. Gå til **Mer → Innstillinger**. Der skal det stå den nye versjonen, nå **Versjon 1.39**.
 
 Bytter du bare bildet eller ikonet, last opp den filen og øk tallet i `sw.js` likevel. Ellers kan den gamle utgaven bli hengende.
 
@@ -91,7 +91,7 @@ Alt som skal endres i appen, ligger i `index.html`. Åpne den i en teksteditor. 
 
 | Du vil endre | Søk etter |
 |---|---|
-| Versjonen som vises i appen | `Versjon 1.38` |
+| Versjonen som vises i appen | `Versjon 1.39` |
 | Kortversjonen av charteret | `const CHARTER` |
 | Det fulle charteret | `charter-full-data` |
 | Mottoet | `Ett år som mester` |
