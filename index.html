@@ -316,7 +316,7 @@
         <button type="button" class="menu-row" onclick="openAdminGate()"><svg viewBox="0 0 24 24"><path d="M19.4 13.4a7.6 7.6 0 0 0 .1-1.4 7.6 7.6 0 0 0-.1-1.4l2-1.5-2-3.5-2.4.9a7.4 7.4 0 0 0-2.4-1.4L14.2 2h-4.4l-.4 2.6a7.4 7.4 0 0 0-2.4 1.4l-2.4-.9-2 3.5 2 1.5a7.6 7.6 0 0 0-.1 1.4 7.6 7.6 0 0 0 .1 1.4l-2 1.5 2 3.5 2.4-.9a7.4 7.4 0 0 0 2.4 1.4l.4 2.6h4.4l.4-2.6a7.4 7.4 0 0 0 2.4-1.4l2.4.9 2-3.5-2-1.5z"/><circle cx="12" cy="12" r="2.7"/></svg>Admin<span id="admin-badge" class="badge badge-green hidden" style="margin-left:auto;">Aktiv</span><span class="chev">›</span></button>
         <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
       </div>
-      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.37 · Familiemajoren</p>
+      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.38 · Familiemajoren</p>
     </div>
     <div id="page-admin" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Admin</h1><div class="sub">Innstillinger</div></div></div>
@@ -348,7 +348,7 @@
         <p id="google-redirect" class="text-muted" style="font-size:0.8rem;word-break:break-all;"></p>
       </div>
       <div class="section-label">FARLIG</div>
-      <div class="card"><button class="btn btn-danger btn-block" onclick="resetAllData()">Nullstill all data</button></div>
+      <div class="card"><button class="btn btn-danger btn-block" onclick="resetAllData()">Nullstill all data</button><button class="btn btn-outline btn-block mt-2" onclick="resetCourseBook()">Nullstill banedatabasen</button><p class="text-muted mt-3" style="font-size:0.85rem;">Nullstill all data beholder banene. Banedatabasen slettes bare med knappen under.</p></div>
     </div>
     <div id="page-pin" class="page pin-page">
       <img src="icon-192.png" alt="" class="pin-crest" />
@@ -423,7 +423,6 @@ function normalizeState(s) {
   if (!Array.isArray(s.history)) s.history = [];
   if (!s.hallOfFame || typeof s.hallOfFame !== 'object') s.hallOfFame = { manual: [] };
   if (!Array.isArray(s.hallOfFame.manual)) s.hallOfFame.manual = [];
-  if (!Array.isArray(s.courseBook)) s.courseBook = [];
   return s;
 }
 
@@ -481,6 +480,8 @@ function loadState() {
     const saved = localStorage.getItem('familiemajoren_v1');
     if (saved) state = normalizeState(JSON.parse(saved));
   } catch (e) {}
+  loadCoursesLocal();
+  absorbCoursesFromState(false);
 }
 
 function saveState() {
@@ -489,11 +490,47 @@ function saveState() {
   if (cloudOn && !applyingRemote) schedulePush();
 }
 
+let pushChain = Promise.resolve();
+function enqueuePush(code) {
+  if (!code) return Promise.resolve();
+  pushChain = pushChain.then(function () { return pushCloud(code); }).catch(function () {});
+  return pushChain;
+}
 function schedulePush() {
   const code = localStorage.getItem(CODE_KEY);
   if (!code) return;
   clearTimeout(pushTimer);
-  pushTimer = setTimeout(function () { pushCloud(code); }, 300);
+  pushTimer = setTimeout(function () { enqueuePush(code); }, 300);
+}
+
+async function pushCloud(code) {
+  if (!code) return;
+  cloudSaving = true;
+  try {
+    let remote = null;
+    try {
+      const loaded = await cloudRpc('load_state', { p_password: code });
+      remote = normalizeState(loaded && loaded.data);
+      if (loaded && loaded.updated_at) cloudUpdatedAt = loaded.updated_at;
+    } catch (e) {
+      toast('Lagret på telefonen, men ikke i skyen');
+      return;
+    }
+    const local = normalizeState(JSON.parse(JSON.stringify(state)));
+    const merged = remoteKeeps(remote) ? mergeOutgoing(remote, local) : local;
+    delete merged.courseBook;
+    if (isAdmin() && merged.current) {
+      (merged.current.days || []).forEach(function (day) {
+        if (day && day.completed && day.card && day.card.ready) awardFromCard(day);
+      });
+    }
+    const res = await cloudRpc('save_state', { p_password: code, p_data: merged });
+    if (res && res.updated_at) cloudUpdatedAt = res.updated_at;
+  } catch (e) {
+    toast('Lagret på telefonen, men ikke i skyen');
+  } finally {
+    cloudSaving = false;
+  }
 }
 
 async function cloudRpc(name, body) {
@@ -563,19 +600,6 @@ async function submitCloudGate() {
   }
 }
 
-async function pushCloud(code) {
-  if (!code) return;
-  cloudSaving = true;
-  try {
-    const res = await cloudRpc('save_state', { p_password: code, p_data: normalizeState(state) });
-    if (res && res.updated_at) cloudUpdatedAt = res.updated_at;
-  } catch (e) {
-    toast('Lagret på telefonen, men ikke i skyen');
-  } finally {
-    cloudSaving = false;
-  }
-}
-
 async function connectCloud(code) {
   const loaded = await cloudRpc('load_state', { p_password: code });
   const remote = normalizeState(loaded && loaded.data);
@@ -588,12 +612,14 @@ async function connectCloud(code) {
   } else if (!cloudIsEmpty(remote)) {
     applyingRemote = true;
     state = remote;
+    absorbCoursesFromState(false);
     localStorage.setItem('familiemajoren_v1', JSON.stringify(state));
     applyingRemote = false;
   } else {
     await pushCloud(code);
   }
   cloudOn = true;
+  await pullCourses();
   startCloudPoll();
   navigate(currentPage || 'home');
   finishGoogleLink();
@@ -640,11 +666,17 @@ async function pullCloud() {
     if (!loaded || !loaded.updated_at || loaded.updated_at === cloudUpdatedAt) return;
     applyingRemote = true;
     const remote = normalizeState(loaded.data);
+    const carriedCourses = Array.isArray(remote.courseBook) ? remote.courseBook : [];
     state = mergeRemoteCards(state, remote);
     cloudUpdatedAt = loaded.updated_at;
+    if (carriedCourses.length) {
+      state.courseBook = carriedCourses;
+      absorbCoursesFromState(true);
+    }
     localStorage.setItem('familiemajoren_v1', JSON.stringify(state));
     applyingRemote = false;
     refreshVisible();
+    pullCourses();
   } catch (e) {
     applyingRemote = false;
   }
@@ -1486,9 +1518,94 @@ function openCourseBook() {
   courseSearch = { q: '', mode: 'search', draft: null, teeIndex: 0, picked: null, same: true, from: 'book' };
   navigate('course-search');
 }
+let courses = [];
+let courseUpdatedAt = null;
+const COURSE_KEY = 'familiemajoren_courses';
 function courseBook() {
-  if (!Array.isArray(state.courseBook)) state.courseBook = [];
-  return state.courseBook;
+  if (!Array.isArray(courses)) courses = [];
+  return courses;
+}
+function loadCoursesLocal() {
+  try { courses = JSON.parse(localStorage.getItem(COURSE_KEY) || '[]'); } catch (e) { courses = []; }
+  if (!Array.isArray(courses)) courses = [];
+}
+function saveCoursesLocal() {
+  localStorage.setItem(COURSE_KEY, JSON.stringify(courses));
+}
+function mergeCourseLists(a, b) {
+  const map = {};
+  (a || []).forEach(function (c) { if (c && c.id) map[c.id] = c; });
+  (b || []).forEach(function (c) {
+    if (!c || !c.id) return;
+    const prev = map[c.id];
+    if (!prev || String(c.updatedAt || '') >= String(prev.updatedAt || '')) map[c.id] = c;
+  });
+  return Object.keys(map).map(function (id) { return map[id]; });
+}
+function absorbCoursesFromState(upload) {
+  const incoming = state && Array.isArray(state.courseBook) ? state.courseBook : [];
+  if (incoming.length) {
+    const before = JSON.stringify(courses);
+    courses = mergeCourseLists(courses, incoming);
+    if (JSON.stringify(courses) !== before) {
+      saveCoursesLocal();
+      if (upload) pushCourses(true);
+    }
+  }
+  if (state && state.courseBook) {
+    delete state.courseBook;
+    try { localStorage.setItem('familiemajoren_v1', JSON.stringify(state)); } catch (e) {}
+  }
+}
+async function pushCourses(quiet) {
+  const code = localStorage.getItem(CODE_KEY);
+  if (!code || !cloudOn) return;
+  try {
+    const res = await cloudRpc('save_courses', { p_password: code, p_courses: courses });
+    if (res && res.updated_at) courseUpdatedAt = res.updated_at;
+  } catch (e) {
+    if (!quiet) toast('Banen er lagret på telefonen. Kjør banebok-scriptet i Supabase for å dele den.');
+  }
+}
+async function pullCourses() {
+  const code = localStorage.getItem(CODE_KEY);
+  if (!code || !cloudOn) return;
+  try {
+    const loaded = await cloudRpc('load_courses', { p_password: code });
+    const remote = loaded && Array.isArray(loaded.courses) ? loaded.courses : [];
+    if (loaded && loaded.updated_at) courseUpdatedAt = loaded.updated_at;
+    if (!remote.length && courses.length) {
+      await pushCourses(true);
+      return;
+    }
+    const merged = mergeCourseLists(remote, courses);
+    const grew = JSON.stringify(merged) !== JSON.stringify(remote);
+    courses = merged;
+    saveCoursesLocal();
+    if (grew) await pushCourses(true);
+    if (currentPage === 'course-search') renderCourseSearch();
+  } catch (e) {}
+}
+async function resetCourseBook() {
+  if (!isAdmin()) { toast('Lås opp admin først'); return; }
+  if (!confirm('Dette sletter alle banene i baneboken, på alle telefoner. Turneringen, historikken og Hall of Fame beholdes.')) return;
+  const prev = courses.slice();
+  courses = [];
+  saveCoursesLocal();
+  const code = localStorage.getItem(CODE_KEY);
+  if (code && cloudOn) {
+    try {
+      const res = await cloudRpc('save_courses', { p_password: code, p_courses: [] });
+      if (res && res.updated_at) courseUpdatedAt = res.updated_at;
+    } catch (e) {
+      courses = prev;
+      saveCoursesLocal();
+      toast('Banene ble ikke slettet. Kjør banebok-scriptet i Supabase først.');
+      return;
+    }
+  }
+  toast('Baneboken er tømt');
+  if (currentPage === 'course-search') renderCourseSearch();
 }
 function blankHoles() {
   return Array.from({ length: 18 }, function (_, i) { return { par: 4, index: i + 1, hcp: i + 1 }; });
@@ -1695,7 +1812,8 @@ function saveCourseBookEntry() {
   const book = courseBook();
   const idx = book.findIndex(function (c) { return c.id === saved.id; });
   if (idx >= 0) book[idx] = saved; else book.push(saved);
-  saveState();
+  saveCoursesLocal();
+  pushCourses();
   toast('Banen er lagret');
   courseSearch.mode = 'search';
   courseSearch.q = d.club;
@@ -1850,6 +1968,7 @@ function setGross(name, hole, value) {
   ensureCard(day);
   if (!day.card.gross[name]) day.card.gross[name] = Array(18).fill(null);
   day.card.gross[name][hole] = value;
+  dirtyHoles[dirtyGrossKey(cardDay, name, hole)] = true;
   if (day.completed && isAdmin()) awardFromCard(day);
   saveState();
   renderLiveCard();
@@ -1931,7 +2050,7 @@ function missingHolesForMe(day) {
   if (day.format === 'scramble') {
     const found = scrambleMatch(day, me);
     const arr = found && day.card.scramble ? (day.card.scramble[found.idx] || []) : [];
-    for (let i = 0; i < 18; i++) if (!arr[i]) missing.push(i + 1);
+    for (let i = 0; i < 18; i++) if (!scrambleVal(arr[i])) missing.push(i + 1);
     return missing;
   }
   for (let i = 0; i < 18; i++) if (grossAt(day, me, i) == null) missing.push(i + 1);
@@ -2032,17 +2151,19 @@ function matchCardHtml(day, match, locked) {
 function scramblePot(arr, hole) {
   let pot = 1;
   for (let i = 0; i < hole; i++) {
-    if (!arr[i]) return null;
-    pot = arr[i] === 'H' ? pot + 1 : 1;
+    const v = scrambleVal(arr[i]);
+    if (!v) return null;
+    pot = v === 'H' ? pot + 1 : 1;
   }
   return pot;
 }
 function scrambleTotals(arr) {
   let pot = 1, a = 0, b = 0, pending = false;
   for (let i = 0; i < 18; i++) {
-    if (!arr[i]) { pending = true; break; }
-    if (arr[i] === 'H') pot += 1;
-    else { if (arr[i] === 'A') a += pot; else b += pot; pot = 1; }
+    const v = scrambleVal(arr[i]);
+    if (!v) { pending = true; break; }
+    if (v === 'H') pot += 1;
+    else { if (v === 'A') a += pot; else b += pot; pot = 1; }
   }
   return { a: a, b: b, pending: pending };
 }
@@ -2058,7 +2179,7 @@ function setScramble(val) {
   ensureCard(day);
   if (!day.card.scramble[use]) day.card.scramble[use] = Array(18).fill(null);
   if (scramblePot(day.card.scramble[use], cardHole) == null) { toast('Fyll hullene foran først'); return; }
-  day.card.scramble[use][cardHole] = val;
+  day.card.scramble[use][cardHole] = { v: val, t: Date.now() };
   saveState();
   renderLiveCard();
 }
@@ -2080,7 +2201,7 @@ function scrambleCardHtml(day, match, idx, locked) {
   const tot = scrambleTotals(arr);
   const a = teamLook(day, match.teamA);
   const b = teamLook(day, match.teamB);
-  const chosen = arr[cardHole];
+  const chosen = scrambleVal(arr[cardHole]);
   const can = !cardLocked(day) && (isAdmin() || match.teamA.includes(myName()) || match.teamB.includes(myName())) && pot != null;
   const btn = function (val, label) {
     if (!can) return '<div class="pick' + (chosen === val ? ' on' : '') + '">' + label + '</div>';
@@ -2091,7 +2212,7 @@ function scrambleCardHtml(day, match, idx, locked) {
     '<div class="gold-result">Dette hullet er verdt ' + (pot == null ? '–' : pot) + '</div><div class="mt-3">' +
     (pot == null && !chosen ? '<p class="text-muted">Fyll hullene foran først.</p>' : btn('A', a.name + ' vinner') + btn('H', 'Delt') + btn('B', b.name + ' vinner')) +
     '</div><div class="points-box">Hullpoeng: ' + a.name + ' (' + tot.a + ') – ' + b.name + ' (' + tot.b + ')</div>' +
-    holeDotRow(function (i) { return !!arr[i]; }) + holeNav(cardHole) + '</div>';
+    holeDotRow(function (i) { return !!scrambleVal(arr[i]); }) + holeNav(cardHole) + '</div>';
 }
 function cardHead(day, title, sub) {
   return '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>' + title + '</h1><div class="sub">' + (sub || ('Dag ' + day.dayNumber + ' · ' + (FORMATS[day.format] || ''))) + '</div></div></div>';
@@ -2209,9 +2330,10 @@ function missingNamed(day, name) {
   for (let i = 0; i < 18; i++) if (grossAt(day, name, i) == null) return true;
   return false;
 }
-function finishLiveRound() {
+function finishDayFromCard(dayIndex) {
   if (!isAdmin()) return;
-  const day = state.current.days[cardDay];
+  const day = state.current && state.current.days[dayIndex];
+  if (!day || !day.card || !day.card.ready) return;
   if (cardIncomplete(day) && !confirm('Er du sikker på at du vil avslutte runden? Ikke alle har ført opp.')) return;
   awardFromCard(day);
   day.completed = true;
@@ -2221,6 +2343,14 @@ function finishLiveRound() {
   const sponsors = computeLunchSponsors(day, state.current);
   navigate('tournament');
   setTimeout(function () { showLunchPopup(sponsors, state.current.players.length); }, 400);
+}
+function finishLiveRound() {
+  finishDayFromCard(cardDay);
+}
+function cardPointsPreview(day) {
+  const copy = JSON.parse(JSON.stringify(day));
+  awardFromCard(copy);
+  return copy.points || {};
 }
 function liveDayHtml(t) {
   const day = (t.days || []).find(function (d) { return d.card && d.card.ready && d.published; });
@@ -2300,6 +2430,97 @@ function cardFeats(t) {
   });
   return feats;
 }
+let dirtyHoles = {};
+function dirtyGrossKey(dayIndex, name, hole) { return dayIndex + '|' + name + '|' + hole; }
+function scrambleVal(cell) {
+  if (cell && typeof cell === 'object') return cell.v || null;
+  return cell || null;
+}
+function scrambleTime(cell) {
+  if (cell && typeof cell === 'object') return cell.t || 0;
+  return 0;
+}
+function overlayGross(targetDay, dayIndex, sourceDay, admin) {
+  const me = myName();
+  const sg = (sourceDay && sourceDay.card && sourceDay.card.gross) || {};
+  if (!targetDay.card) return;
+  if (!targetDay.card.gross) targetDay.card.gross = {};
+  Object.keys(sg).forEach(function (name) {
+    if (!admin && name !== me) return;
+    const src = sg[name] || [];
+    if (!targetDay.card.gross[name]) targetDay.card.gross[name] = Array(18).fill(null);
+    for (let h = 0; h < 18; h++) {
+      const dirty = !!dirtyHoles[dirtyGrossKey(dayIndex, name, h)];
+      const has = src[h] != null && src[h] !== '';
+      if (admin) {
+        if (dirty || (name === me && has)) targetDay.card.gross[name][h] = src[h];
+      } else if (dirty || has) {
+        targetDay.card.gross[name][h] = src[h];
+      }
+    }
+  });
+}
+function overlayScramble(targetDay, sourceDay) {
+  const src = (sourceDay && sourceDay.card && sourceDay.card.scramble) || {};
+  if (!targetDay.card) return;
+  if (!targetDay.card.scramble) targetDay.card.scramble = {};
+  Object.keys(src).forEach(function (idx) {
+    const sArr = src[idx] || [];
+    if (!targetDay.card.scramble[idx]) targetDay.card.scramble[idx] = Array(18).fill(null);
+    const tArr = targetDay.card.scramble[idx];
+    for (let h = 0; h < 18; h++) {
+      if (scrambleTime(sArr[h]) > scrambleTime(tArr[h])) tArr[h] = sArr[h];
+    }
+  });
+}
+function remoteKeeps(remote) {
+  if (!remote) return false;
+  const hof = remote.hallOfFame || {};
+  const manual = hof.manual;
+  const peaks = hof.peaks && Object.keys(hof.peaks).length;
+  return !!(remote.current || (remote.history && remote.history.length) || (manual && manual.length) || peaks || remote.adminPin);
+}
+function mergeOutgoing(remote, local) {
+  const out = JSON.parse(JSON.stringify(remote || {}));
+  delete out.courseBook;
+  const admin = isAdmin();
+  if (admin && local && !local.current) {
+    out.current = null;
+    out.history = Array.isArray(local.history) ? local.history : [];
+    out.hallOfFame = local.hallOfFame || { manual: [] };
+    if (local.adminPin) out.adminPin = local.adminPin;
+    return out;
+  }
+  if (!local || !local.current) return out;
+  if (admin) {
+    const localCur = JSON.parse(JSON.stringify(local.current));
+    const remoteDays = (out.current && out.current.days) || [];
+    (localCur.days || []).forEach(function (ld, i) {
+      const rd = remoteDays[i];
+      if (!ld) return;
+      if (!ld.card) ld.card = rd && rd.card ? JSON.parse(JSON.stringify(rd.card)) : null;
+      if (!ld.card) return;
+      ld.card.gross = JSON.parse(JSON.stringify((rd && rd.card && rd.card.gross) || ld.card.gross || {}));
+      ld.card.scramble = JSON.parse(JSON.stringify((rd && rd.card && rd.card.scramble) || ld.card.scramble || {}));
+      overlayGross(ld, i, local.current.days[i], true);
+      overlayScramble(ld, local.current.days[i]);
+    });
+    out.current = localCur;
+    out.history = local.history;
+    out.hallOfFame = local.hallOfFame;
+    if (local.adminPin) out.adminPin = local.adminPin;
+  } else if (out.current) {
+    (local.current.days || []).forEach(function (ld, i) {
+      const rd = out.current.days && out.current.days[i];
+      if (!rd || !ld || !ld.card) return;
+      if (!rd.card) rd.card = { ready: false, holes: [], allocated: {}, gross: {}, scramble: {} };
+      overlayGross(rd, i, ld, false);
+      overlayScramble(rd, ld);
+    });
+  }
+  delete out.courseBook;
+  return out;
+}
 function mergeRemoteCards(local, remote) {
   if (!remote) return local || remote;
   const me = localStorage.getItem(ME_KEY) || '';
@@ -2318,14 +2539,18 @@ function mergeRemoteCards(local, remote) {
         const a = lg[name] || [];
         const b = rg[name] || [];
         rd.card.gross[name] = Array.from({ length: 18 }, function (_, h) {
+          const dirty = name === me && !!dirtyHoles[dirtyGrossKey(i, name, h)];
+          if (dirty) return a[h];
           if (name === me && a[h] != null && a[h] !== '') return a[h];
           if (b[h] != null && b[h] !== '') return b[h];
           return a[h] != null && a[h] !== '' ? a[h] : null;
         });
       });
+      overlayScramble(rd, ld);
     });
   }
   if (local && local.current && remote.current) mergeDays(local.current.days, remote.current.days);
+  delete remote.courseBook;
   return remote;
 }
 function allCardFeats() {
@@ -2544,6 +2769,15 @@ function renderScoring() {
   const t = state.current;
   if (!t) return;
   const day = t.days[currentScoringDay];
+  if (day.card && day.card.ready) {
+    const pts = day.completed && day.points ? day.points : cardPointsPreview(day);
+    const rows = Object.keys(pts).sort(function (a, b) { return (pts[b] || 0) - (pts[a] || 0); }).map(function (name) {
+      return '<div class="flex justify-between" style="padding:8px 0;border-bottom:1px solid var(--gray-100);"><span>' + name + '</span><strong>' + pts[name] + ' p</strong></div>';
+    }).join('');
+    const shortName = day.format === 'final' ? 'Finalerunden' : (FORMATS[day.format] || '');
+    el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Dag ' + day.dayNumber + ' · ' + shortName + '</h1><div class="sub">' + t.year + ' · ' + t.sted + '</div></div></div><div class="card"><p class="text-muted mb-3">Poengene kommer fra scorekortet. Det er de samme som når runden avsluttes.</p>' + (rows || '<p class="text-muted">Ingen poeng ennå.</p>') + (isAdmin() && !day.completed ? '<button class="btn btn-primary btn-block mt-3" onclick="finishDayFromCard(' + currentScoringDay + ')">Lagre dagens poeng</button>' : (day.completed ? '<p class="text-muted mt-3">Dagen er avsluttet. Endringer gjøres på scorekortet.</p>' : '<p class="text-muted mt-3">Admin avslutter dagen. Poengene blir som vist her.</p>')) + '</div>';
+    return;
+  }
   const isTeam = ['fourball', 'scramble'].includes(day.format);
   const isSingles = day.format === 'singles';
   const isIndividual = ['stableford', 'final'].includes(day.format);
@@ -2923,6 +3157,7 @@ function renderHoF() {
 function saveScoring() {
   const t = state.current;
   const day = t.days[currentScoringDay];
+  if (day.card && day.card.ready) { finishDayFromCard(currentScoringDay); return; }
   if (!isAdmin() && !day.published) { toast('Dagen er avsluttet'); return; }
   day.course = document.getElementById('scoring-course').value.trim();
   const n = t.players.length;
@@ -3488,7 +3723,7 @@ function importData(event) {
 }
 
 async function resetAllData() {
-  if (!confirm('Dette sletter turneringen, historikken, poengene og Hall of Fame i appen og i skyen, på alle telefoner. Familiekoden og Google-koblingen beholdes. Bilder i Google Foto slettes ikke.')) return;
+  if (!confirm('Dette sletter turneringen, historikken, poengene og Hall of Fame i appen og i skyen, på alle telefoner. Banene, familiekoden og Google-koblingen beholdes. Bilder i Google Foto slettes ikke.')) return;
   state = normalizeState({ current: null, history: [], hallOfFame: { manual: [] } });
   localStorage.setItem('familiemajoren_v1', JSON.stringify(state));
   const code = localStorage.getItem(CODE_KEY);
