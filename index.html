@@ -48,11 +48,17 @@
     .status-big { text-align: center; font-size: 1.35rem; font-weight: 700; margin: 12px 0; }
     .pick { display: block; width: 100%; text-align: center; padding: 16px; margin-bottom: 10px; border-radius: 14px; border: 1.5px solid #e5e7eb; background: #fff; font-weight: 700; font-size: 1.05rem; }
     .pick.on { background: #14532d; color: #fff; border-color: #14532d; }
-    .full-table { width: 100%; }
-    .full-head, .full-row { display: grid; grid-template-columns: 1.4fr .7fr .7fr 1fr; padding: 11px 4px; }
-    .full-head { color: #6b7280; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; }
-    .full-row { border-top: 1px solid #f3f4f6; }
-    .full-row.now { background: #fbf6e8; border-radius: 8px; }
+    .full-table { width: 100%; border: 1px solid rgba(255,255,255,0.16); }
+    .full-head, .full-row { display: grid; grid-template-columns: 1.15fr 1fr 1fr 1fr; padding: 0; }
+    .full-head span, .full-row > span { display: flex; align-items: center; justify-content: center; text-align: center; padding: 9px 2px; border-left: 1px solid rgba(255,255,255,0.14); min-height: 38px; }
+    .full-head span:first-child, .full-row > span:first-child { border-left: 0; }
+    .full-head { color: rgba(247,244,238,0.55); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.16); }
+    .full-row { border-top: 1px solid rgba(255,255,255,0.12); color: #f7f4ee; }
+    .full-row.now { background: rgba(228,197,106,0.1); }
+    .full-row.sum { font-weight: 700; color: #e4c56a; }
+    .full-row.sum-ut, .full-row.sum-tot { background: rgba(228,197,106,0.16); }
+    .full-back { display: block; width: 100%; margin-top: 18px; height: 52px; border-radius: 16px; border: 1px solid rgba(247,244,238,0.28); background: transparent; color: rgba(247,244,238,0.86); font-size: 1rem; font-family: inherit; cursor: pointer; }
+    body.score-lock, body.score-lock * { touch-action: manipulation; }
     .points-box { margin-top: 14px; border: 1.5px solid #e5e7eb; background: #f9fafb; border-radius: 12px; text-align: center; font-weight: 700; padding: 14px; }
     .team-line { text-align: center; font-weight: 700; }
     .home-banner-motto { position: absolute; z-index: 1; left: 18px; right: 18px; bottom: 16px; margin: 0; font-family: 'Playfair Display', Georgia, serif; font-size: 1.35rem; line-height: 1.25; text-shadow: 0 2px 12px rgba(0,0,0,.55); }
@@ -287,6 +293,9 @@
     body.tone-match .full-head { color: rgba(247,244,238,0.55); background: transparent; }
     body.tone-match .full-row { color: #f7f4ee; border-top-color: rgba(255,255,255,0.12); }
     body.tone-match .full-row.now { background: rgba(228,197,106,0.14); }
+    body.tone-match .full-row.sum { color: #e4c56a; }
+    body.tone-match .full-row.sum-ut,
+    body.tone-match .full-row.sum-tot { background: rgba(228,197,106,0.16); }
     body.tone-match .group-choice { background: transparent; color: #f7f4ee; border-color: rgba(255,255,255,0.28); text-align: center; }
     .board-stage { padding-top: calc(12px + env(safe-area-inset-top)); padding-bottom: 12px; }
     .board-kicker { text-align: center; color: #e4c56a; letter-spacing: 0.22em; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; }
@@ -394,7 +403,7 @@
         <button type="button" class="menu-row" onclick="openAdminGate()"><svg viewBox="0 0 24 24"><path d="M19.4 13.4a7.6 7.6 0 0 0 .1-1.4 7.6 7.6 0 0 0-.1-1.4l2-1.5-2-3.5-2.4.9a7.4 7.4 0 0 0-2.4-1.4L14.2 2h-4.4l-.4 2.6a7.4 7.4 0 0 0-2.4 1.4l-2.4-.9-2 3.5 2 1.5a7.6 7.6 0 0 0-.1 1.4 7.6 7.6 0 0 0 .1 1.4l-2 1.5 2 3.5 2.4-.9a7.4 7.4 0 0 0 2.4 1.4l.4 2.6h4.4l.4-2.6a7.4 7.4 0 0 0 2.4-1.4l2.4.9 2-3.5-2-1.5z"/><circle cx="12" cy="12" r="2.7"/></svg>Admin<span id="admin-badge" class="badge badge-green hidden" style="margin-left:auto;">Aktiv</span><span class="chev">›</span></button>
         <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
       </div>
-      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.42 · Familiemajoren</p>
+      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.43 · Familiemajoren</p>
     </div>
     <div id="page-admin" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Admin</h1><div class="sub">Innstillinger</div></div></div>
@@ -856,6 +865,7 @@ function syncChrome(pageId) {
   currentPage = pageId;
   const matchTone = pageId === 'home' || pageId === 'leaderboard' || pageId === 'card' || pageId === 'history-card';
   document.body.classList.toggle('tone-match', matchTone);
+  document.body.classList.toggle('score-lock', pageId === 'card' || pageId === 'history-card');
   const theme = document.querySelector('meta[name="theme-color"]');
   if (theme) theme.setAttribute('content', matchTone ? '#071a10' : '#ffffff');
   const header = document.querySelector('.app-header');
@@ -2256,16 +2266,20 @@ function grossMark(day, name, i) {
   return '';
 }
 function renderFullStableford(el, day, name, back) {
-  let rows = '';
+  let front = '', backNine = '';
   for (let i = 0; i < 18; i++) {
     const g = grossAt(day, name, i);
     const par = holeAt(day, name, i).par || 4;
     const pts = stablefordAt(day, name, i);
-    rows += '<div class="full-row' + (i === cardHole ? ' now' : '') + '"><span>' + (i + 1) + grossMark(day, name, i) + '</span><span>' + par + '</span><span>' + (g == null ? '–' : g) + '</span><span>' + (pts == null ? '–' : pts) + '</span></div>';
+    const row = '<div class="full-row' + (i === cardHole ? ' now' : '') + '"><span>' + (i + 1) + grossMark(day, name, i) + '</span><span>' + par + '</span><span>' + (g == null ? '–' : g) + '</span><span>' + (pts == null ? '–' : pts) + '</span></div>';
+    if (i < 9) front += row; else backNine += row;
   }
   const out = rangeSums(day, name, 0, 9), inn = rangeSums(day, name, 9, 18), all = rangeSums(day, name, 0, 18);
   el.innerHTML = cardHead(day, 'Hele scorekortet', name) +
-    '<div class="card"><div class="full-table"><div class="full-head"><span>Hull</span><span>Par</span><span>Slag</span><span>Poeng</span></div>' + rows + '</div><div class="mt-3">' + sumLine('Ut', out) + sumLine('Inn', inn) + sumLine('Totalt', all) + '</div><button class="btn btn-secondary btn-block mt-3" onclick="' + back + '">Tilbake til hullet</button></div>';
+    '<div class="full-sheet"><div class="full-table"><div class="full-head"><span>Hull</span><span>Par</span><span>Slag</span><span>Poeng</span></div>' +
+    front + sumRow('Ut', out, 'ut') + '</div><div class="nine-gap"></div><div class="full-table">' +
+    backNine + sumRow('Inn', inn, 'inn') + sumRow('Totalt', all, 'tot') +
+    '</div><button type="button" class="full-back" onclick="' + back + '">Tilbake til hullet</button></div>';
 }
 function playerRow(day, name, locked) {
   const g = grossAt(day, name, cardHole);
@@ -2384,16 +2398,19 @@ function cardHead(day, title, sub) {
 function rangeSums(day, name, from, to) {
   let par = 0, slag = 0, poeng = 0, n = 0;
   for (let i = from; i < to; i++) {
+    par += holeAt(day, name, i).par || 0;
     const g = grossAt(day, name, i);
     if (g == null) continue;
-    n++; par += holeAt(day, name, i).par || 0; slag += g;
+    n++;
+    slag += g;
     const p = stablefordAt(day, name, i);
     if (p != null) poeng += p;
   }
-  return { par: par, slag: slag, poeng: poeng, n: n };
+  return { par: par, slag: n ? slag : null, poeng: n ? poeng : null, n: n };
 }
-function sumLine(label, s) {
-  return '<div class="flex justify-between" style="font-size:0.92rem;margin-top:6px;"><strong>' + label + '</strong><span>Par ' + (s.par || 0) + ' · Slag ' + (s.slag || 0) + ' · Poeng ' + (s.poeng || 0) + '</span></div>';
+function sumRow(label, s, kind) {
+  const cell = function (v) { return v == null ? '–' : v; };
+  return '<div class="full-row sum sum-' + kind + '"><span>' + label + '</span><span>' + s.par + '</span><span>' + cell(s.slag) + '</span><span>' + cell(s.poeng) + '</span></div>';
 }
 function roundButtons(day) {
   if (!isAdmin()) return '';
