@@ -4,7 +4,7 @@ Familie-Majoren er familiens årlige golfmesterskap, som en app på telefonen. D
 
 Appen er én nettside. Den ligger på GitHub Pages. Alle som har lenken og familiekoden, ser de samme turneringene, resultatene og bildene.
 
-Versjon nå: **1.44**
+Versjon nå: **1.45**
 
 ## Slik fungerer den for familien
 
@@ -19,7 +19,7 @@ Nederst er fem knapper.
 | Media | Bilder, sortert på år og dag |
 | Mer | Live, historikk, Hall of Fame, charter og innstillinger |
 
-En turnering opprettes med sted, startdato og sluttdato. Året settes ut fra datoene. Spillere, handicap og format kan fylles inn senere, under **Turneringsinnstillinger**. De låses når første resultat er lagret.
+En turnering opprettes med sted, startdato og sluttdato. Året settes ut fra datoene. Spillere fylles inn med fornavn, etternavn, handicap og herre eller dame. Det kan gjøres senere, under **Turneringsinnstillinger**. De låses når første resultat er lagret. Scorekortet viser fornavn. Heter to det samme, blir det «Anna K.». Vinner, kåring og historikk viser alltid fullt navn.
 
 Hver dag har et format:
 
@@ -31,7 +31,7 @@ Hver dag har et format:
 
 Admin forbereder scorekortet om morgenen: bane, par, hullindex og tildelte slag. Spillerne fører selv. Mens scorekortet er åpent, hentes de andres slag omtrent hvert andre sekund. Dine slag blir ikke byttet ut med andres. Mellom hull trykker du **Forrige** og **Neste**. På hull 18 heter den siste knappen **Fullfør runde**. Det lukker bare kortet og åpner Stilling. Runden er ikke avsluttet. Prikkene over viser bare hvor langt dere er kommet.
 
-Bare admin avslutter runden. Da deles Familiemajor-poengene ut, og lunsjregelen vises. Er ikke alle ført opp, kommer det et spørsmål først. Admin kan låse opp kortet igjen.
+Bare admin avslutter runden. Da deles Familiemajor-poengene ut, og lunsjregelen vises. Nederste halvdel av resultatlisten betaler. Med to spillere er det den som tapte, også om det bare er ett poeng. Er ikke alle ført opp, kommer det et spørsmål først. Admin kan låse opp kortet igjen.
 
 Når året er ferdig, trykker admin **Turnering ferdig**. Den flyttes til historikk og kan ikke endres. En enkelt turnering kan slettes uten å tømme alt annet.
 
@@ -39,7 +39,7 @@ Når året er ferdig, trykker admin **Turnering ferdig**. Den flyttes til histor
 
 Hjem, scorekort, stilling, et gammelt scorekort og Live er mørke. Gull brukes på det som er aktivt: lederen, den valgte fanen og knappen til dagens kort. Menyen nederst er mørk på de sidene. Turnering, innstillinger, charter og de andre sidene er lyse.
 
-**Mer → Live** er storskjermen mens en dag er publisert. Den oppdaterer seg når noen fører et hull, og viser en kort melding når stillingen flytter seg. **Fullskjerm** fyller skjermen. **Vis på skjerm** prøver å sende brettet videre. Virker ikke det, bruker du skjermspeiling på telefonen. Lenken med `?board=1` bakerst åpner Live direkte. Live endrer ingen score.
+**Mer → Live** er storskjermen. Mens en dag pågår, oppdaterer den seg når noen fører et hull, og viser en kort melding når stillingen flytter seg. Er ingen dag i gang, vises sammenlagttabellen. Så kommer hver ferdigspilt dag, ett bilde om gangen, før tabellen kommer tilbake. **Fullskjerm** fyller skjermen. Da er knappene bare **Lukk** og **Cast**. **Lukk** går ut av fullskjerm og tilbake til Mer. **Cast** på Android åpner Chromecast når app-IDen er lagt inn under Admin. På iPhone sier knappen at du skal speile skjermen. Live endrer ingen score.
 
 ## Admin og alle andre
 
@@ -56,6 +56,17 @@ Admin låses opp med en kode under **Mer → Innstillinger**. Da kan du:
 
 Andre kan føre sine egne slag, se stillingen, historikken, charteret og bildene. De kan ikke endre andres kort.
 
+## Cast
+
+Cast til Chromecast gjøres fra Android, også når appen ligger på hjemskjermen. Det krever én registrering hos Google.
+
+1. Åpne [Google Cast SDK Developer Console](https://cast.google.com/publish) og legg inn en mottaker.
+2. Mottakeradressen er appens adresse med `cast.html` bakerst.
+3. Kopier app-IDen og lim den inn under **Mer → Innstillinger → Admin → Cast**.
+4. På Live trykker du **Cast** og velger TV-en. Telefonen sender stillingen. TV-en viser bare brettet, uten knapper.
+
+På iPhone kan ikke knappen starte Chromecast. Der bruker du fullskjerm og skjermspeiling.
+
 ## Bilder
 
 Bildene lagres i Google Foto, i ett album per år: `Familiemajoren 2027`. Appen sorterer dem på dag. Google-koblingen settes opp én gang under Innstillinger. Hemmeligheten lagres i skyen, ikke i denne mappen.
@@ -69,6 +80,7 @@ Dette er hele appen. Ikke legg inn andre mapper.
 | Fil | Hva den er |
 |---|---|
 | `index.html` | Hele appen: sider, regler, regnestykker og charter |
+| `cast.html` | Brettet som vises på Chromecast. Telefonen sender stillingen hit. |
 | `sw.js` | Gjør at telefonen husker siden, og at en ny versjon faktisk lastes |
 | `manifest.webmanifest` | Navnet **Familie-Majoren** og ikonene når appen legges på hjemskjermen |
 | `icon-192.png` og `icon-512.png` | Appikonet |
@@ -82,10 +94,10 @@ Dette er hele appen. Ikke legg inn andre mapper.
 
 1. Ta en kopi av den gamle `index.html` før du bytter den.
 2. Last opp den nye `index.html`.
-3. Last opp den nye `sw.js` i samme omgang. Versjonsnavnet inni filen, `familiemajoren-v48`, må være et nytt tall. Ellers kan telefonen vise den gamle appen.
+3. Last opp den nye `sw.js` og `cast.html` i samme omgang. Versjonsnavnet inni `sw.js`, `familiemajoren-v50`, må være et nytt tall. Ellers kan telefonen vise den gamle appen.
 4. Vent til GitHub Pages er ferdig. Det tar ofte ett minutt.
 5. Lukk siden helt og åpne lenken på nytt.
-6. Gå til **Mer → Innstillinger**. Der skal det stå den nye versjonen, nå **Versjon 1.44**.
+6. Gå til **Mer → Innstillinger**. Der skal det stå den nye versjonen, nå **Versjon 1.45**.
 
 Bytter du bare bildet eller ikonet, last opp den filen og øk tallet i `sw.js` likevel. Ellers kan den gamle utgaven bli hengende.
 
@@ -97,7 +109,7 @@ Alt som skal endres i appen, ligger i `index.html`. Åpne den i en teksteditor. 
 
 | Du vil endre | Søk etter |
 |---|---|
-| Versjonen som vises i appen | `Versjon 1.44` |
+| Versjonen som vises i appen | `Versjon 1.45` |
 | Kortversjonen av charteret | `const CHARTER` |
 | Det fulle charteret | `charter-full-data` |
 | Mottoet | `Ett år som mester` |

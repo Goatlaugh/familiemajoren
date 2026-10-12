@@ -1,4 +1,4 @@
-const CACHE = 'familiemajoren-v48';
+const CACHE = 'familiemajoren-v50';
 const FILES = [
   './',
   './index.html',
@@ -6,7 +6,8 @@ const FILES = [
   './icon-192.png',
   './icon-512.png',
   './apple-touch-icon.png',
-  './manifest.webmanifest'
+  './manifest.webmanifest',
+  './cast.html'
 ];
 
 self.addEventListener('install', function (event) {
