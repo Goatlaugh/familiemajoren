@@ -59,6 +59,52 @@
     .full-row.sum-ut, .full-row.sum-tot { background: rgba(228,197,106,0.16); }
     .full-back { display: block; width: 100%; margin-top: 18px; height: 52px; border-radius: 16px; border: 1px solid rgba(247,244,238,0.28); background: transparent; color: rgba(247,244,238,0.86); font-size: 1rem; font-family: inherit; cursor: pointer; }
     body.score-lock, body.score-lock * { touch-action: manipulation; }
+    .live-dot { width: 12px; height: 12px; border-radius: 50%; background: #e4c56a; box-shadow: 0 0 0 4px rgba(228,197,106,0.2); flex: none; }
+    body.live-on { background: #071a10; padding-bottom: 0; }
+    body.live-on .container { max-width: none; padding: 0; }
+    body.live-on .bottom-nav { display: none; }
+    #page-live { min-height: 100dvh; background: #071a10; color: #f7f4ee; }
+    #live-content { position: relative; min-height: 100dvh; }
+    .live-board { min-height: 100dvh; padding: calc(58px + env(safe-area-inset-top)) 28px 28px; display: flex; flex-direction: column; position: relative; }
+    .live-tools { position: absolute; top: calc(12px + env(safe-area-inset-top)); left: 16px; right: 16px; display: flex; justify-content: space-between; gap: 12px; }
+    .live-tools button { background: transparent; border: 0; color: rgba(247,244,238,0.55); font: inherit; font-size: 0.85rem; cursor: pointer; padding: 6px 0; }
+    .live-kicker { display: flex; justify-content: space-between; gap: 12px; color: #e4c56a; letter-spacing: 0.14em; font-size: 0.72rem; font-weight: 700; }
+    .live-hero { display: flex; justify-content: space-between; align-items: flex-end; gap: 18px; padding: 18px 0 8px; }
+    .live-hero-name { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(3.2rem, 10vw, 6.4rem); line-height: 0.9; color: #fff; }
+    .live-hero-pts { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(3.6rem, 12vw, 7rem); line-height: 0.82; color: #e4c56a; }
+    .live-sub { color: rgba(247,244,238,0.62); margin-top: 10px; }
+    .live-rows { margin-top: 18px; }
+    .live-line { display: grid; grid-template-columns: 2rem 1fr auto auto; gap: 14px; align-items: baseline; padding: 11px 0; border-top: 1px solid rgba(255,255,255,0.12); }
+    .live-line b { font-weight: 500; }
+    .live-gap { color: #e4c56a; }
+    .live-match { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; padding: 16px 0; border-top: 1px solid rgba(255,255,255,0.12); }
+    .live-match .who { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.7rem, 4.4vw, 2.8rem); line-height: 1; }
+    .live-match .who.right { text-align: right; }
+    .live-status { text-align: center; color: #e4c56a; font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.5rem, 3.6vw, 2.4rem); line-height: 1; }
+    .live-status small { display: block; margin-top: 4px; font-family: Inter, sans-serif; font-size: 0.78rem; font-weight: 500; color: rgba(247,244,238,0.55); }
+    .live-names { color: rgba(247,244,238,0.62); font-size: 0.95rem; margin-top: 6px; }
+    .live-wait { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+    .live-wait h1 { font-size: clamp(2.4rem, 7vw, 4.2rem); color: #fff; line-height: 1; }
+    .live-ticker { margin-top: auto; padding-top: 18px; overflow: hidden; color: rgba(247,244,238,0.72); }
+    .live-ticker i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #e4c56a; margin-right: 8px; }
+    .live-ticker .run { display: inline-block; white-space: nowrap; animation: live-marquee 28s linear infinite; }
+    .live-gold { color: #e4c56a; animation: live-breathe 8s ease-in-out infinite; }
+    .live-frozen .live-gold { animation: none; }
+    .live-cover { position: fixed; inset: 0; z-index: 80; background: #071a10; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 32px 24px; }
+    .live-cover h2 { font-size: clamp(3.2rem, 12vw, 7rem); color: #fff; line-height: 0.95; }
+    .live-cover .big { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(4.5rem, 18vw, 9rem); color: #e4c56a; line-height: 0.85; }
+    .live-cover .unit { color: rgba(247,244,238,0.62); font-size: 1.2rem; margin-left: 8px; }
+    .live-cover .k { color: #e4c56a; letter-spacing: 0.16em; font-size: 0.78rem; font-weight: 700; margin-bottom: 18px; }
+    .live-cover .sub { color: rgba(247,244,238,0.7); font-size: 1.35rem; margin-top: 8px; }
+    .live-table { width: min(760px, 100%); text-align: left; }
+    .live-table .row { display: grid; grid-template-columns: 2.2rem 1fr auto; gap: 12px; align-items: baseline; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.12); font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.4rem, 4vw, 2.2rem); }
+    .live-cover .live-gold { animation: live-up 0.9s ease; }
+    .live-story { position: absolute; left: 28px; right: 28px; bottom: calc(64px + env(safe-area-inset-bottom)); z-index: 3; text-align: center; pointer-events: none; animation: live-up 0.8s ease; }
+    .live-story .k { color: #e4c56a; letter-spacing: 0.16em; font-size: 0.72rem; font-weight: 700; margin-bottom: 6px; }
+    .live-story p { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.25rem, 3.4vw, 1.8rem); line-height: 1.25; color: #fff; margin: 0; }
+    @keyframes live-breathe { 50% { opacity: 0.72; } }
+    @keyframes live-up { from { transform: translateY(28px); opacity: 0.35; } }
+    @keyframes live-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
     .points-box { margin-top: 14px; border: 1.5px solid #e5e7eb; background: #f9fafb; border-radius: 12px; text-align: center; font-weight: 700; padding: 14px; }
     .team-line { text-align: center; font-weight: 700; }
     .home-banner-motto { position: absolute; z-index: 1; left: 18px; right: 18px; bottom: 16px; margin: 0; font-family: 'Playfair Display', Georgia, serif; font-size: 1.35rem; line-height: 1.25; text-shadow: 0 2px 12px rgba(0,0,0,.55); }
@@ -366,6 +412,7 @@
     <div id="page-card" class="page"><div id="card-content"></div></div>
     <div id="page-history-card" class="page"><div id="history-card-content"></div></div>
     <div id="page-leaderboard" class="page"><div id="leaderboard-content"></div></div>
+    <div id="page-live" class="page"><div id="live-content"></div></div>
     <div id="page-groups" class="page"><div id="groups-content"></div></div>
     <div id="page-group-detail" class="page"><div id="group-detail-content"></div></div>
     <div id="page-history" class="page"><div id="history-content"></div></div>
@@ -391,6 +438,7 @@
     <div id="page-more" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><h1>Mer</h1></div>
       <div class="menu-list">
+        <button type="button" class="menu-row" onclick="navigate('live')"><span class="live-dot"></span>Live<span class="chev">›</span></button>
         <button type="button" class="menu-row" onclick="navigate('history')"><svg viewBox="0 0 24 24"><path d="M5 5h10a2 2 0 0 1 2 2v12H7a2 2 0 0 0-2 2z"/><path d="M5 5v14"/></svg>Historikk<span class="chev">›</span></button>
         <button type="button" class="menu-row" onclick="navigate('hof')"><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="4"/><path d="M8 13.5 6 21l6-3 6 3-2-7.5"/></svg>Hall of Fame<span class="chev">›</span></button>
         <button type="button" class="menu-row" onclick="navigate('charter')"><svg viewBox="0 0 24 24"><path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4"/><path d="M9 12h6M9 16h6"/></svg>Charter<span class="chev">›</span></button>
@@ -403,7 +451,7 @@
         <button type="button" class="menu-row" onclick="openAdminGate()"><svg viewBox="0 0 24 24"><path d="M19.4 13.4a7.6 7.6 0 0 0 .1-1.4 7.6 7.6 0 0 0-.1-1.4l2-1.5-2-3.5-2.4.9a7.4 7.4 0 0 0-2.4-1.4L14.2 2h-4.4l-.4 2.6a7.4 7.4 0 0 0-2.4 1.4l-2.4-.9-2 3.5 2 1.5a7.6 7.6 0 0 0-.1 1.4 7.6 7.6 0 0 0 .1 1.4l-2 1.5 2 3.5 2.4-.9a7.4 7.4 0 0 0 2.4 1.4l.4 2.6h4.4l.4-2.6a7.4 7.4 0 0 0 2.4-1.4l2.4.9 2-3.5-2-1.5z"/><circle cx="12" cy="12" r="2.7"/></svg>Admin<span id="admin-badge" class="badge badge-green hidden" style="margin-left:auto;">Aktiv</span><span class="chev">›</span></button>
         <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
       </div>
-      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.43 · Familiemajoren</p>
+      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.44 · Familiemajoren</p>
     </div>
     <div id="page-admin" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Admin</h1><div class="sub">Innstillinger</div></div></div>
@@ -541,6 +589,428 @@ function rememberPage(pageId) {
   history.pushState({ page: pageId }, '');
 }
 
+let liveSentinel = null;
+let liveFresh = true;
+let livePrevKeys = {};
+let livePrevSeason = [];
+let liveModel = null;
+let liveShow = null;
+let liveQueue = [];
+let liveTimer = null;
+let liveStoryTimer = null;
+let livePaintKey = '';
+
+function liveEsc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&' + 'amp;')
+    .replace(/</g, '&' + 'lt;')
+    .replace(/>/g, '&' + 'gt;')
+    .replace(/"/g, '&' + 'quot;');
+}
+function liveFound(t) {
+  if (!t || !t.days) return null;
+  let live = null, done = null;
+  for (let i = t.days.length - 1; i >= 0; i--) {
+    const d = t.days[i];
+    if (!(d.card && d.card.ready && d.published)) continue;
+    if (!d.completed && !live) live = { day: d, index: i, frozen: false };
+    if (d.completed && !done) done = { day: d, index: i, frozen: true };
+  }
+  const found = live || done;
+  if (!found) return null;
+  ensureCard(found.day);
+  return found;
+}
+function liveThrough(marks) {
+  let n = -1;
+  (marks || []).forEach(function (m) { if (m.hole > n) n = m.hole; });
+  return n + 1;
+}
+function liveMarks(t, found) {
+  const day = found.day;
+  const marks = [];
+  if (['stableford', 'final'].includes(day.format)) {
+    (t.players || []).forEach(function (p) {
+      for (let i = 0; i < 18; i++) {
+        const pts = stablefordAt(day, p.name, i);
+        if (pts == null) continue;
+        marks.push({ key: 'sf|' + p.name + '|' + i, hole: i, kind: 'sf', name: p.name, pts: pts });
+      }
+    });
+  } else if (day.format === 'singles') {
+    (day.matches || []).forEach(function (m) {
+      const fake = { teamA: [m.p1], teamB: [m.p2] };
+      for (let i = 0; i < 18; i++) {
+        const w = holeWinner(day, fake, i);
+        if (!w) continue;
+        marks.push({ key: 'sg|' + m.p1 + '|' + m.p2 + '|' + i, hole: i, kind: 'sg', winner: w === 'A' ? m.p1 : w === 'B' ? m.p2 : '', halved: w === 'H', name: w === 'H' ? (m.p1 + ' og ' + m.p2) : (w === 'A' ? m.p1 : m.p2) });
+      }
+    });
+  } else if (day.format === 'fourball' || day.format === 'scramble') {
+    (day.teamMatches || []).forEach(function (m, idx) {
+      const a = teamLook(day, m.teamA);
+      const b = teamLook(day, m.teamB);
+      if (day.format === 'scramble') {
+        const arr = (day.card.scramble && day.card.scramble[idx]) || [];
+        for (let i = 0; i < 18; i++) {
+          const v = scrambleVal(arr[i]);
+          if (!v) continue;
+          marks.push({ key: 'sc|' + idx + '|' + i, hole: i, kind: 'sc', winner: v === 'A' ? a.word : v === 'B' ? b.word : '', halved: v === 'H' });
+        }
+      } else {
+        for (let i = 0; i < 18; i++) {
+          const w = holeWinner(day, m, i);
+          if (!w) continue;
+          marks.push({ key: 'fb|' + idx + '|' + i, hole: i, kind: 'fb', winner: w === 'A' ? a.word : w === 'B' ? b.word : '', halved: w === 'H' });
+        }
+      }
+    });
+  }
+  return marks;
+}
+function liveMoment(mark) {
+  const hole = 'Hull ' + (mark.hole + 1);
+  if (mark.kind === 'sf') return { kicker: 'NETTOPP', title: mark.name, sub: hole, big: String(mark.pts), unit: 'poeng' };
+  if (mark.halved) return { kicker: hole, title: 'Delt hull', sub: '', big: '', unit: '' };
+  return { kicker: hole, title: mark.winner || mark.name, sub: 'vant hullet', big: '', unit: '' };
+}
+function liveTicker(marks) {
+  const last = marks.slice().sort(function (a, b) { return a.hole - b.hole; }).slice(-5);
+  if (!last.length) return '';
+  return last.map(function (m) {
+    const h = m.hole + 1;
+    if (m.kind === 'sf') return m.name + ' · hull ' + h + ' · ' + m.pts + ' poeng';
+    if (m.halved) return 'Delt · hull ' + h;
+    return (m.winner || m.name) + ' · vant hull ' + h;
+  }).join('      ');
+}
+function liveStableRows(t, day) {
+  return (t.players || []).map(function (p) {
+    let pts = 0, holes = 0;
+    for (let i = 0; i < 18; i++) {
+      const s = stablefordAt(day, p.name, i);
+      if (s == null) continue;
+      pts += s;
+      holes++;
+    }
+    return { name: p.name, pts: pts, holes: holes };
+  }).sort(function (a, b) { return b.pts - a.pts || a.name.localeCompare(b.name, 'no'); });
+}
+function liveSingleRows(day) {
+  return (day.matches || []).map(function (m) {
+    const fake = { teamA: [m.p1], teamB: [m.p2] };
+    const run = matchRun(day, fake);
+    let played = 0;
+    for (let i = 0; i < 18; i++) if (holeWinner(day, fake, i)) played++;
+    const lead = run.a - run.b;
+    return { p1: m.p1, p2: m.p2, lead: lead, played: played, done: !run.pending, leader: lead > 0 ? m.p1 : lead < 0 ? m.p2 : '' };
+  });
+}
+function liveFourRows(day) {
+  return (day.teamMatches || []).map(function (m) {
+    const run = matchRun(day, m);
+    let played = 0;
+    for (let i = 0; i < 18; i++) if (holeWinner(day, m, i)) played++;
+    const a = teamLook(day, m.teamA);
+    const b = teamLook(day, m.teamB);
+    const lead = run.a - run.b;
+    return { left: a.word, right: b.word, leftNames: m.teamA.join(', '), rightNames: m.teamB.join(', '), lead: lead, played: played, done: !run.pending, leader: lead > 0 ? a.word : lead < 0 ? b.word : '' };
+  });
+}
+function liveScrambleRows(day) {
+  return (day.teamMatches || []).map(function (m, idx) {
+    const arr = (day.card.scramble && day.card.scramble[idx]) || [];
+    const tot = scrambleTotals(arr);
+    let played = 0;
+    for (let i = 0; i < 18; i++) if (scrambleVal(arr[i])) played++;
+    const a = teamLook(day, m.teamA);
+    const b = teamLook(day, m.teamB);
+    const lead = tot.a - tot.b;
+    return { a: a.word, b: b.word, namesA: m.teamA.join(', '), namesB: m.teamB.join(', '), scoreA: tot.a, scoreB: tot.b, pot: played < 18 ? scramblePot(arr, played) : null, played: played, lead: lead, leader: lead > 0 ? a.word : lead < 0 ? b.word : '', done: !tot.pending };
+  });
+}
+function liveStory(t, found, marks) {
+  if (!found || found.frozen) return '';
+  const through = liveThrough(marks);
+  if (!through) return '';
+  const day = found.day;
+  const left = 18 - through;
+  const rest = left ? (', ' + left + ' hull igjen.') : '.';
+  if (['stableford', 'final'].includes(day.format)) {
+    const rows = liveStableRows(t, day);
+    if (rows.length < 2 || !rows[0].holes) return '';
+    const behind = rows[0].pts - rows[1].pts;
+    if (!behind) return rows[0].name + ' og ' + rows[1].name + ' er likt' + rest;
+    return rows[0].name + ' ' + rows[0].pts + '. ' + rows[1].name + ' ' + behind + ' bak' + rest;
+  }
+  if (day.format === 'singles') {
+    const rows = liveSingleRows(day).filter(function (r) { return !r.done && r.played; });
+    const tight = rows.filter(function (r) { return r.lead !== 0; }).sort(function (a, b) { return Math.abs(a.lead) - Math.abs(b.lead) || b.played - a.played; })[0];
+    if (tight) return 'Tettest: ' + tight.leader + ' ' + Math.abs(tight.lead) + ' opp mot ' + (tight.leader === tight.p1 ? tight.p2 : tight.p1) + ', gjennom ' + tight.played + '.';
+    const late = rows.filter(function (r) { return r.lead === 0 && r.played >= 12; })[0];
+    return late ? (late.p1 + ' mot ' + late.p2 + ' er delt gjennom ' + late.played + '.') : '';
+  }
+  if (day.format === 'fourball') {
+    const rows = liveFourRows(day).filter(function (r) { return !r.done && r.played && r.lead !== 0; }).sort(function (a, b) { return Math.abs(a.lead) - Math.abs(b.lead) || b.played - a.played; });
+    return rows[0] ? ('Tettest: ' + rows[0].leader + ' ' + Math.abs(rows[0].lead) + ' opp, gjennom ' + rows[0].played + '.') : '';
+  }
+  if (day.format === 'scramble') {
+    const rows = liveScrambleRows(day).filter(function (r) { return r.pot; }).sort(function (a, b) { return b.pot - a.pot; });
+    return rows[0] ? (rows[0].a + ' mot ' + rows[0].b + '. Dette hullet er verdt ' + rows[0].pot + '.') : '';
+  }
+  return '';
+}
+function livePlace(ranked, n, finale) {
+  const points = {};
+  let i = 0;
+  while (i < ranked.length) {
+    let j = i;
+    while (j < ranked.length && ranked[j].score === ranked[i].score && ranked[j].hcp === ranked[i].hcp) j++;
+    let pts = 0;
+    for (let k = i; k < j; k++) pts += n - k;
+    pts = pts / (j - i);
+    if (finale) pts *= 2;
+    for (let k = i; k < j; k++) points[ranked[k].name] = Math.round(pts * 10) / 10;
+    i = j;
+  }
+  return points;
+}
+function livePreviewPoints(t, day) {
+  const n = (t.players || []).length;
+  const maxPoints = n;
+  const losePts = Math.ceil(maxPoints / 2);
+  const halfPts = (maxPoints + losePts) / 2;
+  if (['stableford', 'final'].includes(day.format)) {
+    const ranked = (t.players || []).map(function (p) { return { name: p.name, score: stablefordTotal(day, p.name), hcp: p.hcp }; }).sort(function (a, b) { return b.score !== a.score ? b.score - a.score : a.hcp - b.hcp; });
+    return livePlace(ranked, n, day.format === 'final');
+  }
+  const points = {};
+  if (day.format === 'fourball' || day.format === 'scramble') {
+    (day.teamMatches || []).forEach(function (m, idx) {
+      let result = null;
+      if (day.format === 'scramble') {
+        const tot = scrambleTotals((day.card.scramble && day.card.scramble[idx]) || []);
+        if (!tot.pending) result = tot.a > tot.b ? 'A' : tot.b > tot.a ? 'B' : 'halved';
+      } else {
+        const run = matchRun(day, m);
+        result = run.result;
+      }
+      if (result === 'A') { m.teamA.forEach(function (p) { points[p] = maxPoints; }); m.teamB.forEach(function (p) { points[p] = losePts; }); }
+      else if (result === 'B') { m.teamB.forEach(function (p) { points[p] = maxPoints; }); m.teamA.forEach(function (p) { points[p] = losePts; }); }
+      else if (result === 'halved') { m.teamA.concat(m.teamB).forEach(function (p) { points[p] = halfPts; }); }
+    });
+    return points;
+  }
+  if (day.format === 'singles') {
+    (day.matches || []).forEach(function (m) {
+      const run = matchRun(day, { teamA: [m.p1], teamB: [m.p2] });
+      if (!run.result) return;
+      if (run.result === 'A') { points[m.p1] = maxPoints; points[m.p2] = losePts; }
+      else if (run.result === 'B') { points[m.p2] = maxPoints; points[m.p1] = losePts; }
+      else { points[m.p1] = halfPts; points[m.p2] = halfPts; }
+    });
+    return points;
+  }
+  return null;
+}
+function liveSeason(t, found, marks) {
+  const copy = JSON.parse(JSON.stringify(t));
+  if (found && !found.day.completed && liveThrough(marks) > 0) {
+    const pts = livePreviewPoints(copy, copy.days[found.index]);
+    if (pts) copy.days[found.index].points = pts;
+  }
+  return calculateStandings(copy);
+}
+function liveMover(before, after) {
+  if (!before || !before.length || !after) return null;
+  const old = {};
+  before.forEach(function (s, i) { old[s.name] = i; });
+  let best = null;
+  after.forEach(function (s, i) {
+    if (old[s.name] == null) return;
+    const up = old[s.name] - i;
+    if (up > 0 && (!best || up > best.up)) best = { name: s.name, up: up, to: i };
+  });
+  return best;
+}
+function liveTools() {
+  return '<div class="live-tools"><button type="button" onclick="navigate(\'more\')">Lukk</button><span><button type="button" onclick="liveFullscreen()">Fullskjerm</button> <button type="button" onclick="liveCast()">Vis på skjerm</button></span></div>';
+}
+function liveMatchHtml(row, waiting) {
+  const leftGold = !waiting && row.leader && row.leader === row.left ? ' live-gold' : '';
+  const rightGold = !waiting && row.leader && row.leader === row.right ? ' live-gold' : '';
+  const status = waiting ? '<span class="live-status">–</span>' : '<span class="live-status">' + (row.lead === 0 ? 'Delt' : (Math.abs(row.lead) + ' opp')) + '<small>gjennom ' + row.played + '</small></span>';
+  return '<div class="live-match"><div><div class="who' + leftGold + '">' + liveEsc(row.left) + '</div>' + (row.leftNames ? '<div class="live-names">' + liveEsc(row.leftNames) + '</div>' : '') + '</div>' + status + '<div><div class="who right' + rightGold + '">' + liveEsc(row.right) + '</div>' + (row.rightNames ? '<div class="live-names" style="text-align:right">' + liveEsc(row.rightNames) + '</div>' : '') + '</div></div>';
+}
+function liveBoardHtml(model) {
+  const frozen = model.found && model.found.frozen ? ' live-frozen' : '';
+  if (!model.found) {
+    return '<div class="live-board">' + liveTools() + '<div class="live-wait"><div class="live-kicker"><span>FAMILIEMAJOREN</span><span>LIVE</span></div><h1>Ingen kamp er i gang</h1><p class="live-sub">Brettet åpner når en dag er publisert.</p></div></div>';
+  }
+  const day = model.found.day;
+  const through = liveThrough(model.marks);
+  const kicker = '<div class="live-kicker"><span>FAMILIEMAJOREN</span><span>DAG ' + day.dayNumber + ' · ' + liveEsc(formatShort(day.format).toUpperCase()) + '</span></div>';
+  let body = '';
+  if (['stableford', 'final'].includes(day.format)) {
+    const rows = liveStableRows(model.t, day);
+    if (!through) {
+      body = '<div class="live-wait"><h1>Venter på første hull</h1>' + rows.map(function (r) { return '<div class="live-line"><span></span><b>' + liveEsc(r.name) + '</b><span></span><span></span></div>'; }).join('') + '</div>';
+    } else {
+      const lead = rows[0];
+      const rest = rows.slice(1).map(function (r, i) {
+        const gap = lead.pts - r.pts;
+        return '<div class="live-line"><span>' + (i + 2) + '</span><b>' + liveEsc(r.name) + '</b><span>' + r.pts + '</span><span class="live-gap">' + (gap ? ('−' + gap) : '–') + '</span></div>';
+      }).join('');
+      body = '<div class="live-hero"><div><div class="live-hero-name">' + liveEsc(lead.name) + '</div><div class="live-sub">Leder · gjennom hull ' + through + '</div></div><div class="live-hero-pts live-gold">' + lead.pts + '</div></div><div class="live-rows">' + rest + '</div>';
+    }
+  } else if (day.format === 'singles') {
+    const rows = liveSingleRows(day).map(function (r) { return { left: r.p1, right: r.p2, lead: r.lead, played: r.played, leader: r.leader }; });
+    body = (!through ? '<div class="live-wait"><h1>Venter på første hull</h1>' : '<div class="live-rows">') + rows.map(function (r) { return liveMatchHtml(r, !through); }).join('') + '</div>';
+  } else if (day.format === 'fourball') {
+    const rows = liveFourRows(day);
+    if (rows.length === 1 && through) {
+      const r = rows[0];
+      body = '<div class="live-hero"><div><div class="live-hero-name' + (r.leader ? ' live-gold' : '') + '">' + liveEsc(r.lead === 0 ? 'Delt' : (r.leader + ' ' + Math.abs(r.lead) + ' opp')) + '</div><div class="live-sub">Gjennom ' + r.played + ' hull</div><div class="live-names">' + liveEsc(r.left + ' · ' + r.leftNames) + '</div><div class="live-names">' + liveEsc(r.right + ' · ' + r.rightNames) + '</div></div></div>';
+    } else {
+      body = (!through ? '<div class="live-wait"><h1>Venter på første hull</h1>' : '<div class="live-rows">') + rows.map(function (r) { return liveMatchHtml(r, !through); }).join('') + '</div>';
+    }
+  } else if (day.format === 'scramble') {
+    const rows = liveScrambleRows(day);
+    if (rows.length === 1) {
+      const r = rows[0];
+      if (!through) body = '<div class="live-wait"><h1>Venter på første hull</h1><p class="live-sub">Første hull er verdt 1</p><div class="live-names">' + liveEsc(r.a + ' · ' + r.namesA) + '</div><div class="live-names">' + liveEsc(r.b + ' · ' + r.namesB) + '</div></div>';
+      else body = '<div class="live-hero"><div><div class="live-hero-name">' + r.scoreA + ' – ' + r.scoreB + '</div><div class="live-sub' + (r.leader ? ' live-gold' : '') + '">' + liveEsc(r.leader ? (r.leader + ' leder') : 'Delt') + '</div><div class="live-sub">' + (r.pot ? ('Dette hullet er verdt ' + r.pot) : 'Ferdig') + '</div><div class="live-names">' + liveEsc(r.a + ' · ' + r.namesA) + '</div><div class="live-names">' + liveEsc(r.b + ' · ' + r.namesB) + '</div></div></div>';
+    } else {
+      body = (!through ? '<div class="live-wait"><h1>Venter på første hull</h1>' : '<div class="live-rows">') + rows.map(function (r) {
+        return liveMatchHtml({ left: r.a, right: r.b, leftNames: r.namesA, rightNames: r.namesB, lead: r.lead, played: r.played, leader: r.leader }, !through);
+      }).join('') + '</div>';
+    }
+  }
+  const tick = model.ticker ? '<div class="live-ticker"><span class="run"><i></i>' + liveEsc(model.ticker) + '&nbsp;&nbsp;&nbsp;&nbsp;<i></i>' + liveEsc(model.ticker) + '</span></div>' : '';
+  return '<div class="live-board' + frozen + '">' + liveTools() + kicker + body + tick + '</div>';
+}
+function liveCoverHtml(show) {
+  if (!show) return '';
+  if (show.type === 'moment') {
+    const m = show.moment;
+    return '<div class="live-cover"><div class="k">' + liveEsc(m.kicker) + '</div><h2>' + liveEsc(m.title) + '</h2>' + (m.sub ? '<div class="sub">' + liveEsc(m.sub) + '</div>' : '') + (m.big ? '<div class="big">' + liveEsc(m.big) + (m.unit ? '<span class="unit">' + liveEsc(m.unit) + '</span>' : '') + '</div>' : '') + '</div>';
+  }
+  if (show.type === 'story') return '<div class="live-story"><div class="k">AKKURAT NÅ</div><p>' + liveEsc(show.text) + '</p></div>';
+  if (show.type === 'season') {
+    const rows = (show.rows || []).map(function (s, i) {
+      const gold = s.name === show.mover.name ? ' class="live-gold"' : '';
+      return '<div class="row"><span>' + (i + 1) + '</span><span' + gold + '>' + liveEsc(s.name) + '</span><span>' + s.total + '</span></div>';
+    }).join('');
+    return '<div class="live-cover"><div class="k">SAMMENLAGT</div><div class="live-table">' + rows + '</div><div class="sub">' + liveEsc(show.mover.name) + ' opp</div></div>';
+  }
+  return '';
+}
+function paintLive() {
+  const el = document.getElementById('live-content');
+  if (!el || !liveModel) return;
+  const key = liveModel.sig + '|' + (liveShow ? liveShow.id : '');
+  if (key === livePaintKey) return;
+  livePaintKey = key;
+  el.innerHTML = liveBoardHtml(liveModel) + liveCoverHtml(liveShow);
+}
+function liveAdvance() {
+  if (currentPage !== 'live') return;
+  if (liveShow) return;
+  const next = liveQueue.shift();
+  if (!next) { paintLive(); return; }
+  liveShow = next;
+  paintLive();
+  liveTimer = setTimeout(function () { liveShow = null; liveAdvance(); }, next.type === 'season' ? 5200 : 4500);
+}
+function livePush(item) {
+  if (liveShow && liveShow.type === 'story') {
+    clearTimeout(liveTimer);
+    liveShow = null;
+  }
+  liveQueue.push(item);
+  if (!liveShow) liveAdvance();
+}
+function liveStoryTick() {
+  if (currentPage !== 'live' || !liveModel || !liveModel.story || (liveModel.found && liveModel.found.frozen)) return;
+  if (liveShow || liveQueue.length) return;
+  liveShow = { type: 'story', id: 'story-' + Date.now(), text: liveModel.story };
+  paintLive();
+  liveTimer = setTimeout(function () { liveShow = null; liveAdvance(); }, 8000);
+}
+function liveArm() {
+  liveFresh = true;
+  liveShow = null;
+  liveQueue = [];
+  livePaintKey = '';
+  if (liveTimer) clearTimeout(liveTimer);
+  liveTimer = null;
+  if (liveStoryTimer) clearInterval(liveStoryTimer);
+  liveStoryTimer = setInterval(liveStoryTick, 15000);
+  liveWake(true);
+}
+function liveStop() {
+  if (liveTimer) clearTimeout(liveTimer);
+  liveTimer = null;
+  if (liveStoryTimer) clearInterval(liveStoryTimer);
+  liveStoryTimer = null;
+  liveShow = null;
+  liveQueue = [];
+  liveWake(false);
+}
+function liveWake(on) {
+  if (!on) {
+    if (liveSentinel) { const s = liveSentinel; liveSentinel = null; s.release().catch(function () {}); }
+    return;
+  }
+  if (!navigator.wakeLock) return;
+  if (liveSentinel && !liveSentinel.released) return;
+  liveSentinel = null;
+  navigator.wakeLock.request('screen').then(function (s) {
+    if (currentPage !== 'live') { s.release().catch(function () {}); return; }
+    liveSentinel = s;
+    s.addEventListener('release', function () { if (liveSentinel === s) liveSentinel = null; });
+  }).catch(function () {});
+}
+function liveFullscreen() {
+  const node = document.getElementById('page-live') || document.documentElement;
+  if (!document.fullscreenElement) {
+    const ask = node.requestFullscreen || node.webkitRequestFullscreen;
+    if (ask) ask.call(node);
+  } else if (document.exitFullscreen) document.exitFullscreen();
+}
+function liveCast() {
+  const url = location.origin + location.pathname + '?board=1';
+  if (typeof PresentationRequest === 'function') {
+    const req = new PresentationRequest([url]);
+    req.start().catch(function () { toast('Bruk skjermspeiling på denne enheten.'); });
+    return;
+  }
+  toast('Bruk skjermspeiling på denne enheten.');
+}
+function renderLive() {
+  const el = document.getElementById('live-content');
+  if (!el) return;
+  const t = state.current;
+  const found = t ? liveFound(t) : null;
+  const marks = found ? liveMarks(t, found) : [];
+  const season = t ? liveSeason(t, found, marks) : [];
+  const story = found ? liveStory(t, found, marks) : '';
+  const ticker = liveTicker(marks);
+  const first = liveFresh;
+  liveModel = { t: t, found: found, marks: marks, season: season, story: story, ticker: ticker, sig: marks.map(function (m) { return m.key + '=' + (m.pts != null ? m.pts : (m.winner || 'H')); }).join(',') + '|' + season.map(function (s) { return s.name + ':' + s.total; }).join(',') + '|' + (found && found.frozen ? 'f' : 'o') };
+  if (!first && found && !found.frozen) {
+    const fresh = marks.filter(function (m) { return !livePrevKeys[m.key]; }).sort(function (a, b) { return b.hole - a.hole; });
+    if (fresh[0]) livePush({ type: 'moment', id: fresh[0].key, moment: liveMoment(fresh[0]) });
+    const mover = liveMover(livePrevSeason, season);
+    if (mover) livePush({ type: 'season', id: 'season-' + mover.name + '-' + mover.to + '-' + season.map(function (s) { return s.total; }).join('-'), mover: mover, rows: season });
+  }
+  liveFresh = false;
+  livePrevKeys = {};
+  marks.forEach(function (m) { livePrevKeys[m.key] = 1; });
+  livePrevSeason = season;
+  paintLive();
+}
+
 function init() {
   takeGoogleCode();
   loadState();
@@ -552,6 +1022,10 @@ function init() {
   navigate('home');
   history.replaceState({ page: 'home' }, '');
   historyLock = false;
+  if (new URLSearchParams(location.search).get('board') === '1') navigate('live');
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible' && currentPage === 'live') liveWake(true);
+  });
   window.addEventListener('popstate', function (event) {
     const page = (event.state && event.state.page) || 'home';
     historyLock = true;
@@ -749,6 +1223,7 @@ function refreshVisible() {
   if (page === 'hof') return renderHoF();
   if (page === 'media') return renderMedia();
   if (page === 'card') return renderLiveCard();
+  if (page === 'live') return renderLive();
   if (page === 'card-setup') return renderCardSetup();
   if (page === 'history-card') return renderHistoryCard();
 }
@@ -757,7 +1232,7 @@ async function pullCloud(force) {
   if (!cloudOn || cloudSaving || cloudPulling || editingNow()) return;
   const code = localStorage.getItem(CODE_KEY);
   if (!code) return;
-  if (!force && Date.now() - lastPullAt < (currentPage === 'card' ? 1800 : 7800)) return;
+  if (!force && Date.now() - lastPullAt < ((currentPage === 'card' || currentPage === 'live') ? 1800 : 7800)) return;
   cloudPulling = true;
   lastPullAt = Date.now();
   try {
@@ -856,23 +1331,25 @@ function seasonNavKey(pageId) {
     home: 'home', setup: 'tournament', tournament: 'tournament', scoring: 'tournament',
     groups: 'tournament', 'group-detail': 'tournament', leaderboard: live ? 'leaderboard' : 'history', media: 'media',
     more: 'more', settings: 'more', admin: 'more', pin: 'more', history: live ? 'more' : 'history', 'history-detail': live ? 'more' : 'history', 'history-card': live ? 'more' : 'history', hof: 'more',
-    charter: 'more', 'charter-full': 'more', card: 'tournament', 'card-setup': 'tournament',
+    charter: 'more', 'charter-full': 'more', card: 'tournament', 'card-setup': 'tournament', live: 'more',
     'course-search': (typeof courseSearch !== 'undefined' && courseSearch.from === 'book') ? 'more' : 'tournament'
   })[pageId] || 'home';
 }
 
 function syncChrome(pageId) {
   currentPage = pageId;
-  const matchTone = pageId === 'home' || pageId === 'leaderboard' || pageId === 'card' || pageId === 'history-card';
+  const matchTone = pageId === 'home' || pageId === 'leaderboard' || pageId === 'card' || pageId === 'history-card' || pageId === 'live';
   document.body.classList.toggle('tone-match', matchTone);
-  document.body.classList.toggle('score-lock', pageId === 'card' || pageId === 'history-card');
+  document.body.classList.toggle('live-on', pageId === 'live');
+  document.body.classList.toggle('score-lock', pageId === 'card' || pageId === 'history-card' || pageId === 'live');
   const theme = document.querySelector('meta[name="theme-color"]');
   if (theme) theme.setAttribute('content', matchTone ? '#071a10' : '#ffffff');
   const header = document.querySelector('.app-header');
-  const ownBanner = pageId === 'home' || pageId === 'leaderboard' || pageId === 'scoring' || pageId === 'more' || pageId === 'tournament' || pageId === 'setup' || pageId === 'card' || pageId === 'card-setup' || pageId === 'course-search' || pageId === 'history-card' || pageId === 'charter' || pageId === 'charter-full' || pageId === 'settings' || pageId === 'admin' || pageId === 'pin' || pageId === 'hof';
+  const ownBanner = pageId === 'home' || pageId === 'leaderboard' || pageId === 'scoring' || pageId === 'more' || pageId === 'tournament' || pageId === 'setup' || pageId === 'card' || pageId === 'card-setup' || pageId === 'course-search' || pageId === 'history-card' || pageId === 'charter' || pageId === 'charter-full' || pageId === 'settings' || pageId === 'admin' || pageId === 'pin' || pageId === 'hof' || pageId === 'live';
   if (header) header.hidden = ownBanner;
   const nav = document.querySelector('.bottom-nav');
-  if (nav) nav.hidden = pageId === 'pin';
+  if (nav) nav.hidden = pageId === 'pin' || pageId === 'live';
+  if (pageId !== 'live') liveStop();
   paintSeasonNav();
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   const navBtn = document.querySelector('.nav-btn[data-page="' + seasonNavKey(pageId) + '"]');
@@ -900,6 +1377,7 @@ function navigate(pageId) {
   if (pageId === 'tournament') renderTournament();
   if (pageId === 'history') renderHistory();
   if (pageId === 'leaderboard') renderLeaderboard();
+  if (pageId === 'live') { liveArm(); renderLive(); }
   if (pageId === 'groups') renderGroupsMenu();
   if (pageId === 'hof') renderHoF();
   if (pageId === 'media') renderMedia();

@@ -4,7 +4,7 @@ Familie-Majoren er familiens årlige golfmesterskap, som en app på telefonen. D
 
 Appen er én nettside. Den ligger på GitHub Pages. Alle som har lenken og familiekoden, ser de samme turneringene, resultatene og bildene.
 
-Versjon nå: **1.39**
+Versjon nå: **1.44**
 
 ## Slik fungerer den for familien
 
@@ -12,12 +12,12 @@ Nederst er fem knapper.
 
 | Knapp | Hva den gjør |
 |---|---|
-| Hjem | Nedtelling, pågående turnering og mottoet |
+| Hjem | Plakat med motto, nedtelling og knapp til dagens scorekort |
 | Turnering | Dager, scorekort og resultater |
 | Stilling | Sammenlagt mens en turnering pågår og minst én dag er fullført |
 | Historikk | Kommer i stedet for Stilling når ingen runde er i gang |
 | Media | Bilder, sortert på år og dag |
-| Mer | Historikk, Hall of Fame, charter og innstillinger |
+| Mer | Live, historikk, Hall of Fame, charter og innstillinger |
 
 En turnering opprettes med sted, startdato og sluttdato. Året settes ut fra datoene. Spillere, handicap og format kan fylles inn senere, under **Turneringsinnstillinger**. De låses når første resultat er lagret.
 
@@ -29,11 +29,17 @@ Hver dag har et format:
 - Ryder Cup Singler
 - Finalerunden, med doble poeng
 
-Admin forbereder scorekortet om morgenen: bane, par, hullindex og tildelte slag. Spillerne fører selv. Mens scorekortet er åpent, hentes de andres slag omtrent hvert andre sekund. Dine slag blir ikke byttet ut med andres. På hull 18 kan alle trykke **Fullfør runde**. Det lukker bare kortet og åpner Stilling. Runden er ikke avsluttet.
+Admin forbereder scorekortet om morgenen: bane, par, hullindex og tildelte slag. Spillerne fører selv. Mens scorekortet er åpent, hentes de andres slag omtrent hvert andre sekund. Dine slag blir ikke byttet ut med andres. Mellom hull trykker du **Forrige** og **Neste**. På hull 18 heter den siste knappen **Fullfør runde**. Det lukker bare kortet og åpner Stilling. Runden er ikke avsluttet. Prikkene over viser bare hvor langt dere er kommet.
 
 Bare admin avslutter runden. Da deles Familiemajor-poengene ut, og lunsjregelen vises. Er ikke alle ført opp, kommer det et spørsmål først. Admin kan låse opp kortet igjen.
 
 Når året er ferdig, trykker admin **Turnering ferdig**. Den flyttes til historikk og kan ikke endres. En enkelt turnering kan slettes uten å tømme alt annet.
+
+## Utseendet
+
+Hjem, scorekort, stilling, et gammelt scorekort og Live er mørke. Gull brukes på det som er aktivt: lederen, den valgte fanen og knappen til dagens kort. Menyen nederst er mørk på de sidene. Turnering, innstillinger, charter og de andre sidene er lyse.
+
+**Mer → Live** er storskjermen mens en dag er publisert. Den oppdaterer seg når noen fører et hull, og viser en kort melding når stillingen flytter seg. **Fullskjerm** fyller skjermen. **Vis på skjerm** prøver å sende brettet videre. Virker ikke det, bruker du skjermspeiling på telefonen. Lenken med `?board=1` bakerst åpner Live direkte. Live endrer ingen score.
 
 ## Admin og alle andre
 
@@ -76,10 +82,10 @@ Dette er hele appen. Ikke legg inn andre mapper.
 
 1. Ta en kopi av den gamle `index.html` før du bytter den.
 2. Last opp den nye `index.html`.
-3. Last opp den nye `sw.js` i samme omgang. Versjonsnavnet inni filen, `familiemajoren-v43`, må være et nytt tall. Ellers kan telefonen vise den gamle appen.
+3. Last opp den nye `sw.js` i samme omgang. Versjonsnavnet inni filen, `familiemajoren-v48`, må være et nytt tall. Ellers kan telefonen vise den gamle appen.
 4. Vent til GitHub Pages er ferdig. Det tar ofte ett minutt.
 5. Lukk siden helt og åpne lenken på nytt.
-6. Gå til **Mer → Innstillinger**. Der skal det stå den nye versjonen, nå **Versjon 1.39**.
+6. Gå til **Mer → Innstillinger**. Der skal det stå den nye versjonen, nå **Versjon 1.44**.
 
 Bytter du bare bildet eller ikonet, last opp den filen og øk tallet i `sw.js` likevel. Ellers kan den gamle utgaven bli hengende.
 
@@ -91,7 +97,7 @@ Alt som skal endres i appen, ligger i `index.html`. Åpne den i en teksteditor. 
 
 | Du vil endre | Søk etter |
 |---|---|
-| Versjonen som vises i appen | `Versjon 1.39` |
+| Versjonen som vises i appen | `Versjon 1.44` |
 | Kortversjonen av charteret | `const CHARTER` |
 | Det fulle charteret | `charter-full-data` |
 | Mottoet | `Ett år som mester` |
