@@ -75,11 +75,13 @@
     @keyframes live-fadeout { 0%, 34% { opacity: 1; } 46%, 100% { opacity: 0; } }
     @keyframes live-fadein { 0%, 34% { opacity: 0; } 46%, 100% { opacity: 1; } }
     @keyframes live-goldin { 0%, 16% { color: #f7f4ee; } 30%, 100% { color: #e4c56a; } }
+    cast-media-player { display: none !important; }
     .wait { min-height: 100vh; display: flex; align-items: center; justify-content: center; letter-spacing: 0.16em; color: #e4c56a; font-weight: 700; animation: live-breathe 8s ease-in-out infinite; }
   </style>
 </head>
 <body>
   <div id="board"><div class="wait">FAMILIEMAJOREN</div></div>
+  <cast-media-player></cast-media-player>
   <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
   <script>
     var NS = 'urn:x-cast:no.familiemajoren.board';
@@ -90,8 +92,25 @@
     });
     var options = new cast.framework.CastReceiverOptions();
     options.disableIdleTimeout = true;
-    options.maxInactivity = 3600;
+    options.maxInactivity = 21600;
     ctx.start(options);
+    if (ctx.setInactivityTimeout) ctx.setInactivityTimeout(21600);
+    function keepCastAwake() {
+      try {
+        var player = ctx.getPlayerManager();
+        var media = new cast.framework.messages.MediaInformation();
+        media.contentId = location.origin + '/familiemajoren-keep.png?t=' + Date.now();
+        media.contentType = 'image/png';
+        media.streamType = cast.framework.messages.StreamType.NONE;
+        var request = new cast.framework.messages.LoadRequestData();
+        request.media = media;
+        request.autoplay = true;
+        player.load(request);
+      } catch (e) {}
+    }
+    keepCastAwake();
+    setInterval(keepCastAwake, 8 * 60 * 1000);
+    if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(function () {});
   </script>
 </body>
 </html>

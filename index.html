@@ -350,6 +350,9 @@
     .cast-row { display: flex; justify-content: space-between; align-items: baseline; padding: 11px 2px; border-bottom: 1px solid rgba(255,255,255,0.12); font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.45rem, 6vw, 1.85rem); color: rgba(255,255,255,0.72); }
     .cast-row.mine { color: white; }
     .cast-row.flash { animation: castIn 1.8s ease; }
+    .cast-step { display: inline-flex; align-items: center; gap: 8px; }
+    .cast-step button { width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.4); background: transparent; color: white; font-size: 1.25rem; line-height: 1; }
+    .cast-step b { min-width: 1.4rem; text-align: center; font-weight: 600; }
     @keyframes castIn { 0% { background: rgba(212,177,94,0.38); color: white; } 100% { background: transparent; } }
     .inst-link { display: block; width: 100%; background: none; border: none; color: #e4c56a; font-family: 'Playfair Display', Georgia, serif; font-size: 1.25rem; font-weight: 600; padding: 12px 8px 4px; cursor: pointer; }
     body.tone-match .hole-dots { flex-wrap: nowrap; gap: 0; justify-content: space-between; margin: 18px 0 4px; }
@@ -482,7 +485,7 @@
         <button type="button" class="menu-row" onclick="openAdminGate()"><svg viewBox="0 0 24 24"><path d="M19.4 13.4a7.6 7.6 0 0 0 .1-1.4 7.6 7.6 0 0 0-.1-1.4l2-1.5-2-3.5-2.4.9a7.4 7.4 0 0 0-2.4-1.4L14.2 2h-4.4l-.4 2.6a7.4 7.4 0 0 0-2.4 1.4l-2.4-.9-2 3.5 2 1.5a7.6 7.6 0 0 0-.1 1.4 7.6 7.6 0 0 0 .1 1.4l-2 1.5 2 3.5 2.4-.9a7.4 7.4 0 0 0 2.4 1.4l.4 2.6h4.4l.4-2.6a7.4 7.4 0 0 0 2.4-1.4l2.4.9 2-3.5-2-1.5z"/><circle cx="12" cy="12" r="2.7"/></svg>Admin<span id="admin-badge" class="badge badge-green hidden" style="margin-left:auto;">Aktiv</span><span class="chev">›</span></button>
         <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
       </div>
-      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.49 · Familiemajoren</p>
+      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.50 · Familiemajoren</p>
     </div>
     <div id="page-admin" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Admin</h1><div class="sub">Innstillinger</div></div></div>
@@ -678,6 +681,7 @@ let livePaintKey = '';
 let liveIdleIndex = 0;
 let liveIdleTimer = null;
 let liveCastSession = null;
+let liveCastBeat = null;
 let liveCastSent = '';
 let liveCastHooked = false;
 let liveHold = null;
@@ -785,11 +789,11 @@ function liveMarks(t, found) {
       const a = teamLook(day, m.teamA);
       const b = teamLook(day, m.teamB);
       if (day.format === 'scramble') {
-        const arr = (day.card.scramble && day.card.scramble[idx]) || [];
+        const arr = scrambleLiveArr(day, idx);
         for (let i = 0; i < 18; i++) {
           const v = scrambleVal(arr[i]);
           if (!v) continue;
-          marks.push({ key: 'sc|' + idx + '|' + i, hole: i, kind: 'sc', winner: v === 'A' ? a.word : v === 'B' ? b.word : '', halved: v === 'H' });
+          marks.push({ key: 'sc|' + idx + '|' + i + '|' + v, hole: i, kind: 'sc', winner: v === 'A' ? a.word : v === 'B' ? b.word : '', halved: v === 'H' });
         }
       } else {
         for (let i = 0; i < 18; i++) {
@@ -869,7 +873,7 @@ function liveFourRows(day) {
 }
 function liveScrambleRows(day) {
   return (day.teamMatches || []).map(function (m, idx) {
-    const arr = (day.card.scramble && day.card.scramble[idx]) || [];
+    const arr = scrambleLiveArr(day, idx);
     const tot = scrambleTotals(arr);
     let played = 0;
     for (let i = 0; i < 18; i++) if (scrambleVal(arr[i])) played++;
@@ -906,7 +910,7 @@ function liveStory(t, found, marks) {
   }
   if (day.format === 'scramble') {
     const rows = liveScrambleRows(day).filter(function (r) { return r.pot; }).sort(function (a, b) { return b.pot - a.pot; });
-    return rows[0] ? (rows[0].a + ' mot ' + rows[0].b + '. Dette hullet er verdt ' + rows[0].pot + '.') : '';
+    return rows[0] ? (rows[0].a + ' mot ' + rows[0].b + '. Hull ' + (rows[0].played + 1) + ' er verdt ' + rows[0].pot + '.') : '';
   }
   return '';
 }
@@ -947,7 +951,7 @@ function livePreviewPoints(t, day) {
     (day.teamMatches || []).forEach(function (m, idx) {
       let result = null;
       if (day.format === 'scramble') {
-        const tot = scrambleTotals((day.card.scramble && day.card.scramble[idx]) || []);
+        const tot = scrambleTotals(scrambleLiveArr(day, idx));
         if (!tot.pending) result = tot.a > tot.b ? 'A' : tot.b > tot.a ? 'B' : 'halved';
       } else {
         const run = liveMatchRun(day, m);
@@ -1095,7 +1099,7 @@ function liveMatchHtml(row, waiting) {
   const rightGold = !waiting && row.leader && row.leader === row.right ? ' live-gold' : '';
   const status = row.label
     ? '<span class="live-status">' + liveEsc(row.label) + '</span>'
-    : (waiting ? '<span class="live-status">–</span>' : '<span class="live-status">' + (row.lead === 0 ? 'Delt' : (Math.abs(row.lead) + ' opp')) + '<small>gjennom ' + row.played + '</small></span>');
+    : (waiting ? '<span class="live-status">–</span>' : '<span class="live-status">' + (row.lead === 0 ? 'Delt' : (Math.abs(row.lead) + ' opp')) + '<small>gjennom ' + row.played + (row.pot ? (' · hull ' + (row.played + 1) + ' verdt ' + row.pot) : '') + '</small></span>');
   return '<div class="live-match"><div><div class="who' + leftGold + '">' + liveEsc(row.left) + '</div>' + (row.leftNames ? '<div class="live-names">' + liveEsc(row.leftNames) + '</div>' : '') + '</div>' + status + '<div><div class="who right' + rightGold + '">' + liveEsc(row.right) + '</div>' + (row.rightNames ? '<div class="live-names" style="text-align:right">' + liveEsc(row.rightNames) + '</div>' : '') + '</div></div>';
 }
 function liveBoardHtml(model, bare) {
@@ -1137,10 +1141,10 @@ function liveBoardHtml(model, bare) {
     if (rows.length === 1) {
       const r = rows[0];
       if (!through) body = '<div class="live-wait"><h1>Venter på første hull</h1><p class="live-sub">Første hull er verdt 1</p><div class="live-names">' + liveEsc(r.a + ' · ' + r.namesA) + '</div><div class="live-names">' + liveEsc(r.b + ' · ' + r.namesB) + '</div></div>';
-      else body = '<div class="live-hero"><div><div class="live-hero-name">' + r.scoreA + ' – ' + r.scoreB + '</div><div class="live-sub' + (r.leader ? ' live-gold' : '') + '">' + liveEsc(r.leader ? (r.leader + ' leder') : 'Delt') + '</div><div class="live-sub">' + (r.pot ? ('Dette hullet er verdt ' + r.pot) : 'Ferdig') + '</div><div class="live-names">' + liveEsc(r.a + ' · ' + r.namesA) + '</div><div class="live-names">' + liveEsc(r.b + ' · ' + r.namesB) + '</div></div></div>';
+      else body = '<div class="live-hero"><div><div class="live-hero-name">' + r.scoreA + ' – ' + r.scoreB + '</div><div class="live-sub">Gjennom hull ' + r.played + '</div><div class="live-sub' + (r.leader ? ' live-gold' : '') + '">' + liveEsc(r.leader ? (r.leader + ' leder') : 'Delt') + '</div><div class="live-sub">' + (r.pot ? ('Hull ' + (r.played + 1) + ' er verdt ' + r.pot) : 'Ferdig') + '</div><div class="live-names">' + liveEsc(r.a + ' · ' + r.namesA) + '</div><div class="live-names">' + liveEsc(r.b + ' · ' + r.namesB) + '</div></div></div>';
     } else {
       body = (!through ? '<div class="live-wait"><h1>Venter på første hull</h1>' : '<div class="live-rows">') + rows.map(function (r) {
-        return liveMatchHtml({ left: r.a, right: r.b, leftNames: r.namesA, rightNames: r.namesB, lead: r.lead, played: r.played, leader: r.leader }, !through);
+        return liveMatchHtml({ left: r.a, right: r.b, leftNames: r.namesA, rightNames: r.namesB, lead: r.lead, played: r.played, leader: r.leader, pot: r.pot }, !through);
       }).join('') + '</div>';
     }
   }
@@ -1283,6 +1287,17 @@ function liveCastHtml() {
   if (!liveModel) return '';
   return liveBoardHtml(liveModel, true) + liveCoverHtml(liveShow);
 }
+function liveCastBeatStart() {
+  if (liveCastBeat) clearInterval(liveCastBeat);
+  liveCastBeat = setInterval(function () {
+    if (!liveCastSession) return;
+    try { liveCastSession.sendMessage(CAST_NS, { ping: 1 }); } catch (e) {}
+  }, 45000);
+}
+function liveCastBeatStop() {
+  if (liveCastBeat) clearInterval(liveCastBeat);
+  liveCastBeat = null;
+}
 function liveSendBoard() {
   if (!liveCastSession) return;
   const html = liveCastHtml();
@@ -1305,10 +1320,12 @@ function liveInitCast() {
         if (ev.sessionState === cast.framework.SessionState.SESSION_STARTED || ev.sessionState === cast.framework.SessionState.SESSION_RESUMED) {
           liveCastSession = ctx.getCurrentSession();
           liveCastSent = '';
+          liveCastBeatStart();
           liveSendBoard();
         } else if (ev.sessionState === cast.framework.SessionState.SESSION_ENDED) {
           liveCastSession = null;
           liveCastSent = '';
+          liveCastBeatStop();
         }
       });
     }
@@ -1323,6 +1340,7 @@ function liveCast() {
   cast.framework.CastContext.getInstance().requestSession().then(function () {
     liveCastSession = cast.framework.CastContext.getInstance().getCurrentSession();
     liveCastSent = '';
+    liveCastBeatStart();
     liveSendBoard();
   }).catch(function () {});
 }
@@ -2288,6 +2306,7 @@ function ensureCard(day) {
   if (!day.card.allocated) day.card.allocated = {};
   if (!day.card.gross) day.card.gross = {};
   if (!day.card.scramble) day.card.scramble = {};
+  if (!day.card.scramblePosted) day.card.scramblePosted = {};
   if (!day.card.posted) day.card.posted = {};
   if (!day.card.done) day.card.done = {};
   return day.card;
@@ -2976,6 +2995,21 @@ function markDone(day, name) {
   ensureCard(day);
   day.card.done[name] = true;
 }
+function commitScrambleHole(day, hole) {
+  let changed = false;
+  const scr = (day.card && day.card.scramble) || {};
+  Object.keys(scr).forEach(function (idx) {
+    if (!dirtyScramble[dirtyScrambleKey(cardDay, idx, hole)]) return;
+    const v = scrambleVal((scr[idx] || [])[hole]);
+    if (!v) return;
+    if (!day.card.scramblePosted) day.card.scramblePosted = {};
+    if (!day.card.scramblePosted[idx]) day.card.scramblePosted[idx] = Array(18).fill(null);
+    if (scrambleVal(day.card.scramblePosted[idx][hole]) === v) return;
+    day.card.scramblePosted[idx][hole] = v;
+    changed = true;
+  });
+  return changed;
+}
 function commitOpenHole(hole) {
   const t = state.current;
   const day = t && t.days && t.days[cardDay];
@@ -2988,6 +3022,7 @@ function commitOpenHole(hole) {
     setPosted(day, p.name, hole, g);
     changed = true;
   });
+  if (commitScrambleHole(day, hole)) changed = true;
   if (changed) saveState();
 }
 function finishOpenRound() {
@@ -3003,6 +3038,7 @@ function finishOpenRound() {
     markDone(day, p.name);
     changed = true;
   });
+  if (commitScrambleHole(day, 17)) changed = true;
   if (changed) saveState();
 }
 function holeDotRow(filledFn) {
@@ -3162,7 +3198,11 @@ function renderStablefordCard(el, t, day) {
   const cast = (t.players || []).map(function (p) {
     const pg = grossAt(day, p.name, h);
     const cls = 'cast-row' + (p.name === me ? ' mine' : '') + (flashes[p.name + '|' + h] ? ' flash' : '');
-    return '<div class="' + cls + '"><span>' + cardName(p.name) + '</span><span>' + (pg == null ? '–' : pg) + '</span></div>';
+    const shown = pg == null ? '–' : pg;
+    const score = isAdmin() && !locked
+      ? '<span class="cast-step"><button type="button" onclick="bumpNamed(\'' + jsName(p.name) + '\',-1)" aria-label="Færre slag">−</button><b>' + shown + '</b><button type="button" onclick="bumpNamed(\'' + jsName(p.name) + '\',1)" aria-label="Flere slag">+</button></span>'
+      : '<span>' + shown + '</span>';
+    return '<div class="' + cls + '"><span>' + cardName(p.name) + '</span>' + score + '</div>';
   }).join('');
   el.innerHTML = cardHead(day, 'Hull ' + (h + 1), parLine) +
     '<div class="inst-body"><div class="stroke-who">' + cardName(me) + '</div>' + strokeHero(me, g, locked) +
@@ -3274,6 +3314,7 @@ function setScramble(val) {
   if (!day.card.scramble[use]) day.card.scramble[use] = Array(18).fill(null);
   if (scramblePot(day.card.scramble[use], cardHole) == null) { toast('Fyll hullene foran først'); return; }
   day.card.scramble[use][cardHole] = { v: val, t: Date.now() };
+  dirtyScramble[dirtyScrambleKey(cardDay, use, cardHole)] = true;
   saveState();
   renderLiveCard();
 }
@@ -3529,10 +3570,18 @@ function cardFeats(t) {
   return feats;
 }
 let dirtyHoles = {};
+let dirtyScramble = {};
 function dirtyGrossKey(dayIndex, name, hole) { return dayIndex + '|' + name + '|' + hole; }
+function dirtyScrambleKey(dayIndex, idx, hole) { return dayIndex + '|' + idx + '|' + hole; }
 function scrambleVal(cell) {
   if (cell && typeof cell === 'object') return cell.v || null;
   return cell || null;
+}
+function scrambleLiveArr(day, idx) {
+  const raw = (day.card && day.card.scramble && day.card.scramble[idx]) || [];
+  if (day.completed) return raw;
+  const posted = (day.card && day.card.scramblePosted && day.card.scramblePosted[idx]) || [];
+  return Array.from({ length: 18 }, function (_, i) { return posted[i] || null; });
 }
 function scrambleTime(cell) {
   if (cell && typeof cell === 'object') return cell.t || 0;
@@ -3637,6 +3686,21 @@ function applyMergedScores(merged, snapshot) {
     const done = Object.assign({}, mdone);
     Object.keys(ldone).forEach(function (name) { if (ldone[name] && !sdone[name]) done[name] = true; });
     ld.card.done = done;
+    const localScr = ld.card.scramblePosted || {};
+    const mergedScr = md.card.scramblePosted || {};
+    const snapScr = (sd && sd.card && sd.card.scramblePosted) || {};
+    const scrIdx = Object.assign({}, localScr, mergedScr);
+    const nextScr = {};
+    Object.keys(scrIdx).forEach(function (idx) {
+      const live = localScr[idx] || [];
+      const remote = mergedScr[idx] || [];
+      const snap = snapScr[idx] || [];
+      nextScr[idx] = Array.from({ length: 18 }, function (_, h) {
+        if (dirtyScramble[dirtyScrambleKey(i, idx, h)] && scrambleVal(live[h]) !== scrambleVal(snap[h])) return scrambleVal(live[h]);
+        return scrambleVal(remote[h]) || scrambleVal(live[h]) || null;
+      });
+    });
+    ld.card.scramblePosted = nextScr;
   });
 }
 function mergePostedOnto(targetDay, dayIndex, localDay, remoteDay) {
@@ -3659,6 +3723,19 @@ function mergePostedOnto(targetDay, dayIndex, localDay, remoteDay) {
   const localD = (localDay && localDay.card && localDay.card.done) || {};
   const remoteD = JSON.parse(JSON.stringify((remoteDay && remoteDay.card && remoteDay.card.done) || {}));
   targetDay.card.done = Object.assign({}, remoteD, localD);
+  const localS = (localDay && localDay.card && localDay.card.scramblePosted) || {};
+  const remoteS = JSON.parse(JSON.stringify((remoteDay && remoteDay.card && remoteDay.card.scramblePosted) || {}));
+  const idxs = Object.assign({}, localS, remoteS);
+  const postedScr = {};
+  Object.keys(idxs).forEach(function (idx) {
+    const a = localS[idx] || [];
+    const b = remoteS[idx] || [];
+    postedScr[idx] = Array.from({ length: 18 }, function (_, h) {
+      if (dirtyScramble[dirtyScrambleKey(dayIndex, idx, h)] && scrambleVal(a[h])) return scrambleVal(a[h]);
+      return scrambleVal(b[h]) || scrambleVal(a[h]) || null;
+    });
+  });
+  targetDay.card.scramblePosted = postedScr;
 }
 function overlayGross(targetDay, dayIndex, sourceDay) {
   const me = myName();
