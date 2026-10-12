@@ -4,7 +4,7 @@ Familie-Majoren er familiens årlige golfmesterskap, som en app på telefonen. D
 
 Appen er én nettside. Den ligger på GitHub Pages. Alle som har lenken og familiekoden, ser de samme turneringene, resultatene og bildene.
 
-Versjon nå: **1.45**
+Versjon nå: **1.46**
 
 ## Slik fungerer den for familien
 
@@ -39,7 +39,7 @@ Når året er ferdig, trykker admin **Turnering ferdig**. Den flyttes til histor
 
 Hjem, scorekort, stilling, et gammelt scorekort og Live er mørke. Gull brukes på det som er aktivt: lederen, den valgte fanen og knappen til dagens kort. Menyen nederst er mørk på de sidene. Turnering, innstillinger, charter og de andre sidene er lyse.
 
-**Mer → Live** er storskjermen. Mens en dag pågår, oppdaterer den seg når noen fører et hull, og viser en kort melding når stillingen flytter seg. Er ingen dag i gang, vises sammenlagttabellen. Så kommer hver ferdigspilt dag, ett bilde om gangen, før tabellen kommer tilbake. **Fullskjerm** fyller skjermen. Da er knappene bare **Lukk** og **Cast**. **Lukk** går ut av fullskjerm og tilbake til Mer. **Cast** på Android åpner Chromecast når app-IDen er lagt inn under Admin. På iPhone sier knappen at du skal speile skjermen. Live endrer ingen score.
+**Mer → Live** er storskjermen. Mens en dag pågår, oppdaterer den seg når noen fører et hull, og viser en kort melding når stillingen flytter seg. Er ingen dag i gang, vises sammenlagttabellen. Så kommer hver ferdigspilt dag, ett bilde om gangen, før tabellen kommer tilbake. **Fullskjerm** fyller skjermen. Da er knappene bare **Lukk** og Cast-symbolet. **Lukk** går ut av fullskjerm og tilbake til Mer. Cast-symbolet på Android åpner Chromecast når app-IDen er lagt inn under Admin. På iPhone sier det at du skal speile skjermen. Live endrer ingen score.
 
 ## Admin og alle andre
 
@@ -63,7 +63,7 @@ Cast til Chromecast gjøres fra Android, også når appen ligger på hjemskjerme
 1. Åpne [Google Cast SDK Developer Console](https://cast.google.com/publish) og legg inn en mottaker.
 2. Mottakeradressen er appens adresse med `cast.html` bakerst.
 3. Kopier app-IDen og lim den inn under **Mer → Innstillinger → Admin → Cast**.
-4. På Live trykker du **Cast** og velger TV-en. Telefonen sender stillingen. TV-en viser bare brettet, uten knapper.
+4. På Live trykker du Cast-symbolet og velger TV-en. Telefonen sender stillingen. TV-en viser bare brettet, uten knapper.
 
 På iPhone kan ikke knappen starte Chromecast. Der bruker du fullskjerm og skjermspeiling.
 
@@ -94,10 +94,10 @@ Dette er hele appen. Ikke legg inn andre mapper.
 
 1. Ta en kopi av den gamle `index.html` før du bytter den.
 2. Last opp den nye `index.html`.
-3. Last opp den nye `sw.js` og `cast.html` i samme omgang. Versjonsnavnet inni `sw.js`, `familiemajoren-v50`, må være et nytt tall. Ellers kan telefonen vise den gamle appen.
+3. Last opp den nye `sw.js` og `cast.html` i samme omgang. Versjonsnavnet inni `sw.js`, `familiemajoren-v51`, må være et nytt tall. Ellers kan telefonen vise den gamle appen.
 4. Vent til GitHub Pages er ferdig. Det tar ofte ett minutt.
 5. Lukk siden helt og åpne lenken på nytt.
-6. Gå til **Mer → Innstillinger**. Der skal det stå den nye versjonen, nå **Versjon 1.45**.
+6. Gå til **Mer → Innstillinger**. Der skal det stå den nye versjonen, nå **Versjon 1.46**.
 
 Bytter du bare bildet eller ikonet, last opp den filen og øk tallet i `sw.js` likevel. Ellers kan den gamle utgaven bli hengende.
 
@@ -109,7 +109,7 @@ Alt som skal endres i appen, ligger i `index.html`. Åpne den i en teksteditor. 
 
 | Du vil endre | Søk etter |
 |---|---|
-| Versjonen som vises i appen | `Versjon 1.45` |
+| Versjonen som vises i appen | `Versjon 1.46` |
 | Kortversjonen av charteret | `const CHARTER` |
 | Det fulle charteret | `charter-full-data` |
 | Mottoet | `Ett år som mester` |
