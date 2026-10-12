@@ -92,6 +92,15 @@
     .live-ticker { margin-top: auto; padding-top: 18px; overflow: hidden; color: rgba(247,244,238,0.72); }
     .live-ticker i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #e4c56a; margin-right: 8px; }
     .live-ticker .run { display: inline-block; white-space: nowrap; animation: live-marquee 28s linear infinite; }
+    .live-netbar { margin-top: auto; padding-top: 22px; overflow: hidden; }
+    .live-netrun { display: flex; gap: 42px; align-items: baseline; }
+    .live-netbar.scroll .live-netrun { width: max-content; animation: live-marquee 36s linear infinite; }
+    .live-chip { display: inline-flex; gap: 10px; align-items: baseline; white-space: nowrap; }
+    .live-chip b { font-family: 'Playfair Display', Georgia, serif; font-weight: 600; font-size: 1.2rem; }
+    .live-chip i { font-style: normal; color: rgba(247,244,238,0.7); }
+    .live-chip em { font-style: normal; font-weight: 700; color: rgba(247,244,238,0.92); }
+    .live-chip em.under { color: #e4c56a; }
+    .live-table .row.move { animation: live-shift 1.15s ease; }
     .live-gold { color: #e4c56a; animation: live-breathe 8s ease-in-out infinite; }
     .live-frozen .live-gold { animation: none; }
     .live-cover { position: fixed; inset: 0; z-index: 80; background: #071a10; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 32px 24px; }
@@ -109,6 +118,7 @@
     @keyframes live-breathe { 50% { opacity: 0.72; } }
     @keyframes live-up { from { transform: translateY(28px); opacity: 0.35; } }
     @keyframes live-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    @keyframes live-shift { from { transform: translateY(var(--shift, 0)); } }
     .points-box { margin-top: 14px; border: 1.5px solid #e5e7eb; background: #f9fafb; border-radius: 12px; text-align: center; font-weight: 700; padding: 14px; }
     .team-line { text-align: center; font-weight: 700; }
     .home-banner-motto { position: absolute; z-index: 1; left: 18px; right: 18px; bottom: 16px; margin: 0; font-family: 'Playfair Display', Georgia, serif; font-size: 1.35rem; line-height: 1.25; text-shadow: 0 2px 12px rgba(0,0,0,.55); }
@@ -456,7 +466,7 @@
         <button type="button" class="menu-row" onclick="openAdminGate()"><svg viewBox="0 0 24 24"><path d="M19.4 13.4a7.6 7.6 0 0 0 .1-1.4 7.6 7.6 0 0 0-.1-1.4l2-1.5-2-3.5-2.4.9a7.4 7.4 0 0 0-2.4-1.4L14.2 2h-4.4l-.4 2.6a7.4 7.4 0 0 0-2.4 1.4l-2.4-.9-2 3.5 2 1.5a7.6 7.6 0 0 0-.1 1.4 7.6 7.6 0 0 0 .1 1.4l-2 1.5 2 3.5 2.4-.9a7.4 7.4 0 0 0 2.4 1.4l.4 2.6h4.4l.4-2.6a7.4 7.4 0 0 0 2.4-1.4l2.4.9 2-3.5-2-1.5z"/><circle cx="12" cy="12" r="2.7"/></svg>Admin<span id="admin-badge" class="badge badge-green hidden" style="margin-left:auto;">Aktiv</span><span class="chev">›</span></button>
         <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
       </div>
-      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.46 · Familiemajoren</p>
+      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.47 · Familiemajoren</p>
     </div>
     <div id="page-admin" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Admin</h1><div class="sub">Innstillinger</div></div></div>
@@ -654,6 +664,9 @@ let liveIdleTimer = null;
 let liveCastSession = null;
 let liveCastSent = '';
 let liveCastHooked = false;
+let liveHold = null;
+let liveHoldBefore = null;
+let liveHoldSeason = null;
 const CAST_NS = 'urn:x-cast:no.familiemajoren.board';
 
 function liveEsc(s) {
@@ -678,24 +691,77 @@ function liveThrough(marks) {
   (marks || []).forEach(function (m) { if (m.hole > n) n = m.hole; });
   return n + 1;
 }
+function postedAt(day, name, hole) {
+  const row = day && day.card && day.card.posted && day.card.posted[name];
+  if (!row || row[hole] == null || row[hole] === '') return null;
+  const n = parseInt(row[hole], 10);
+  return isNaN(n) ? null : n;
+}
+function liveGrossAt(day, name, hole) {
+  if (day && day.completed) return grossAt(day, name, hole);
+  return postedAt(day, name, hole);
+}
+function livePointsAt(day, name, hole) {
+  const g = liveGrossAt(day, name, hole);
+  if (g == null) return null;
+  return stablefordPoints(g, holeAt(day, name, hole).par, receivedAt(day, name, hole));
+}
+function liveNetAt(day, name, hole) {
+  const g = liveGrossAt(day, name, hole);
+  return g == null ? null : g - receivedAt(day, name, hole);
+}
+function liveSideBest(day, names, hole) {
+  let best = null;
+  for (let i = 0; i < names.length; i++) {
+    const net = liveNetAt(day, names[i], hole);
+    if (net == null) return null;
+    if (best == null || net < best) best = net;
+  }
+  return best;
+}
+function liveHoleWinner(day, match, hole) {
+  const a = liveSideBest(day, match.teamA, hole);
+  const b = liveSideBest(day, match.teamB, hole);
+  if (a == null || b == null) return null;
+  if (a < b) return 'A';
+  if (b < a) return 'B';
+  return 'H';
+}
+function liveMatchRun(day, match) {
+  let a = 0, b = 0, pending = false;
+  for (let h = 0; h < 18; h++) {
+    const w = liveHoleWinner(day, match, h);
+    if (!w) pending = true;
+    else if (w === 'A') a++;
+    else if (w === 'B') b++;
+  }
+  const lead = a - b;
+  return { a: a, b: b, pending: pending, result: pending ? null : (lead > 0 ? 'A' : lead < 0 ? 'B' : 'halved') };
+}
+function liveFieldDone(t, day) {
+  const players = (t && t.players) || [];
+  if (!players.length || !day || !day.card || !day.card.done) return false;
+  return players.every(function (p) { return !!day.card.done[p.name]; });
+}
 function liveMarks(t, found) {
   const day = found.day;
   const marks = [];
   if (['stableford', 'final'].includes(day.format)) {
     (t.players || []).forEach(function (p) {
       for (let i = 0; i < 18; i++) {
-        const pts = stablefordAt(day, p.name, i);
+        const g = liveGrossAt(day, p.name, i);
+        const pts = livePointsAt(day, p.name, i);
         if (pts == null) continue;
-        marks.push({ key: 'sf|' + p.name + '|' + i, hole: i, kind: 'sf', name: p.name, pts: pts });
+        marks.push({ key: 'sf|' + p.name + '|' + i + '|' + pts, hole: i, kind: 'sf', name: p.name, pts: pts, gross: g });
       }
     });
   } else if (day.format === 'singles') {
     (day.matches || []).forEach(function (m) {
       const fake = { teamA: [m.p1], teamB: [m.p2] };
       for (let i = 0; i < 18; i++) {
-        const w = holeWinner(day, fake, i);
+        const w = liveHoleWinner(day, fake, i);
         if (!w) continue;
-        marks.push({ key: 'sg|' + m.p1 + '|' + m.p2 + '|' + i, hole: i, kind: 'sg', winner: w === 'A' ? m.p1 : w === 'B' ? m.p2 : '', halved: w === 'H', name: w === 'H' ? (m.p1 + ' og ' + m.p2) : (w === 'A' ? m.p1 : m.p2) });
+        marks.push({ key: 'sg|' + m.p1 + '|' + m.p2 + '|' + i + '|' + w, hole: i, kind: 'sg', winner: w === 'A' ? m.p1 : w === 'B' ? m.p2 : '', halved: w === 'H', name: w === 'H' ? (m.p1 + ' og ' + m.p2) : (w === 'A' ? m.p1 : m.p2) });
       }
     });
   } else if (day.format === 'fourball' || day.format === 'scramble') {
@@ -711,9 +777,9 @@ function liveMarks(t, found) {
         }
       } else {
         for (let i = 0; i < 18; i++) {
-          const w = holeWinner(day, m, i);
+          const w = liveHoleWinner(day, m, i);
           if (!w) continue;
-          marks.push({ key: 'fb|' + idx + '|' + i, hole: i, kind: 'fb', winner: w === 'A' ? a.word : w === 'B' ? b.word : '', halved: w === 'H' });
+          marks.push({ key: 'fb|' + idx + '|' + i + '|' + w, hole: i, kind: 'fb', winner: w === 'A' ? a.word : w === 'B' ? b.word : '', halved: w === 'H' });
         }
       }
     });
@@ -722,25 +788,41 @@ function liveMarks(t, found) {
 }
 function liveMoment(mark) {
   const hole = 'Hull ' + (mark.hole + 1);
-  if (mark.kind === 'sf') return { kicker: 'NETTOPP', title: mark.name, sub: hole, big: String(mark.pts), unit: 'poeng' };
+  if (mark.kind === 'sf') return { kicker: hole.toUpperCase(), title: mark.name, sub: (mark.gross != null ? mark.gross + ' slag' : ''), big: String(mark.pts), unit: 'poeng' };
   if (mark.halved) return { kicker: hole, title: 'Delt hull', sub: '', big: '', unit: '' };
   return { kicker: hole, title: mark.winner || mark.name, sub: 'vant hullet', big: '', unit: '' };
 }
-function liveTicker(marks) {
-  const last = marks.slice().sort(function (a, b) { return a.hole - b.hole; }).slice(-5);
-  if (!last.length) return '';
-  return last.map(function (m) {
-    const h = m.hole + 1;
-    if (m.kind === 'sf') return m.name + ' · hull ' + h + ' · ' + m.pts + ' poeng';
-    if (m.halved) return 'Delt · hull ' + h;
-    return (m.winner || m.name) + ' · vant hull ' + h;
-  }).join('      ');
+function liveNetSign(diff) {
+  if (!diff) return 'E';
+  if (diff < 0) return '−' + Math.abs(diff);
+  return '+' + diff;
+}
+function liveNetBar(t, day) {
+  if (!day || !['stableford', 'final'].includes(day.format)) return '';
+  const rows = (t.players || []).map(function (p) {
+    let diff = 0, pts = 0, n = 0;
+    for (let i = 0; i < 18; i++) {
+      const g = liveGrossAt(day, p.name, i);
+      if (g == null) continue;
+      n++;
+      const par = holeAt(day, p.name, i).par || 4;
+      diff += (g - receivedAt(day, p.name, i)) - par;
+      pts += stablefordPoints(g, par, receivedAt(day, p.name, i));
+    }
+    return n ? { name: p.name, pts: pts, diff: diff } : null;
+  }).filter(Boolean).sort(function (a, b) { return b.pts - a.pts || a.diff - b.diff || a.name.localeCompare(b.name, 'no'); });
+  if (!rows.length) return '';
+  const chips = rows.map(function (r) {
+    return '<span class="live-chip"><b>' + liveEsc(cardName(r.name)) + '</b><i>' + r.pts + '</i><em class="' + (r.diff <= 0 ? 'under' : '') + '">' + liveNetSign(r.diff) + '</em></span>';
+  }).join('');
+  const scroll = rows.length > 4;
+  return '<div class="live-netbar' + (scroll ? ' scroll' : '') + '"><div class="live-netrun">' + chips + (scroll ? chips : '') + '</div></div>';
 }
 function liveStableRows(t, day) {
   return (t.players || []).map(function (p) {
     let pts = 0, holes = 0;
     for (let i = 0; i < 18; i++) {
-      const s = stablefordAt(day, p.name, i);
+      const s = livePointsAt(day, p.name, i);
       if (s == null) continue;
       pts += s;
       holes++;
@@ -751,18 +833,18 @@ function liveStableRows(t, day) {
 function liveSingleRows(day) {
   return (day.matches || []).map(function (m) {
     const fake = { teamA: [m.p1], teamB: [m.p2] };
-    const run = matchRun(day, fake);
+    const run = liveMatchRun(day, fake);
     let played = 0;
-    for (let i = 0; i < 18; i++) if (holeWinner(day, fake, i)) played++;
+    for (let i = 0; i < 18; i++) if (liveHoleWinner(day, fake, i)) played++;
     const lead = run.a - run.b;
     return { p1: m.p1, p2: m.p2, lead: lead, played: played, done: !run.pending, leader: lead > 0 ? m.p1 : lead < 0 ? m.p2 : '' };
   });
 }
 function liveFourRows(day) {
   return (day.teamMatches || []).map(function (m) {
-    const run = matchRun(day, m);
+    const run = liveMatchRun(day, m);
     let played = 0;
-    for (let i = 0; i < 18; i++) if (holeWinner(day, m, i)) played++;
+    for (let i = 0; i < 18; i++) if (liveHoleWinner(day, m, i)) played++;
     const a = teamLook(day, m.teamA);
     const b = teamLook(day, m.teamB);
     const lead = run.a - run.b;
@@ -827,13 +909,21 @@ function livePlace(ranked, n, finale) {
   }
   return points;
 }
+function liveStableTotal(day, name) {
+  let s = 0;
+  for (let i = 0; i < 18; i++) {
+    const p = livePointsAt(day, name, i);
+    if (p != null) s += p;
+  }
+  return s;
+}
 function livePreviewPoints(t, day) {
   const n = (t.players || []).length;
   const maxPoints = n;
   const losePts = Math.ceil(maxPoints / 2);
   const halfPts = (maxPoints + losePts) / 2;
   if (['stableford', 'final'].includes(day.format)) {
-    const ranked = (t.players || []).map(function (p) { return { name: p.name, score: stablefordTotal(day, p.name), hcp: p.hcp }; }).sort(function (a, b) { return b.score !== a.score ? b.score - a.score : a.hcp - b.hcp; });
+    const ranked = (t.players || []).map(function (p) { return { name: p.name, score: liveStableTotal(day, p.name), hcp: p.hcp }; }).sort(function (a, b) { return b.score !== a.score ? b.score - a.score : a.hcp - b.hcp; });
     return livePlace(ranked, n, day.format === 'final');
   }
   const points = {};
@@ -844,7 +934,7 @@ function livePreviewPoints(t, day) {
         const tot = scrambleTotals((day.card.scramble && day.card.scramble[idx]) || []);
         if (!tot.pending) result = tot.a > tot.b ? 'A' : tot.b > tot.a ? 'B' : 'halved';
       } else {
-        const run = matchRun(day, m);
+        const run = liveMatchRun(day, m);
         result = run.result;
       }
       if (result === 'A') { m.teamA.forEach(function (p) { points[p] = maxPoints; }); m.teamB.forEach(function (p) { points[p] = losePts; }); }
@@ -855,7 +945,7 @@ function livePreviewPoints(t, day) {
   }
   if (day.format === 'singles') {
     (day.matches || []).forEach(function (m) {
-      const run = matchRun(day, { teamA: [m.p1], teamB: [m.p2] });
+      const run = liveMatchRun(day, { teamA: [m.p1], teamB: [m.p2] });
       if (!run.result) return;
       if (run.result === 'A') { points[m.p1] = maxPoints; points[m.p2] = losePts; }
       else if (run.result === 'B') { points[m.p2] = maxPoints; points[m.p1] = losePts; }
@@ -880,8 +970,9 @@ function liveMover(before, after) {
   let best = null;
   after.forEach(function (s, i) {
     if (old[s.name] == null) return;
-    const up = old[s.name] - i;
-    if (up > 0 && (!best || up > best.up)) best = { name: s.name, up: up, to: i };
+    const delta = old[s.name] - i;
+    if (!delta) return;
+    if (!best || Math.abs(delta) > Math.abs(best.delta)) best = { name: s.name, delta: delta, from: old[s.name], to: i };
   });
   return best;
 }
@@ -1037,8 +1128,8 @@ function liveBoardHtml(model, bare) {
       }).join('') + '</div>';
     }
   }
-  const tick = model.ticker ? '<div class="live-ticker"><span class="run"><i></i>' + liveEsc(model.ticker) + '&nbsp;&nbsp;&nbsp;&nbsp;<i></i>' + liveEsc(model.ticker) + '</span></div>' : '';
-  return '<div class="live-board' + frozen + bareClass + '">' + tools + kicker + body + tick + '</div>';
+  const net = liveNetBar(model.t, day);
+  return '<div class="live-board' + frozen + bareClass + '">' + tools + kicker + body + net + '</div>';
 }
 function liveCoverHtml(show) {
   if (!show) return '';
@@ -1048,11 +1139,15 @@ function liveCoverHtml(show) {
   }
   if (show.type === 'story') return '<div class="live-story"><div class="k">AKKURAT NÅ</div><p>' + liveEsc(show.text) + '</p></div>';
   if (show.type === 'season') {
+    const mover = show.mover;
     const rows = (show.rows || []).map(function (s, i) {
-      const gold = s.name === show.mover.name ? ' class="live-gold"' : '';
-      return '<div class="row"><span>' + (i + 1) + '</span><span' + gold + '>' + liveEsc(s.name) + '</span><span>' + s.total + '</span></div>';
+      const moving = mover && s.name === mover.name;
+      const cls = moving ? ' class="live-gold move"' : '';
+      const style = moving ? ' style="--shift:' + ((mover.from - i) * 64) + 'px"' : '';
+      return '<div class="row"' + cls + style + '><span>' + (i + 1) + '</span><span>' + liveEsc(s.name) + '</span><span>' + s.total + '</span></div>';
     }).join('');
-    return '<div class="live-cover"><div class="k">SAMMENLAGT</div><div class="live-table">' + rows + '</div><div class="sub">' + liveEsc(show.mover.name) + ' opp</div></div>';
+    const sub = mover ? (mover.name + (mover.delta > 0 ? ' opp' : ' ned')) : (show.finalRound ? 'Ferdig' : '');
+    return '<div class="live-cover"><div class="k">SAMMENLAGT</div><div class="live-table">' + rows + '</div>' + (sub ? '<div class="sub">' + liveEsc(sub) + '</div>' : '') + '</div>';
   }
   return '';
 }
@@ -1108,6 +1203,10 @@ function liveStop() {
   liveTimer = null;
   if (liveStoryTimer) clearInterval(liveStoryTimer);
   liveStoryTimer = null;
+  if (liveHold) clearTimeout(liveHold);
+  liveHold = null;
+  liveHoldBefore = null;
+  liveHoldSeason = null;
   liveShow = null;
   liveQueue = [];
   liveWake(false);
@@ -1226,14 +1325,33 @@ function renderLive() {
   const marks = found ? liveMarks(t, found) : [];
   const season = t ? liveSeason(t, found, marks) : [];
   const story = found ? liveStory(t, found, marks) : '';
-  const ticker = liveTicker(marks);
+  const doneNames = (found.day.card && found.day.card.done) ? Object.keys(found.day.card.done).sort().join(',') : '';
   const first = liveFresh;
-  liveModel = { t: t, found: found, marks: marks, season: season, story: story, ticker: ticker, sig: marks.map(function (m) { return m.key + '=' + (m.pts != null ? m.pts : (m.winner || 'H')); }).join(',') + '|' + season.map(function (s) { return s.name + ':' + s.total; }).join(',') + '|' + (found && found.frozen ? 'f' : 'o') };
+  liveModel = { t: t, found: found, marks: marks, season: season, story: story, ticker: '', sig: marks.map(function (m) { return m.key; }).join(',') + '|' + season.map(function (s) { return s.name + ':' + s.total; }).join(',') + '|' + doneNames + '|' + (found && found.frozen ? 'f' : 'o') };
   if (!first && found && !found.frozen) {
-    const fresh = marks.filter(function (m) { return !livePrevKeys[m.key]; }).sort(function (a, b) { return b.hole - a.hole; });
-    if (fresh[0]) livePush({ type: 'moment', id: fresh[0].key, moment: liveMoment(fresh[0]) });
-    const mover = liveMover(livePrevSeason, season);
-    if (mover) livePush({ type: 'season', id: 'season-' + mover.name + '-' + mover.to + '-' + season.map(function (s) { return s.total; }).join('-'), mover: mover, rows: season });
+    const order = {};
+    (t.players || []).forEach(function (p, i) { order[p.name] = i; });
+    const fresh = marks.filter(function (m) { return !livePrevKeys[m.key]; }).sort(function (a, b) { return (order[a.name] || 0) - (order[b.name] || 0) || a.hole - b.hole; });
+    const before = liveHoldBefore || livePrevSeason;
+    if (fresh.length && liveFieldDone(t, found.day) && fresh.some(function (m) { return m.hole === 17; })) {
+      if (liveHold) clearTimeout(liveHold);
+      liveHold = null;
+      liveHoldBefore = null;
+      livePush({ type: 'season', id: 'round-done-' + doneNames + '-' + season.map(function (s) { return s.total; }).join('-'), rows: season, mover: liveMover(before, season), finalRound: true });
+    } else if (fresh.length) {
+      fresh.forEach(function (m) { livePush({ type: 'moment', id: m.key, moment: liveMoment(m) }); });
+      if (!liveHoldBefore) liveHoldBefore = livePrevSeason;
+      liveHoldSeason = season;
+      if (liveHold) clearTimeout(liveHold);
+      liveHold = setTimeout(function () {
+        liveHold = null;
+        const mover = liveMover(liveHoldBefore, liveHoldSeason);
+        const rows = liveHoldSeason;
+        liveHoldBefore = null;
+        liveHoldSeason = null;
+        if (mover) livePush({ type: 'season', id: 'season-' + mover.name + '-' + mover.from + '-' + mover.to + '-' + rows.map(function (s) { return s.total; }).join('-'), mover: mover, rows: rows });
+      }, 900);
+    }
   }
   liveFresh = false;
   livePrevKeys = {};
@@ -2139,6 +2257,8 @@ function ensureCard(day) {
   if (!day.card.allocated) day.card.allocated = {};
   if (!day.card.gross) day.card.gross = {};
   if (!day.card.scramble) day.card.scramble = {};
+  if (!day.card.posted) day.card.posted = {};
+  if (!day.card.done) day.card.done = {};
   return day.card;
 }
 function strokesOnHole(allocated, holeIndex) {
@@ -2810,7 +2930,50 @@ function setMeIndex(i) {
   renderLiveCard();
 }
 function clearMe() { localStorage.removeItem(ME_KEY); renderLiveCard(); }
-function goHole(i) { cardHole = i; if (currentPage === 'history-card') renderHistoryCard(); else renderLiveCard(); }
+function goHole(i) {
+  if (currentPage !== 'history-card' && i !== cardHole) commitOpenHole(cardHole);
+  cardHole = i;
+  if (currentPage === 'history-card') renderHistoryCard();
+  else renderLiveCard();
+}
+function setPosted(day, name, hole, gross) {
+  ensureCard(day);
+  if (!day.card.posted[name]) day.card.posted[name] = Array(18).fill(null);
+  day.card.posted[name][hole] = gross;
+}
+function markDone(day, name) {
+  ensureCard(day);
+  day.card.done[name] = true;
+}
+function commitOpenHole(hole) {
+  const t = state.current;
+  const day = t && t.days && t.days[cardDay];
+  if (!day || cardLocked(day) || hole < 0 || hole > 16) return;
+  let changed = false;
+  (t.players || []).forEach(function (p) {
+    if (!dirtyHoles[dirtyGrossKey(cardDay, p.name, hole)]) return;
+    const g = grossAt(day, p.name, hole);
+    if (g == null || postedAt(day, p.name, hole) === g) return;
+    setPosted(day, p.name, hole, g);
+    changed = true;
+  });
+  if (changed) saveState();
+}
+function finishOpenRound() {
+  const t = state.current;
+  const day = t && t.days && t.days[cardDay];
+  if (!day || cardLocked(day)) return;
+  let changed = false;
+  (t.players || []).forEach(function (p) {
+    if (!dirtyHoles[dirtyGrossKey(cardDay, p.name, 17)]) return;
+    const g = grossAt(day, p.name, 17);
+    if (g == null) return;
+    if (postedAt(day, p.name, 17) !== g) setPosted(day, p.name, 17, g);
+    markDone(day, p.name);
+    changed = true;
+  });
+  if (changed) saveState();
+}
 function holeDotRow(filledFn) {
   let html = '<div class="hole-dots">';
   for (let i = 0; i < 18; i++) html += '<button type="button" class="' + (i === cardHole ? 'now' : (filledFn(i) ? 'done' : '')) + '" onclick="goHole(' + i + ')"></button>';
@@ -2922,6 +3085,7 @@ function leaveCard() {
   if (!day) return;
   const missing = missingHolesForMe(day);
   if (missing.length) { toast('Du mangler å fylle ut hull ' + missing.join(', ')); return; }
+  finishOpenRound();
   navigate('leaderboard');
 }
 function wideStep(name, value, locked) {
@@ -3421,7 +3585,49 @@ function applyMergedScores(merged, snapshot) {
         lArr[h] = mArr[h];
       }
     });
+    const mp = md.card.posted || {};
+    const sp = (sd && sd.card && sd.card.posted) || {};
+    const lp = ld.card.posted || {};
+    const postedNames = Object.assign({}, mp, lp);
+    const nextPosted = {};
+    Object.keys(postedNames).forEach(function (name) {
+      const m = mp[name] || [];
+      const snap = sp[name] || [];
+      const live = lp[name] || [];
+      nextPosted[name] = Array.from({ length: 18 }, function (_, h) {
+        if (dirtyHoles[dirtyGrossKey(i, name, h)] && !sameCell(live[h], snap[h])) return live[h] == null || live[h] === '' ? null : live[h];
+        return m[h] == null || m[h] === '' ? null : m[h];
+      });
+    });
+    ld.card.posted = nextPosted;
+    const mdone = md.card.done || {};
+    const sdone = (sd && sd.card && sd.card.done) || {};
+    const ldone = ld.card.done || {};
+    const done = Object.assign({}, mdone);
+    Object.keys(ldone).forEach(function (name) { if (ldone[name] && !sdone[name]) done[name] = true; });
+    ld.card.done = done;
   });
+}
+function mergePostedOnto(targetDay, dayIndex, localDay, remoteDay) {
+  ensureCard(targetDay);
+  const localP = (localDay && localDay.card && localDay.card.posted) || {};
+  const remoteP = JSON.parse(JSON.stringify((remoteDay && remoteDay.card && remoteDay.card.posted) || {}));
+  const names = Object.assign({}, localP, remoteP);
+  const posted = {};
+  Object.keys(names).forEach(function (name) {
+    const a = localP[name] || [];
+    const b = remoteP[name] || [];
+    posted[name] = Array.from({ length: 18 }, function (_, h) {
+      const dirty = !!dirtyHoles[dirtyGrossKey(dayIndex, name, h)];
+      if (dirty && a[h] != null && a[h] !== '') return a[h];
+      if (b[h] != null && b[h] !== '') return b[h];
+      return a[h] != null && a[h] !== '' ? a[h] : null;
+    });
+  });
+  targetDay.card.posted = posted;
+  const localD = (localDay && localDay.card && localDay.card.done) || {};
+  const remoteD = JSON.parse(JSON.stringify((remoteDay && remoteDay.card && remoteDay.card.done) || {}));
+  targetDay.card.done = Object.assign({}, remoteD, localD);
 }
 function overlayGross(targetDay, dayIndex, sourceDay) {
   const me = myName();
@@ -3482,6 +3688,7 @@ function mergeOutgoing(remote, local) {
       ld.card.scramble = JSON.parse(JSON.stringify((rd && rd.card && rd.card.scramble) || ld.card.scramble || {}));
       overlayGross(ld, i, local.current.days[i]);
       overlayScramble(ld, local.current.days[i]);
+      mergePostedOnto(ld, i, local.current.days[i], remoteDays[i]);
     });
     out.current = localCur;
     out.history = local.history;
@@ -3494,6 +3701,7 @@ function mergeOutgoing(remote, local) {
       if (!rd.card) rd.card = { ready: false, holes: [], allocated: {}, gross: {}, scramble: {} };
       overlayGross(rd, i, ld);
       overlayScramble(rd, ld);
+      mergePostedOnto(rd, i, ld, rd);
     });
   }
   delete out.courseBook;
@@ -3525,6 +3733,7 @@ function mergeRemoteCards(local, remote) {
         });
       });
       overlayScramble(rd, ld);
+      mergePostedOnto(rd, i, ld, rd);
     });
   }
   if (local && local.current && remote.current) mergeDays(local.current.days, remote.current.days);
