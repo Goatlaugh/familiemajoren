@@ -51,6 +51,18 @@
     .live-cover .sub { color: rgba(247,244,238,0.7); font-size: 1.6rem; margin-top: 10px; }
     .live-table { width: min(920px, 100%); text-align: left; }
     .live-table .row { display: grid; grid-template-columns: 3rem 1fr auto; gap: 16px; align-items: baseline; padding: 12px 0; border-top: 1px solid rgba(255,255,255,0.12); font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.6rem, 3vw, 2.4rem); }
+    .live-race { --row: 72px; position: relative; height: calc(var(--n) * var(--row)); }
+    .live-race .row { position: absolute; left: 0; right: 0; top: 0; height: var(--row); margin: 0; padding: 0; align-items: center; background: #071a10; animation: live-slot 4.6s ease forwards; z-index: 1; }
+    .live-race .row.up { z-index: 2; }
+    .live-race .row.rise { z-index: 3; }
+    .live-race .rank, .live-race .pts { position: relative; }
+    .live-race .pts { text-align: right; min-width: 3rem; }
+    .live-race .rank b, .live-race .pts b { font-weight: inherit; }
+    .live-race .was { animation: live-fadeout 4.6s ease forwards; }
+    .live-race .now { position: absolute; left: 0; top: 0; opacity: 0; animation: live-fadein 4.6s ease forwards; }
+    .live-race .pts .now { left: auto; right: 0; }
+    .live-race .row.rise .who { animation: live-goldin 4.6s ease forwards; }
+    .live-board:has(+ .live-story) .live-netbar { display: none; }
     .live-cover .live-gold { animation: live-up 0.9s ease; }
     .live-story { position: absolute; left: 48px; right: 48px; bottom: 56px; z-index: 3; text-align: center; animation: live-up 0.8s ease; }
     .live-story .k { color: #e4c56a; letter-spacing: 0.16em; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; }
@@ -59,6 +71,10 @@
     @keyframes live-up { from { transform: translateY(28px); opacity: 0.35; } }
     @keyframes live-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
     @keyframes live-shift { from { transform: translateY(var(--shift, 0)); } }
+    @keyframes live-slot { 0%, 18% { transform: translateY(calc(var(--from) * var(--row))); } 46%, 100% { transform: translateY(calc(var(--to) * var(--row))); } }
+    @keyframes live-fadeout { 0%, 34% { opacity: 1; } 46%, 100% { opacity: 0; } }
+    @keyframes live-fadein { 0%, 34% { opacity: 0; } 46%, 100% { opacity: 1; } }
+    @keyframes live-goldin { 0%, 16% { color: #f7f4ee; } 30%, 100% { color: #e4c56a; } }
     .wait { min-height: 100vh; display: flex; align-items: center; justify-content: center; letter-spacing: 0.16em; color: #e4c56a; font-weight: 700; animation: live-breathe 8s ease-in-out infinite; }
   </style>
 </head>
