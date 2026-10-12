@@ -28,10 +28,28 @@
     .live-names { color: rgba(247,244,238,0.62); font-size: 0.95rem; margin-top: 6px; }
     .live-wait { flex: 1; display: flex; flex-direction: column; justify-content: center; }
     .live-wait h1 { font-size: clamp(2.4rem, 6vw, 4.2rem); color: #fff; line-height: 1; }
-    .live-gold { color: #e4c56a; }
+    .live-kicker { animation: live-breathe 8s ease-in-out infinite; }
     .live-ticker { margin-top: auto; padding-top: 18px; overflow: hidden; color: rgba(247,244,238,0.72); }
-    .live-ticker .run { display: inline-block; white-space: nowrap; }
-    .wait { min-height: 100vh; display: flex; align-items: center; justify-content: center; letter-spacing: 0.16em; color: #e4c56a; font-weight: 700; }
+    .live-ticker i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #e4c56a; margin-right: 8px; }
+    .live-ticker .run { display: inline-block; white-space: nowrap; animation: live-marquee 28s linear infinite; }
+    .live-gold { color: #e4c56a; animation: live-breathe 8s ease-in-out infinite; }
+    .live-frozen .live-gold { animation: none; }
+    .live-cover { position: fixed; inset: 0; z-index: 80; background: #071a10; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 48px; }
+    .live-cover h2 { font-size: clamp(3.2rem, 8vw, 7rem); color: #fff; line-height: 0.95; }
+    .live-cover .big { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(4.5rem, 12vw, 9rem); color: #e4c56a; line-height: 0.85; }
+    .live-cover .unit { color: rgba(247,244,238,0.62); font-size: 1.4rem; margin-left: 10px; }
+    .live-cover .k { color: #e4c56a; letter-spacing: 0.16em; font-size: 0.9rem; font-weight: 700; margin-bottom: 18px; }
+    .live-cover .sub { color: rgba(247,244,238,0.7); font-size: 1.6rem; margin-top: 10px; }
+    .live-table { width: min(920px, 100%); text-align: left; }
+    .live-table .row { display: grid; grid-template-columns: 3rem 1fr auto; gap: 16px; align-items: baseline; padding: 12px 0; border-top: 1px solid rgba(255,255,255,0.12); font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.6rem, 3vw, 2.4rem); }
+    .live-cover .live-gold { animation: live-up 0.9s ease; }
+    .live-story { position: absolute; left: 48px; right: 48px; bottom: 56px; z-index: 3; text-align: center; animation: live-up 0.8s ease; }
+    .live-story .k { color: #e4c56a; letter-spacing: 0.16em; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; }
+    .live-story p { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.6rem, 3vw, 2.4rem); line-height: 1.25; color: #fff; margin: 0; }
+    @keyframes live-breathe { 50% { opacity: 0.72; } }
+    @keyframes live-up { from { transform: translateY(28px); opacity: 0.35; } }
+    @keyframes live-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    .wait { min-height: 100vh; display: flex; align-items: center; justify-content: center; letter-spacing: 0.16em; color: #e4c56a; font-weight: 700; animation: live-breathe 8s ease-in-out infinite; }
   </style>
 </head>
 <body>
@@ -44,7 +62,10 @@
       var data = event && event.data;
       if (data && data.html) document.getElementById('board').innerHTML = data.html;
     });
-    ctx.start();
+    var options = new cast.framework.CastReceiverOptions();
+    options.disableIdleTimeout = true;
+    options.maxInactivity = 3600;
+    ctx.start(options);
   </script>
 </body>
 </html>
