@@ -4,7 +4,7 @@ Familie-Majoren er familiens årlige golfmesterskap, som en app på telefonen. D
 
 Appen er én nettside. Den ligger på GitHub Pages. Alle som har lenken og familiekoden, ser de samme turneringene, resultatene og bildene.
 
-Versjon nå: **1.54**
+Versjon nå: **1.55**
 
 ## Slik fungerer den for familien
 
@@ -94,10 +94,10 @@ Dette er hele appen. Ikke legg inn andre mapper.
 
 1. Ta en kopi av den gamle `index.html` før du bytter den.
 2. Last opp den nye `index.html`.
-3. Last opp den nye `sw.js` og `cast.html` i samme omgang. Versjonsnavnet inni `sw.js`, `familiemajoren-v59`, må være et nytt tall. Ellers kan telefonen vise den gamle appen.
+3. Last opp den nye `sw.js`, `cast.html` og `pokal-sheet.png` i samme omgang. Versjonsnavnet inni `sw.js`, `familiemajoren-v60`, må være et nytt tall. Ellers kan telefonen vise den gamle appen.
 4. Vent til GitHub Pages er ferdig. Det tar ofte ett minutt.
 5. Lukk siden helt og åpne lenken på nytt.
-6. Gå til **Mer → Innstillinger**. Der skal det stå den nye versjonen, nå **Versjon 1.54**.
+6. Gå til **Mer → Innstillinger**. Der skal det stå den nye versjonen, nå **Versjon 1.55**.
 
 Bytter du bare bildet eller ikonet, last opp den filen og øk tallet i `sw.js` likevel. Ellers kan den gamle utgaven bli hengende.
 
@@ -109,7 +109,7 @@ Alt som skal endres i appen, ligger i `index.html`. Åpne den i en teksteditor. 
 
 | Du vil endre | Søk etter |
 |---|---|
-| Versjonen som vises i appen | `Versjon 1.54` |
+| Versjonen som vises i appen | `Versjon 1.55` |
 | Kortversjonen av charteret | `const CHARTER` |
 | Det fulle charteret | `charter-full-data` |
 | Mottoet | `Ett år som mester` |
