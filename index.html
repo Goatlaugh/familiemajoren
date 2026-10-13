@@ -339,6 +339,31 @@
     .day-kicker { color: #e4c56a; letter-spacing: 0.14em; font-size: 0.72rem; font-weight: 700; margin-top: 8px; }
     .day-title { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(2rem, 8vw, 2.6rem); color: white; line-height: 1.05; margin: 4px 0 8px; }
     .day-line { color: rgba(247,244,238,0.86); margin: 2px 0; }
+    #page-evening, body.tone-match #page-history-detail { min-height: 100dvh; background: #071a10; color: #f7f4ee; }
+    .eve { max-width: 640px; margin: 0 auto; min-height: 100dvh; padding: calc(22px + env(safe-area-inset-top)) 26px 36px; display: flex; flex-direction: column; }
+    .eve-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+    .eve-back, .eve-quiet { background: none; border: 0; color: #e4c56a; font: inherit; letter-spacing: 0.08em; font-size: 0.78rem; font-weight: 700; cursor: pointer; padding: 0; }
+    .eve-k { color: #e4c56a; letter-spacing: 0.2em; font-size: 0.78rem; font-weight: 700; text-align: center; }
+    .eve h1 { font-size: clamp(3rem, 12vw, 4.8rem); line-height: 0.92; text-align: center; margin: 14px 0 8px; color: #f7f4ee; }
+    .eve-sub { text-align: center; color: rgba(247,244,238,0.82); }
+    .eve-rule { height: 1px; background: rgba(228,197,106,0.75); margin: 26px 0; }
+    .eve-line { font-family: 'Playfair Display', Georgia, serif; font-size: 1.45rem; line-height: 1.25; }
+    .eve-row { display: flex; gap: 14px; align-items: flex-start; }
+    .eve-ico { width: 42px; height: 42px; flex: none; color: #e4c56a; }
+    .eve-ico svg { width: 42px; height: 42px; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    .eve-label { color: #e4c56a; letter-spacing: 0.16em; font-size: 0.72rem; font-weight: 700; }
+    .eve-note { color: #f7f4ee; margin-top: 4px; }
+    .eve-pips { display: flex; justify-content: center; gap: 16px; margin-top: auto; padding-top: 40px; }
+    .eve-pips button { background: none; border: 0; color: rgba(247,244,238,0.4); font-family: 'Playfair Display', Georgia, serif; font-size: 1.2rem; cursor: pointer; padding: 4px; }
+    .eve-pips button.on { color: #e4c56a; }
+    .eve-link { display: inline-block; margin-top: 18px; background: none; border: 0; color: #e4c56a; font: inherit; letter-spacing: 0.08em; font-size: 0.85rem; font-weight: 700; cursor: pointer; padding: 0; }
+    .eve-menu { display: flex; flex-direction: column; flex: 1; }
+    .eve-menu small { font-weight: 500; color: var(--gray-600); font-size: 0.78rem; }
+    .book-card { display: block; width: 100%; text-align: left; background: white; border: 0; border-radius: 16px; box-shadow: var(--shadow); padding: 22px 20px; margin-bottom: 12px; cursor: pointer; font: inherit; color: inherit; }
+    .book-year { font-family: 'Playfair Display', Georgia, serif; font-size: 2.4rem; line-height: 1; color: var(--green-900); }
+    .book-place { color: var(--gray-600); margin-top: 4px; }
+    .book-winner { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(201,162,39,0.45); font-weight: 600; }
+    .book-open { display: block; margin-top: 8px; color: var(--gold); font-size: 0.85rem; letter-spacing: 0.06em; font-weight: 700; }
     .live-cover h2.live-gold { color: #e4c56a; }
     .home-champs { margin-top: 26px; }
     .home-champ { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.12); }
@@ -454,6 +479,7 @@
     <div id="page-history-card" class="page"><div id="history-card-content"></div></div>
     <div id="page-leaderboard" class="page"><div id="leaderboard-content"></div></div>
     <div id="page-live" class="page"><div id="live-content"></div></div>
+    <div id="page-evening" class="page"><div id="evening-content"></div></div>
     <div id="page-groups" class="page"><div id="groups-content"></div></div>
     <div id="page-group-detail" class="page"><div id="group-detail-content"></div></div>
     <div id="page-history" class="page"><div id="history-content"></div></div>
@@ -480,6 +506,7 @@
       <div class="page-banner"><img src="icon-192.png" alt="" /><h1>Mer</h1></div>
       <div class="menu-list">
         <button type="button" class="menu-row" onclick="navigate('live')"><span class="live-dot"></span>Live<span class="chev">›</span></button>
+        <button type="button" id="evening-row" class="menu-row hidden" onclick="navigate('evening')"><svg viewBox="0 0 24 24"><path d="M12 3v2"/><path d="M12 19v2"/><path d="M4.9 4.9l1.4 1.4"/><path d="M17.7 17.7l1.4 1.4"/><path d="M3 12h2"/><path d="M19 12h2"/><path d="M4.9 19.1l1.4-1.4"/><circle cx="12" cy="12" r="4"/></svg><span class="eve-menu"><span>Kvelden</span><small id="evening-sub"></small></span><span class="chev">›</span></button>
         <button type="button" class="menu-row" onclick="navigate('history')"><svg viewBox="0 0 24 24"><path d="M5 5h10a2 2 0 0 1 2 2v12H7a2 2 0 0 0-2 2z"/><path d="M5 5v14"/></svg>Historikk<span class="chev">›</span></button>
         <button type="button" class="menu-row" onclick="navigate('hof')"><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="4"/><path d="M8 13.5 6 21l6-3 6 3-2-7.5"/></svg>Hall of Fame<span class="chev">›</span></button>
         <button type="button" class="menu-row" onclick="navigate('charter')"><svg viewBox="0 0 24 24"><path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4"/><path d="M9 12h6M9 16h6"/></svg>Charter<span class="chev">›</span></button>
@@ -493,7 +520,7 @@
         <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
       </div>
       <div id="phone-role"></div>
-      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.51 · Familiemajoren</p>
+      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.52 · Familiemajoren</p>
     </div>
     <div id="page-admin" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Admin</h1><div class="sub">Innstillinger</div></div></div>
@@ -1752,21 +1779,21 @@ function seasonNavKey(pageId) {
     home: 'home', setup: 'tournament', tournament: 'tournament', scoring: 'tournament',
     groups: 'tournament', 'group-detail': 'tournament', leaderboard: live ? 'leaderboard' : 'history', media: 'media',
     more: 'more', settings: 'more', admin: 'more', pin: 'more', history: live ? 'more' : 'history', 'history-detail': live ? 'more' : 'history', 'history-card': live ? 'more' : 'history', hof: 'more',
-    charter: 'more', 'charter-full': 'more', card: 'tournament', 'card-setup': 'tournament', live: 'more',
+    charter: 'more', 'charter-full': 'more', card: 'tournament', 'card-setup': 'tournament', live: 'more', evening: 'more',
     'course-search': (typeof courseSearch !== 'undefined' && courseSearch.from === 'book') ? 'more' : 'tournament'
   })[pageId] || 'home';
 }
 
 function syncChrome(pageId) {
   currentPage = pageId;
-  const matchTone = pageId === 'home' || pageId === 'leaderboard' || pageId === 'card' || pageId === 'history-card' || pageId === 'live';
+  const matchTone = pageId === 'home' || pageId === 'leaderboard' || pageId === 'card' || pageId === 'history-card' || pageId === 'live' || pageId === 'evening' || pageId === 'history-detail';
   document.body.classList.toggle('tone-match', matchTone);
-  document.body.classList.toggle('live-on', pageId === 'live');
+  document.body.classList.toggle('live-on', pageId === 'live' || pageId === 'evening' || pageId === 'history-detail');
   document.body.classList.toggle('score-lock', pageId === 'card' || pageId === 'history-card' || pageId === 'live');
   const theme = document.querySelector('meta[name="theme-color"]');
   if (theme) theme.setAttribute('content', matchTone ? '#071a10' : '#ffffff');
   const header = document.querySelector('.app-header');
-  const ownBanner = pageId === 'home' || pageId === 'leaderboard' || pageId === 'scoring' || pageId === 'more' || pageId === 'tournament' || pageId === 'setup' || pageId === 'card' || pageId === 'card-setup' || pageId === 'course-search' || pageId === 'history-card' || pageId === 'charter' || pageId === 'charter-full' || pageId === 'settings' || pageId === 'admin' || pageId === 'pin' || pageId === 'hof' || pageId === 'live';
+  const ownBanner = pageId === 'home' || pageId === 'leaderboard' || pageId === 'scoring' || pageId === 'more' || pageId === 'tournament' || pageId === 'setup' || pageId === 'card' || pageId === 'card-setup' || pageId === 'course-search' || pageId === 'history-card' || pageId === 'charter' || pageId === 'charter-full' || pageId === 'settings' || pageId === 'admin' || pageId === 'pin' || pageId === 'hof' || pageId === 'live' || pageId === 'evening' || pageId === 'history-detail';
   if (header) header.hidden = ownBanner;
   const nav = document.querySelector('.bottom-nav');
   if (nav) nav.hidden = pageId === 'pin' || pageId === 'live';
@@ -1797,6 +1824,9 @@ function navigate(pageId) {
   }
   if (pageId === 'tournament') renderTournament();
   if (pageId === 'history') renderHistory();
+  if (pageId === 'history-detail') renderBook();
+  if (pageId === 'evening') renderEvening();
+  if (pageId === 'more') paintEveningRow();
   if (pageId === 'leaderboard') renderLeaderboard();
   if (pageId === 'live') { liveArm(); renderLive(); }
   if (pageId === 'groups') renderGroupsMenu();
@@ -5180,32 +5210,211 @@ function renderMedia() {
   refreshPhotoUrls(allPhotos);
 }
 
+let bookView = null;
+let weatherCache = {};
+function latestClosed() {
+  const t = state.current;
+  if (!t) return null;
+  const days = t.days || [];
+  for (let i = days.length - 1; i >= 0; i--) if (days[i].completed) return { t: t, day: days[i], index: i };
+  return null;
+}
+function paintEveningRow() {
+  const row = document.getElementById('evening-row');
+  const sub = document.getElementById('evening-sub');
+  const hit = latestClosed();
+  if (row) row.classList.toggle('hidden', !hit);
+  if (sub && hit) sub.textContent = 'Dag ' + hit.day.dayNumber + ' er ferdig';
+}
+function dayWinnerLine(t, day) {
+  if (['stableford', 'final'].includes(day.format)) {
+    const scores = day.results || {};
+    const ranked = (t.players || []).map(function (p) { return { name: p.name, score: parseFloat(scores[p.name]) || 0, hcp: p.hcp }; }).sort(function (a, b) { return b.score !== a.score ? b.score - a.score : (parseFloat(a.hcp) || 0) - (parseFloat(b.hcp) || 0); });
+    if (!ranked.length || !ranked[0].score) return 'Dagen er ferdig';
+    const tied = ranked.filter(function (s) { return s.score === ranked[0].score && s.hcp === ranked[0].hcp; });
+    if (tied.length > 1) return 'Delt seier';
+    return cardName(ranked[0].name) + ' vant';
+  }
+  if (['fourball', 'scramble'].includes(day.format)) {
+    const m = (day.teamMatches || [])[0];
+    if (!m || !m.result) return 'Dagen er ferdig';
+    if (m.result === 'halved') return 'Delt';
+    return teamLook(day, m.result === 'A' ? m.teamA : m.teamB).word + ' vant';
+  }
+  if (day.format === 'singles') {
+    const m = (day.matches || [])[0];
+    const val = m && day.results && day.results[m.p1 + '_vs_' + m.p2];
+    if (val === 'p1') return cardName(m.p1) + ' vant';
+    if (val === 'p2') return cardName(m.p2) + ' vant';
+    if (val === 'halved') return 'Delt';
+  }
+  return 'Dagen er ferdig';
+}
+function scrambleStory(day) {
+  let best = null;
+  (day.teamMatches || []).forEach(function (m, idx) {
+    const arr = (day.card && day.card.scramble && day.card.scramble[idx]) || [];
+    let pot = 1;
+    for (let i = 0; i < 18; i++) {
+      const v = scrambleVal(arr[i]);
+      if (!v) break;
+      if (v !== 'H' && pot > 1 && (!best || pot > best.pot)) best = { hole: i + 1, pot: pot };
+      pot = v === 'H' ? pot + 1 : 1;
+    }
+  });
+  return best ? ('Hull ' + best.hole + ' var verdt ' + best.pot + '.') : '';
+}
+function dayStory(t, day) {
+  if (day.format === 'scramble') return scrambleStory(day);
+  const feats = cardFeats(t).filter(function (f) { return f.day === day.dayNumber; });
+  const rank = { 'hole-in-one': 0, albatross: 1, eagle: 2 };
+  feats.sort(function (a, b) { return (rank[a.category] == null ? 9 : rank[a.category]) - (rank[b.category] == null ? 9 : rank[b.category]); });
+  const f = feats[0];
+  if (f && rank[f.category] != null) {
+    const word = f.category === 'hole-in-one' ? 'hole-in-one' : f.category;
+    return cardName(f.player) + ', ' + word + ' på ' + String(f.details || '').toLowerCase() + '.';
+  }
+  if (['stableford', 'final'].includes(day.format)) {
+    const scores = day.results || {};
+    let best = 0;
+    (t.players || []).forEach(function (p) { best = Math.max(best, parseFloat(scores[p.name]) || 0); });
+    if (best) return best + ' poeng.';
+  }
+  return '';
+}
+function lunchLine(t, day) {
+  const names = computeLunchSponsors(day, t);
+  if (!names.length) return 'Hver betaler sin egen lunsj.';
+  if (['fourball', 'scramble'].includes(day.format)) {
+    const m = (day.teamMatches || [])[0];
+    if (m && (m.result === 'A' || m.result === 'B')) {
+      const lose = m.result === 'A' ? m.teamB : m.teamA;
+      if (lose && lose.length === names.length && lose.every(function (n) { return names.indexOf(n) >= 0; })) return 'Dagens lunsj er sponset av ' + teamLook(day, lose).word + '.';
+    }
+  }
+  const shown = names.map(cardName);
+  if (shown.length === 1) return 'Dagens lunsj er sponset av ' + shown[0] + '.';
+  return 'Dagens lunsj er sponset av ' + shown.slice(0, -1).join(', ') + ' og ' + shown[shown.length - 1] + '.';
+}
+function tomorrowBits(t, day, index) {
+  const next = (t.days || [])[index + 1];
+  if (!next) return null;
+  const tee = (next.card && next.card.teeLabel) || '';
+  let who = '';
+  if (next.format === 'singles' && next.matches && next.matches.length) {
+    const me = myName();
+    const m = next.matches.find(function (x) { return x.p1 === me || x.p2 === me; }) || next.matches[0];
+    who = cardName(m.p1) + ' mot ' + cardName(m.p2);
+  } else if (['fourball', 'scramble'].includes(next.format) && next.teamMatches && next.teamMatches[0]) {
+    const m = next.teamMatches[0];
+    who = teamLook(next, m.teamA).word + ' mot ' + teamLook(next, m.teamB).word;
+  }
+  return { day: next, text: [formatShort(next.format), tee ? (tee + ' tee') : '', who].filter(Boolean).join(' · ') };
+}
+function forecastPlace(t, day) {
+  if (t && t.sted) return String(t.sted).trim();
+  const course = day && day.course ? String(day.course) : '';
+  if (!course) return '';
+  const bits = course.split('·');
+  return bits[bits.length - 1].trim();
+}
+function weatherKind(code) {
+  if (code == null || code <= 1) return 'sun';
+  if (code <= 3 || code === 45 || code === 48) return 'cloud';
+  return 'rain';
+}
+function weatherIcon(kind) {
+  if (kind === 'rain') return '<svg viewBox="0 0 48 48"><path d="M16 20h16a6 6 0 0 0 0-12 8 8 0 0 0-15-2 6 6 0 0 0-1 14z"/><path d="M18 32l-2 6M24 32l-2 6M30 32l-2 6"/></svg>';
+  if (kind === 'cloud') return '<svg viewBox="0 0 48 48"><path d="M16 30h16a7 7 0 0 0 0-14 9 9 0 0 0-17-2 6 6 0 0 0 1 16z"/><circle cx="34" cy="16" r="3"/></svg>';
+  return '<svg viewBox="0 0 48 48"><path d="M24 28a6 6 0 1 0 0-12 6 6 0 0 0 0 12z"/><path d="M24 8v4M24 32v4M10 22h4M30 22h4M13 12l3 3M29 28l3 3M13 32l3-3M29 16l3-3"/><path d="M8 38c4-4 8-6 16-6s12 2 16 6"/></svg>';
+}
+function paintWeather(place, date) {
+  const el = document.getElementById('eve-weather');
+  if (!el || !place || !date) return;
+  const key = place + '|' + date;
+  if (weatherCache[key] != null) { el.innerHTML = weatherIcon(weatherKind(weatherCache[key])); return; }
+  fetch('https://geocoding-api.open-meteo.com/v1/search?count=1&language=no&name=' + encodeURIComponent(place))
+    .then(function (r) { return r.json(); })
+    .then(function (g) {
+      const hit = g && g.results && g.results[0];
+      if (!hit) return null;
+      return fetch('https://api.open-meteo.com/v1/forecast?latitude=' + hit.latitude + '&longitude=' + hit.longitude + '&daily=weather_code&timezone=auto&start_date=' + date + '&end_date=' + date);
+    })
+    .then(function (r) { return r && r.json ? r.json() : null; })
+    .then(function (f) {
+      const code = f && f.daily && f.daily.weather_code && f.daily.weather_code[0];
+      if (code == null) return;
+      weatherCache[key] = code;
+      const node = document.getElementById('eve-weather');
+      if (node) node.innerHTML = weatherIcon(weatherKind(code));
+    })
+    .catch(function () {});
+}
+function renderEvening() {
+  const el = document.getElementById('evening-content');
+  const hit = latestClosed();
+  if (!el) return;
+  if (!hit) { el.innerHTML = '<div class="eve"><p class="eve-sub">Ingen dag er ferdig ennå.</p></div>'; return; }
+  const day = hit.day;
+  const t = hit.t;
+  const where = [day.course, t.sted].filter(Boolean)[0] || '';
+  const story = dayStory(t, day);
+  const next = tomorrowBits(t, day, hit.index);
+  const fork = '<svg viewBox="0 0 48 48"><path d="M16 8v10M12 8v8a4 4 0 0 0 8 0V8"/><path d="M16 18v22"/><path d="M28 8c0 8 4 10 4 14v18M32 8v6"/></svg>';
+  el.innerHTML = '<div class="eve"><div class="eve-top"><button type="button" class="eve-back" onclick="navigate(\'more\')">← TILBAKE</button><span class="eve-quiet">MER</span></div><div class="eve-k">KVELDEN</div><p class="eve-sub">Dag ' + day.dayNumber + ' · ' + formatShort(day.format) + (where ? ' · ' + liveEsc(where) : '') + '</p><h1>' + liveEsc(dayWinnerLine(t, day)) + '</h1><div class="eve-rule"></div>' + (story ? '<p class="eve-line">' + liveEsc(story) + '</p><div class="eve-rule"></div>' : '') + '<div class="eve-row"><div class="eve-ico">' + fork + '</div><div><div class="eve-label">LUNSJ</div><div class="eve-note">' + liveEsc(lunchLine(t, day)) + '</div></div></div>' + (next ? '<div class="eve-rule"></div><div class="eve-row"><div class="eve-ico" id="eve-weather">' + weatherIcon('sun') + '</div><div><div class="eve-label">I MORGEN</div><div class="eve-note">' + liveEsc(next.text) + '</div></div></div>' : '') + '</div>';
+  if (next && next.day.date) paintWeather(forecastPlace(t, next.day), next.day.date);
+}
+function bookMemory(h) {
+  const feats = cardFeats(h);
+  const aces = feats.filter(function (f) { return f.category === 'hole-in-one'; }).length;
+  const eagles = feats.filter(function (f) { return f.category === 'eagle'; }).length;
+  if (aces === 1) return 'Én hole-in-one';
+  if (aces) return aces + ' hole-in-one';
+  if (eagles === 1) return 'Én eagle';
+  if (eagles) return eagles + ' eagles';
+  return '';
+}
 function renderHistory() {
   const el = document.getElementById('history-content');
-  const backMer = standingsLive() ? '<button type="button" class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'more\')">← Tilbake</button>' : '';
   if (!state.history.length) {
-    el.innerHTML = backMer + '<div class="card"><div class="empty-state"><div class="icon">📚</div><p>Ingen fullførte turneringer.</p></div></div>';
+    el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><h1>Historikk</h1></div><div class="card"><p class="text-muted">Ingen fullførte turneringer.</p></div>';
     return;
   }
-  const sorted = [...state.history].sort((a,b) => b.year - a.year);
-  el.innerHTML = backMer + '<div class="card"><h2 class="card-title">📚 Historikk / Mesterliste</h2></div>' +
-    sorted.map(h => {
-      const idx = state.history.indexOf(h);
-      return '<div class="history-item" onclick="openHistoryDetail(' + idx + ')"><div class="history-year">' + h.year + '</div><div class="history-info"><div class="history-sted">' + h.sted + (h.startDate ? ' · ' + formatDate(h.startDate) : '') + '</div><div class="history-winner">🏆 ' + h.winner + '</div></div><div class="history-arrow">›</div></div>';
-    }).join('');
+  const sorted = state.history.slice().sort(function (a, b) { return b.year - a.year; });
+  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><h1>Historikk</h1></div>' + sorted.map(function (h) {
+    const idx = state.history.indexOf(h);
+    return '<button type="button" class="book-card" onclick="openBook(' + idx + ')"><div class="book-year">' + h.year + '</div><div class="book-place">' + liveEsc(h.sted || '') + '</div><div class="book-winner">Mester · ' + liveEsc(h.winner || '') + '</div><span class="book-open">Åpne boken</span></button>';
+  }).join('');
 }
-
-function openHistoryDetail(index) {
-  const h = state.history[index];
-  if (!h) return;
+function openBook(index) {
+  bookView = { index: index, mode: 'cover' };
+  navigate('history-detail');
+}
+function openBookDay(dayNumber) {
+  if (!bookView) return;
+  bookView.mode = 'day';
+  bookView.dayNumber = dayNumber;
+  renderBook();
+}
+function renderBook() {
   const el = document.getElementById('history-detail-content');
-  el.innerHTML = '<div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'history\')">← Tilbake</button><div class="section-title">Familiemajoren</div><h2 style="margin:0 0 4px;">' + h.year + ' · ' + h.sted + '</h2><div class="badge badge-gold mt-2">🏆 ' + h.winner + '</div></div><div class="card"><h3 class="card-title">Sluttstilling</h3>' + renderStandingsTable(h.standings || []) + '</div><div class="card"><h3 class="card-title">Dag for dag</h3>' +
-    (h.days || []).map(d => '<div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--gray-100);"><div class="flex justify-between mb-1"><strong>Dag ' + d.dayNumber + (d.date ? ' · ' + formatDate(d.date) : '') + '</strong><span class="badge badge-green">' + (FORMATS[d.format]||d.format) + '</span></div>' + (d.course ? '<div class="text-muted" style="font-size:0.85rem;">📍 ' + d.course + '</div>' : '') + '<button type="button" class="btn btn-sm btn-secondary mt-2" onclick="openDayMedia(' + JSON.stringify(h.year) + ',' + JSON.stringify(h.sted) + ',' + d.dayNumber + ')">Bilder</button>' + (d.card && d.card.ready ? '<button type="button" class="btn btn-sm btn-secondary mt-2" onclick="openHistoryPlayers(' + index + ',' + d.dayNumber + ')">Scorekort</button>' : '') + (d.points ? Object.entries(d.points).sort((a,b)=>b[1]-a[1]).map(([n,p]) => '<div class="flex justify-between" style="font-size:0.9rem;"><span>' + n + '</span><span>' + p + ' p</span></div>').join('') : '') + '</div>').join('') + '</div><div class="card"><button class="btn btn-outline btn-block" onclick="deleteHistoryTournament(' + index + ')">Slett denne turneringen</button></div>';
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-history-detail').classList.add('active');
-  syncChrome('history-detail');
+  const h = bookView && state.history[bookView.index];
+  if (!el || !h) { navigate('history'); return; }
+  const days = h.days || [];
+  if (bookView.mode !== 'day') {
+    const n = days.length;
+    const memory = bookMemory(h);
+    el.innerHTML = '<div class="eve"><div class="eve-top"><button type="button" class="eve-back" onclick="navigate(\'history\')">← TILBAKE</button></div><div class="eve-k">FAMILIEMAJOREN</div><h1>' + h.year + '</h1><p class="eve-sub">' + liveEsc(h.sted || '') + '</p><div class="eve-rule"></div><p class="eve-line">Mester · ' + liveEsc(h.winner || '') + '</p><p class="eve-note">' + n + (n === 1 ? ' dag' : ' dager') + '</p>' + (memory ? '<p class="eve-note">' + memory + '</p>' : '') + '<button type="button" class="eve-link" onclick="openBookDay(' + (days[0] ? days[0].dayNumber : 1) + ')">Åpne dagene</button>' + (isAdmin() ? '<button type="button" class="eve-link" onclick="deleteHistoryTournament(' + bookView.index + ')">Slett dette året</button>' : '') + '</div>';
+    return;
+  }
+  const day = days.find(function (d) { return d.dayNumber === bookView.dayNumber; }) || days[0];
+  if (!day) return;
+  const story = dayStory(h, day);
+  const headline = dayWinnerLine(h, day);
+  const line = [headline].concat(story ? [story.replace(/\.$/, '')] : []).join(' · ');
+  const card = day.format !== 'scramble' && day.card && day.card.ready;
+  el.innerHTML = '<div class="eve"><div class="eve-top"><button type="button" class="eve-back" onclick="openBook(' + bookView.index + ')">← OMSLAG</button></div><div class="eve-k">DAG ' + day.dayNumber + '</div><h1>' + liveEsc(formatShort(day.format)) + '</h1><p class="eve-line">' + liveEsc(line) + '</p><div class="eve-rule"></div><p class="eve-note">' + liveEsc(lunchLine(h, day)) + '</p>' + (card ? '<button type="button" class="eve-link" onclick="openHistoryPlayers(' + bookView.index + ',' + day.dayNumber + ')">Scorekort</button>' : '') + '<div class="eve-pips">' + days.map(function (d) { return '<button type="button" class="' + (d.dayNumber === day.dayNumber ? 'on' : '') + '" onclick="openBookDay(' + d.dayNumber + ')">' + d.dayNumber + '</button>'; }).join('') + '</div></div>';
 }
-
 function exportData() {
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');

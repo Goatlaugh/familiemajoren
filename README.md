@@ -4,7 +4,7 @@ Familie-Majoren er familiens årlige golfmesterskap, som en app på telefonen. D
 
 Appen er én nettside. Den ligger på GitHub Pages. Alle som har lenken og familiekoden, ser de samme turneringene, resultatene og bildene.
 
-Versjon nå: **1.51**
+Versjon nå: **1.52**
 
 ## Slik fungerer den for familien
 
@@ -94,10 +94,10 @@ Dette er hele appen. Ikke legg inn andre mapper.
 
 1. Ta en kopi av den gamle `index.html` før du bytter den.
 2. Last opp den nye `index.html`.
-3. Last opp den nye `sw.js` og `cast.html` i samme omgang. Versjonsnavnet inni `sw.js`, `familiemajoren-v56`, må være et nytt tall. Ellers kan telefonen vise den gamle appen.
+3. Last opp den nye `sw.js` og `cast.html` i samme omgang. Versjonsnavnet inni `sw.js`, `familiemajoren-v57`, må være et nytt tall. Ellers kan telefonen vise den gamle appen.
 4. Vent til GitHub Pages er ferdig. Det tar ofte ett minutt.
 5. Lukk siden helt og åpne lenken på nytt.
-6. Gå til **Mer → Innstillinger**. Der skal det stå den nye versjonen, nå **Versjon 1.51**.
+6. Gå til **Mer → Innstillinger**. Der skal det stå den nye versjonen, nå **Versjon 1.52**.
 
 Bytter du bare bildet eller ikonet, last opp den filen og øk tallet i `sw.js` likevel. Ellers kan den gamle utgaven bli hengende.
 
@@ -109,7 +109,7 @@ Alt som skal endres i appen, ligger i `index.html`. Åpne den i en teksteditor. 
 
 | Du vil endre | Søk etter |
 |---|---|
-| Versjonen som vises i appen | `Versjon 1.51` |
+| Versjonen som vises i appen | `Versjon 1.52` |
 | Kortversjonen av charteret | `const CHARTER` |
 | Det fulle charteret | `charter-full-data` |
 | Mottoet | `Ett år som mester` |
@@ -131,6 +131,8 @@ Poeng, tiebreak og de fem formatene regnes ut i funksjonene `calculateStandings`
 ## Søk opp bane
 
 På **Forbered scorekort** kan admin trykke **Søk opp bane**. Søket går i familiens egen banebok, ikke i en ekstern database. Finnes ikke banen, trykker du **Opprett bane** og fyller inn klubb, bane, tee, slope og baneverdi for herrer og damer, pluss par og HCP. Tom slope er lov og kan fylles inn senere med **Oppdater**. **Bytt om** under slope bytter tallene med baneverdi hvis de ble skrevet i feil felt. Hullene lagres på banen. En tee som fortsatt er tom, kan arve hullene fra en tee som er fylt ut.
+
+**Kvelden** ligger under Mer, rett under Live, og vises bare når en dag er ferdig. Der står hvem som vant, én setning om dagen, hvem som spanderer lunsj, og hva som venter i morgen. Symbolet ved i morgen følger værmeldingen for stedet. Historikk er årbøker. Et år åpnes som omslag, så én side per dag. Scorekortet ligger på dagen for alle formater unntatt scramble, slik at rundene kan føres inn i GolfBox.
 
 Kjønn velges bare under turneringsinnstillinger, ved siden av navn og handicap. Når banen brukes, spør appen om alle spiller fra samme tee. Slag regnes ut fra spillerens handicap og riktig slope. Mangler slope, står slagene tomme. **Slope gyldig til** er én dato på hele banen. Tom dato gir ingen varsel. Er datoen passert og admin velger banen til en runde, åpnes **Oppdater bane** med tallene i behold.
 
