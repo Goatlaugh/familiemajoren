@@ -333,6 +333,13 @@
     .home-dayline { text-align: center; margin: 12px 0 0; font-weight: 700; color: white; }
     .home-lead { display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%; margin-top: 18px; padding: 16px; background: transparent; color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 14px; font-family: inherit; font-size: 1.15rem; font-weight: 600; cursor: pointer; text-align: left; }
     .home-lead .pts { color: #e4c56a; font-family: 'Playfair Display', Georgia, serif; font-size: 1.45rem; font-weight: 600; white-space: nowrap; }
+    .who-choice { display: block; width: 100%; text-align: left; background: transparent; color: white; border: none; border-top: 1px solid rgba(228,197,106,0.45); padding: 22px 0; cursor: pointer; }
+    .who-choice strong { display: block; font-family: 'Playfair Display', Georgia, serif; font-size: clamp(2rem, 8vw, 2.6rem); font-weight: 600; }
+    .who-choice span { display: block; color: rgba(247,244,238,0.72); margin-top: 4px; }
+    .day-kicker { color: #e4c56a; letter-spacing: 0.14em; font-size: 0.72rem; font-weight: 700; margin-top: 8px; }
+    .day-title { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(2rem, 8vw, 2.6rem); color: white; line-height: 1.05; margin: 4px 0 8px; }
+    .day-line { color: rgba(247,244,238,0.86); margin: 2px 0; }
+    .live-cover h2.live-gold { color: #e4c56a; }
     .home-champs { margin-top: 26px; }
     .home-champ { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.12); }
     .inst-head { text-align: center; padding-top: calc(8px + env(safe-area-inset-top)); }
@@ -485,7 +492,8 @@
         <button type="button" class="menu-row" onclick="openAdminGate()"><svg viewBox="0 0 24 24"><path d="M19.4 13.4a7.6 7.6 0 0 0 .1-1.4 7.6 7.6 0 0 0-.1-1.4l2-1.5-2-3.5-2.4.9a7.4 7.4 0 0 0-2.4-1.4L14.2 2h-4.4l-.4 2.6a7.4 7.4 0 0 0-2.4 1.4l-2.4-.9-2 3.5 2 1.5a7.6 7.6 0 0 0-.1 1.4 7.6 7.6 0 0 0 .1 1.4l-2 1.5 2 3.5 2.4-.9a7.4 7.4 0 0 0 2.4 1.4l.4 2.6h4.4l.4-2.6a7.4 7.4 0 0 0 2.4-1.4l2.4.9 2-3.5-2-1.5z"/><circle cx="12" cy="12" r="2.7"/></svg>Admin<span id="admin-badge" class="badge badge-green hidden" style="margin-left:auto;">Aktiv</span><span class="chev">›</span></button>
         <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
       </div>
-      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.50 · Familiemajoren</p>
+      <div id="phone-role"></div>
+      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.51 · Familiemajoren</p>
     </div>
     <div id="page-admin" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Admin</h1><div class="sub">Innstillinger</div></div></div>
@@ -648,9 +656,13 @@ function localHasData() {
 
 function cloudIsEmpty(data) {
   if (!data || typeof data !== 'object') return true;
+  if (data.resetAt) return false;
   const manual = data.hallOfFame && data.hallOfFame.manual;
-  return !data.current && !(data.history && data.history.length) && !(manual && manual.length);
+  const peaks = data.hallOfFame && data.hallOfFame.peaks && Object.keys(data.hallOfFame.peaks).length;
+  return !data.current && !(data.history && data.history.length) && !(manual && manual.length) && !peaks;
 }
+function resetStamp(data) { return data && data.resetAt ? String(data.resetAt) : ''; }
+function resetWins(a, b) { return !!resetStamp(a) && resetStamp(a) > resetStamp(b); }
 
 function registerAppInstall() {
   if (!('serviceWorker' in navigator)) return;
@@ -1159,6 +1171,7 @@ function liveCoverHtml(show) {
     return '<div class="live-cover"><div class="k">' + liveEsc(m.kicker) + '</div><h2>' + liveEsc(m.title) + '</h2>' + (m.sub ? '<div class="sub">' + liveEsc(m.sub) + '</div>' : '') + (m.big ? '<div class="big">' + liveEsc(m.big) + (m.unit ? '<span class="unit">' + liveEsc(m.unit) + '</span>' : '') + '</div>' : '') + '</div>';
   }
   if (show.type === 'story') return '<div class="live-story"><div class="k">AKKURAT NÅ</div><p>' + liveEsc(show.text) + '</p></div>';
+  if (show.type === 'champion') return '<div class="live-cover"><div class="k">FAMILIEMAJOREN ' + liveEsc(String(show.year || '')) + '</div><h2 class="live-gold">' + liveEsc(show.name || '') + '</h2><div class="sub">Familiemajormester' + (show.margin ? (' · ' + show.margin + ' poeng') : '') + '</div></div>';
   if (show.type === 'season') return liveSeasonCover(show);
   return '';
 }
@@ -1201,7 +1214,7 @@ function liveAdvance() {
   if (!next) { paintLive(); return; }
   liveShow = next;
   paintLive();
-  liveTimer = setTimeout(function () { liveShow = null; liveAdvance(); }, next.type === 'season' ? 5200 : 4500);
+  liveTimer = setTimeout(function () { liveShow = null; liveAdvance(); }, next.type === 'champion' ? 7000 : next.type === 'season' ? 5200 : 4500);
 }
 function livePush(item) {
   if (liveShow && liveShow.type === 'story') {
@@ -1385,6 +1398,10 @@ function renderLive() {
       if (liveHold) clearTimeout(liveHold);
       liveHold = null;
       liveHoldBefore = null;
+      if (found.day.format === 'final' && season[0]) {
+        const gap = season[1] ? Math.round((season[0].total - season[1].total) * 10) / 10 : 0;
+        livePush({ type: 'champion', id: 'champ-' + season[0].name + '-' + season[0].total, name: season[0].name, year: t.year || '', margin: gap });
+      }
       livePush({ type: 'season', id: 'round-done-' + doneNames + '-' + season.map(function (s) { return s.total; }).join('-'), rows: season, before: before, mover: liveMover(before, season), finalRound: true });
     } else if (fresh.length) {
       fresh.forEach(function (m) { livePush({ type: 'moment', id: m.key, moment: liveMoment(m) }); });
@@ -2015,6 +2032,43 @@ function countdownCard(t) {
   return '<div class="card countdown-card"><div class="section-title">Nedtelling til start</div><div class="text-muted" style="font-size:0.85rem;">' + formatDate(t.startDate) + (t.sted ? ' · ' + t.sted : '') + '</div><div id="countdown-value" class="countdown-num mt-2">' + countdownText(t.startDate) + '</div></div>';
 }
 
+function myDayCard(t) {
+  const me = myName();
+  if (!me) return '';
+  const rows = calculateStandings(t);
+  const mine = rows.find(function (s) { return s.name === me; });
+  const lead = rows[0];
+  let title = 'Din dag';
+  if (mine && lead) {
+    const gap = Math.round((lead.total - mine.total) * 10) / 10;
+    if (!gap) title = rows.filter(function (s) { return s.total === lead.total; }).length > 1 ? 'Delt ledelse' : 'Du leder';
+    else title = gap + ' poeng bak';
+  }
+  const hit = activeCardDay(t);
+  const day = hit && hit.day;
+  let withWho = '';
+  let tee = '';
+  let holeLine = '';
+  if (day) {
+    if (day.format === 'singles') {
+      const m = (day.matches || []).find(function (x) { return x.p1 === me || x.p2 === me; });
+      if (m) withWho = 'Mot ' + cardName(m.p1 === me ? m.p2 : m.p1);
+    } else if (day.teamMatches) {
+      const m = day.teamMatches.find(function (x) { return (x.teamA || []).concat(x.teamB || []).indexOf(me) >= 0; });
+      if (m) {
+        const side = (m.teamA || []).indexOf(me) >= 0 ? m.teamA : m.teamB;
+        const others = side.filter(function (n) { return n !== me; });
+        if (others.length) withWho = 'Med ' + others.map(cardName).join(' og ');
+      }
+    }
+    tee = (day.card && day.card.playerTee && day.card.playerTee[me]) || (day.card && day.card.teeLabel) || '';
+    const hole = day.card && day.card.playerHoles && day.card.playerHoles[me] ? day.card.playerHoles[me][0] : (day.card && day.card.holes && day.card.holes[0]);
+    if (hole) holeLine = 'Hull 1 · par ' + (hole.par || 4) + ' · indeks ' + (hole.index || hole.hcp || 1);
+  }
+  const line = [withWho, tee ? (tee + ' tee') : ''].filter(Boolean).join(' · ');
+  return '<div class="day-kicker">DIN DAG</div><h2 class="day-title">' + title + '</h2>' + (line ? '<p class="day-line">' + line + '</p>' : '') + (holeLine ? '<p class="day-line">' + holeLine + '</p>' : '');
+}
+
 function renderHome() {
   const el = document.getElementById('home-stage');
   if (!el) return;
@@ -2030,15 +2084,24 @@ function renderHome() {
     return;
   }
   const t = state.current;
+  const players = t.players || [];
+  if (!phoneRole() && players.length) {
+    el.innerHTML = photo + '<div class="home-copy">' + motto + '<h2 class="day-title">Hvem er du her?</h2><button type="button" class="who-choice" onclick="choosePlayList()"><strong>Jeg spiller</strong><span>Denne telefonen fører score.</span></button><button type="button" class="who-choice" onclick="chooseWatch()"><strong>Jeg følger med</strong><span>Se stillingen, ikke rør kortet.</span></button></div>';
+    return;
+  }
+  if (phoneRole() === 'play' && !myName() && players.length) {
+    el.innerHTML = photo + '<div class="home-copy">' + motto + '<div class="day-kicker">JEG SPILLER</div><h2 class="day-title">Velg navnet ditt</h2>' + players.map(function (p, i) { return '<button type="button" class="who-choice" onclick="setMeIndex(' + i + ')"><strong>' + cardName(p.name) + '</strong></button>'; }).join('') + '<p class="day-line">Huskes på denne telefonen.</p></div>';
+    return;
+  }
   const started = countdownText(t.startDate) === 'Turneringen er i gang';
   const status = !t.startDate ? '' : (started ? 'I gang' : '<span id="countdown-value">' + countdownText(t.startDate) + '</span>');
   const kicker = [t.sted, t.year].filter(Boolean).join(' · ');
   const hit = activeCardDay(t);
-  const cta = hit
+  const watch = roleWatch();
+  const cta = watch ? '' : (hit
     ? '<button class="btn-poster" onclick="openLiveCard(' + hit.index + ')">Åpne dagens scorekort</button><p class="home-dayline">Dag ' + hit.day.dayNumber + ' · ' + formatShort(hit.day.format) + '</p>'
-    : '';
+    : '');
   let lead = '';
-  const players = t.players || [];
   if (players.length) {
     const leader = calculateStandings(t)[0];
     if (leader) {
@@ -2048,7 +2111,9 @@ function renderHome() {
   } else {
     lead = '<button type="button" class="home-lead" onclick="navigate(\'tournament\')"><span>Spillere ikke satt</span></button>';
   }
-  el.innerHTML = photo + '<div class="home-copy">' + motto + (kicker ? '<div class="home-kicker">' + kicker + '</div>' : '') + (status ? '<div class="home-status">' + status + '</div>' : '') + cta + lead + '</div>';
+  const mine = !watch && started ? myDayCard(t) : '';
+  const follow = watch ? '<div class="day-kicker">FØLGER MED</div><button type="button" class="who-choice" onclick="navigate(\'live\')"><strong>Se live</strong></button>' : '';
+  el.innerHTML = photo + '<div class="home-copy">' + motto + (kicker ? '<div class="home-kicker">' + kicker + '</div>' : '') + (mine ? '' : (status ? '<div class="home-status">' + status + '</div>' : '')) + mine + cta + follow + lead + '</div>';
 }
 
 function renderPlayerInputs() {
@@ -2223,10 +2288,37 @@ let cardHole = 0;
 let cardFull = false;
 let historyView = null;
 const ME_KEY = 'familiemajoren_me';
+const ROLE_KEY = 'familiemajoren_role';
 const ADMIN_KEY = 'familiemajoren_admin_ok';
+let forceRoleGate = false;
 
 function isAdmin() { return localStorage.getItem(ADMIN_KEY) === '1' && !!(state && state.adminPin); }
 function myName() { return localStorage.getItem(ME_KEY) || ''; }
+function phoneRole() {
+  if (forceRoleGate) return '';
+  const saved = localStorage.getItem(ROLE_KEY);
+  if (saved === 'watch' || saved === 'play') return saved;
+  if (myName()) return 'play';
+  return '';
+}
+function roleWatch() { return phoneRole() === 'watch'; }
+function openRoleGate() {
+  forceRoleGate = true;
+  navigate('home');
+}
+function chooseWatch() {
+  forceRoleGate = false;
+  localStorage.setItem(ROLE_KEY, 'watch');
+  localStorage.removeItem(ME_KEY);
+  renderHome();
+  renderPhoneRole();
+}
+function choosePlayList() {
+  forceRoleGate = false;
+  localStorage.setItem(ROLE_KEY, 'play');
+  localStorage.removeItem(ME_KEY);
+  renderHome();
+}
 function leaveAdmin() {
   localStorage.removeItem(ADMIN_KEY);
   renderAdminStatus();
@@ -2236,6 +2328,17 @@ function leaveAdmin() {
 function renderAdminStatus() {
   const badge = document.getElementById('admin-badge');
   if (badge) badge.classList.toggle('hidden', !isAdmin());
+  renderPhoneRole();
+}
+function renderPhoneRole() {
+  const el = document.getElementById('phone-role');
+  if (!el) return;
+  const role = phoneRole();
+  const name = myName();
+  const title = role === 'watch' ? 'Følger med' : (name || 'Ikke valgt');
+  const note = role === 'watch' ? 'Du kan se alt. Du kan ikke endre slag.' : (name ? 'Denne telefonen fører score for deg.' : 'Velg om du spiller eller bare følger med.');
+  const btn = role === 'watch' ? 'Jeg spiller likevel' : 'Bytt';
+  el.innerHTML = '<div class="section-label">DENNE TELEFONEN</div><div class="card"><p style="font-family:Playfair Display,Georgia,serif;font-size:1.45rem;margin:0 0 6px;">' + title + '</p><p class="text-muted" style="font-size:0.9rem;">' + note + '</p><button type="button" class="btn btn-outline btn-block mt-3" onclick="openRoleGate()">' + btn + '</button></div>';
 }
 let pinEntry = '';
 let pinMode = 'unlock';
@@ -2369,9 +2472,13 @@ function stablefordTotal(day, name) {
   for (let i = 0; i < 18; i++) { const p = stablefordAt(day, name, i); if (p != null) s += p; }
   return s;
 }
-function canEditName(name) { return isAdmin() || myName() === name; }
+function canEditName(name) {
+  if (roleWatch() && !isAdmin()) return false;
+  return isAdmin() || myName() === name;
+}
 function cardLocked(day) {
   if (!day) return true;
+  if (roleWatch() && !isAdmin()) return true;
   if (day.published) return false;
   if (isAdmin() && !day.completed) return false;
   return true;
@@ -2683,6 +2790,16 @@ function blankTee(copy) {
     holes: copy && copy.holes ? JSON.parse(JSON.stringify(copy.holes)) : blankHoles()
   };
 }
+function slopeExpired(course) {
+  if (!course || !course.slopeUntil) return false;
+  const now = new Date();
+  const today = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+  return String(course.slopeUntil) < today;
+}
+function slopeNote(course) {
+  if (!course || !course.slopeUntil) return '';
+  return '<div class="text-muted">' + (slopeExpired(course) ? 'Slope utløpt' : ('Gyldig til ' + formatDate(course.slopeUntil))) + '</div>';
+}
 function courseLabel(course) {
   if (!course) return '';
   if (course.club && course.course && course.club !== course.course) return course.club + ' · ' + course.course;
@@ -2706,14 +2823,14 @@ function queueCourseSearch() {
   if (!hits) return;
   let html = list.map(function (c) {
     const open = courseSearch.from === 'book' ? "editCourse('" + jsName(c.id) + "')" : "useCourse('" + jsName(c.id) + "')";
-    return '<div class="group-choice" style="cursor:default;"><button type="button" style="all:unset;cursor:pointer;display:block;width:100%;" onclick="' + open + '"><strong>' + (c.club || c.course) + '</strong>' + (c.course && c.course !== c.club ? '<div class="text-muted">' + c.course + (c.place ? ' · ' + c.place : '') + '</div>' : (c.place ? '<div class="text-muted">' + c.place + '</div>' : '')) + '</button>' + (isAdmin() && courseSearch.from !== 'book' ? '<button type="button" class="btn btn-sm btn-outline mt-2" onclick="editCourse(\'' + jsName(c.id) + '\')">Oppdater</button>' : '') + '</div>';
+    return '<div class="group-choice" style="cursor:default;"><button type="button" style="all:unset;cursor:pointer;display:block;width:100%;" onclick="' + open + '"><strong>' + (c.club || c.course) + '</strong>' + (c.course && c.course !== c.club ? '<div class="text-muted">' + c.course + (c.place ? ' · ' + c.place : '') + '</div>' : (c.place ? '<div class="text-muted">' + c.place + '</div>' : '')) + slopeNote(c) + '</button>' + (isAdmin() && courseSearch.from !== 'book' ? '<button type="button" class="btn btn-sm btn-outline mt-2" onclick="editCourse(\'' + jsName(c.id) + '\')">Oppdater</button>' : '') + '</div>';
   }).join('');
   if (q.length >= 2 && !list.length) html += '<button type="button" class="btn btn-outline btn-block" onclick="startCourseCreate()">Opprett bane</button><p class="text-muted mt-2">Banen lagres for familien og kan oppdateres senere.</p>';
   hits.innerHTML = html;
 }
 function startCourseCreate() {
   if (!isAdmin()) { toast('Lås opp admin under Innstillinger'); navigate('settings'); return; }
-  courseSearch.draft = { id: 'c' + Date.now(), club: courseSearch.q.trim(), course: '', place: '', tees: [blankTee()] };
+  courseSearch.draft = { id: 'c' + Date.now(), club: courseSearch.q.trim(), course: '', place: '', slopeUntil: '', tees: [blankTee()] };
   courseSearch.teeIndex = 0;
   courseSearch.mode = 'create';
   renderCourseSearch();
@@ -2731,6 +2848,10 @@ function editCourse(id) {
 function useCourse(id) {
   courseSearch.picked = courseBook().find(function (c) { return c.id === id; });
   if (!courseSearch.picked) return;
+  if (slopeExpired(courseSearch.picked)) {
+    toast('Slopen er gått ut. Tallene er beholdt. Bekreft dem, eller endre det som er nytt.');
+    if (isAdmin()) { editCourse(id); return; }
+  }
   courseSearch.mode = 'ask';
   renderCourseSearch();
 }
@@ -2748,6 +2869,8 @@ function readCourseForm() {
   if (club) d.club = club.value.trim();
   if (course) d.course = course.value.trim();
   if (place) d.place = place.value.trim();
+  const until = document.getElementById('cb-slope-until');
+  if (until) d.slopeUntil = until.value;
   const tee = d.tees[courseSearch.teeIndex];
   if (!tee) return;
   const name = document.getElementById('cb-tee');
@@ -2884,6 +3007,8 @@ function applyTeePlan(same, teeIndex) {
     const tee = course.tees[teeIndex];
     if (!tee) return;
     card.holes = copyTeeHoles(tee);
+    card.teeLabel = tee.name || '';
+    card.playerTee = {};
     players.forEach(function (player) {
       const strokes = strokesForPlayer(player, tee);
       if (strokes == null) delete card.allocated[player.name];
@@ -2891,11 +3016,13 @@ function applyTeePlan(same, teeIndex) {
     });
   } else {
     let first = null;
+    if (!card.playerTee) card.playerTee = {};
     players.forEach(function (player) {
       const sel = document.querySelector('.player-tee[data-player="' + encodeURIComponent(player.name) + '"]');
       const tee = course.tees[parseInt(sel && sel.value, 10)];
       if (!tee) return;
       if (!first) first = tee;
+      card.playerTee[player.name] = tee.name || '';
       card.playerHoles[player.name] = copyTeeHoles(tee);
       const strokes = strokesForPlayer(player, tee);
       if (strokes == null) delete card.allocated[player.name];
@@ -2958,6 +3085,7 @@ function renderCourseSearch() {
     };
     el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>' + (d.updatedAt ? 'Oppdater bane' : 'Opprett bane') + '</h1></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="courseSearch.mode=\'search\';renderCourseSearch()">← Tilbake</button>' +
       field('cb-club', 'Klubb', d.club, 'Sola Golfklubb') + field('cb-course', 'Bane', d.course, 'Forus') + field('cb-place', 'Sted', d.place, 'Sola, Norge') +
+      '<div class="form-group"><label>Slope gyldig til</label><input type="date" id="cb-slope-until" value="' + String(d.slopeUntil || '') + '" /></div><p class="text-muted" style="margin:-8px 0 16px;">Tom dato gir ingen varsel. Banen virker som før.</p>' +
       '<div class="section-title">Tee</div><div class="mb-3">' + chips + '</div>' +
       field('cb-tee', 'Tee-navn', tee.name, 'Gul') +
       '<div class="section-title">Herrer</div>' + field('cb-men-slope', 'Slope', tee.men && tee.men.slope, 'Kan stå tom') + '<button type="button" class="btn btn-sm btn-outline mb-3" onclick="swapTeeNumbers(\'men\')">Bytt om</button>' + field('cb-men-rating', 'Baneverdi', tee.men && tee.men.rating, 'Kan stå tom') +
@@ -2976,8 +3104,13 @@ function parHcp(day, hole, name) {
 }
 function setMeIndex(i) {
   const p = state.current && state.current.players[i];
-  if (p) localStorage.setItem(ME_KEY, p.name);
-  renderLiveCard();
+  if (p) {
+    localStorage.setItem(ME_KEY, p.name);
+    localStorage.setItem(ROLE_KEY, 'play');
+    forceRoleGate = false;
+  }
+  if (currentPage === 'home') renderHome();
+  else renderLiveCard();
 }
 function clearMe() { localStorage.removeItem(ME_KEY); renderLiveCard(); }
 function goHole(i) {
@@ -3308,6 +3441,7 @@ function setScramble(val) {
   const use = isAdmin() && idx < 0 ? 0 : idx;
   const match = (day.teamMatches || [])[use];
   if (!match) return;
+  if (roleWatch() && !isAdmin()) return;
   if (!isAdmin() && !match.teamA.includes(me) && !match.teamB.includes(me)) return;
   if (cardLocked(day)) return;
   ensureCard(day);
@@ -3390,6 +3524,10 @@ function renderLiveCard() {
   const day = t && t.days[cardDay];
   if (!el) return;
   if (!day || !day.card || !day.card.ready) { el.innerHTML = '<div class="inst-head"><h1 class="inst-title ask">Scorekortet er ikke klart.</h1></div>'; return; }
+  if (roleWatch() && !isAdmin()) {
+    el.innerHTML = '<div class="inst-head"><div class="inst-kicker">Følger med</div><h1 class="inst-title ask">Du ser på.</h1><div class="inst-sub">Slagene kan ikke endres fra denne telefonen.</div></div><div class="inst-body"><button type="button" class="btn btn-primary btn-block" onclick="navigate(\'live\')">Se live</button><button type="button" class="btn btn-outline btn-block mt-2" onclick="navigate(\'leaderboard\')">Se stillingen</button></div>';
+    return;
+  }
   if (!myName()) {
     el.innerHTML = '<div class="inst-head"><div class="inst-kicker">Scorekort</div><h1 class="inst-title ask">Hvem er du?</h1><div class="inst-sub">Huskes på denne telefonen.</div></div><div class="inst-body">' + t.players.map(function (p, i) { return '<button class="group-choice" onclick="setMeIndex(' + i + ')">' + cardName(p.name) + '</button>'; }).join('') + '</div>';
     return;
@@ -3775,6 +3913,18 @@ function remoteKeeps(remote) {
 function mergeOutgoing(remote, local) {
   const out = JSON.parse(JSON.stringify(remote || {}));
   delete out.courseBook;
+  if (resetWins(local, remote)) {
+    out.current = local.current || null;
+    out.history = Array.isArray(local.history) ? local.history : [];
+    out.hallOfFame = local.hallOfFame || { manual: [], peaks: {}, former: {} };
+    out.resetAt = local.resetAt;
+    if (local.adminPin) out.adminPin = local.adminPin;
+    return out;
+  }
+  if (resetWins(remote, local)) {
+    if (local && local.adminPin && !out.adminPin) out.adminPin = local.adminPin;
+    return out;
+  }
   const admin = isAdmin();
   if (admin && local && !local.current) {
     out.current = null;
@@ -3817,6 +3967,18 @@ function mergeOutgoing(remote, local) {
 }
 function mergeRemoteCards(local, remote) {
   if (!remote) return local || remote;
+  if (resetWins(local, remote)) {
+    remote.current = local.current || null;
+    remote.history = Array.isArray(local.history) ? local.history : [];
+    remote.hallOfFame = local.hallOfFame || { manual: [], peaks: {}, former: {} };
+    remote.resetAt = local.resetAt;
+    delete remote.courseBook;
+    return remote;
+  }
+  if (resetWins(remote, local)) {
+    delete remote.courseBook;
+    return remote;
+  }
   const me = localStorage.getItem(ME_KEY) || '';
   function mergeDays(ldays, rdays) {
     if (!ldays || !rdays) return;
@@ -5076,8 +5238,11 @@ function importData(event) {
 }
 
 async function resetAllData() {
-  if (!confirm('Dette sletter turneringen, historikken, poengene og Hall of Fame i appen og i skyen, på alle telefoner. Banene, familiekoden og Google-koblingen beholdes. Bilder i Google Foto slettes ikke.')) return;
-  state = normalizeState({ current: null, history: [], hallOfFame: { manual: [] } });
+  if (!isAdmin()) { toast('Lås opp admin først'); return; }
+  if (!confirm('En sikkerhetskopi lastes ned først. Deretter slettes turneringen, historikken, poengene og Hall of Fame i appen og i skyen. Banene beholdes. En annen telefon kan ikke legge testrekordene inn igjen.')) return;
+  exportData();
+  const pin = state.adminPin;
+  state = normalizeState({ current: null, history: [], hallOfFame: { manual: [], peaks: {}, former: {} }, resetAt: new Date().toISOString(), adminPin: pin });
   localStorage.setItem('familiemajoren_v1', JSON.stringify(state));
   const code = localStorage.getItem(CODE_KEY);
   if (code && cloudOn) await pushCloud(code);

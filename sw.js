@@ -1,4 +1,4 @@
-const CACHE = 'familiemajoren-v55';
+const CACHE = 'familiemajoren-v56';
 const FILES = [
   './',
   './index.html',
