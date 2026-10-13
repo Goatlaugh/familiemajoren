@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
   <meta name="theme-color" content="#ffffff" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Familie-Majoren" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Familiemajoren</title>
@@ -72,7 +73,44 @@
     .live-tools span { display: flex; align-items: center; gap: 28px; }
     .live-tools .cast-btn { display: flex; align-items: center; padding: 4px; color: rgba(247,244,238,0.9); }
     .live-tools .cast-btn svg { width: 24px; height: 24px; display: block; fill: currentColor; }
-    .live-kicker { display: flex; justify-content: space-between; gap: 12px; color: #e4c56a; letter-spacing: 0.14em; font-size: 0.72rem; font-weight: 700; }
+    .live-kicker { position: relative; display: flex; justify-content: space-between; gap: 12px; color: #e4c56a; letter-spacing: 0.14em; font-size: 0.72rem; font-weight: 700; }
+    .live-center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    .live-center .live-hero-name { font-size: clamp(3.2rem, 9vw, 6.2rem); }
+    .live-up { display: block; color: #f7f4ee; font-size: 0.58em; margin-top: 6px; }
+    .live-rule { width: 84px; height: 1px; background: #e4c56a; margin: 16px auto; }
+    .live-dots { display: flex; justify-content: center; gap: 8px; margin-top: auto; padding-top: 22px; }
+    .live-dots i { width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid rgba(228,197,106,0.75); }
+    .live-dots i.on, .live-dots i.now { background: #e4c56a; border-color: #e4c56a; }
+    .live-dots i.now { box-shadow: 0 0 12px #e4c56a; }
+    .live-face { flex: 1; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 18px; }
+    .live-face .who { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(2.8rem, 8vw, 5.6rem); line-height: 0.9; }
+    .live-face .right { text-align: right; }
+    .live-face .mid { text-align: center; color: #f7f4ee; font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.4rem, 3vw, 2rem); }
+    .mot { color: #e4c56a; letter-spacing: 0.16em; font-family: Inter, sans-serif; font-size: 0.72rem; font-weight: 700; margin: 0 12px; }
+    .live-where-title { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(2.4rem, 6vw, 4.2rem); margin-bottom: 8px; }
+    .live-where-list { width: min(760px, 100%); }
+    .live-where { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; width: 100%; padding: 14px 0; border-top: 1px solid rgba(255,255,255,0.12); }
+    .live-where-h { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.4rem, 3vw, 2rem); }
+    .live-person { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.5rem, 4vw, 2.3rem); padding: 8px 0; }
+    .cup { position: relative; width: 148px; height: 168px; margin: 0 auto 8px; perspective: 900px; }
+    .cup-sm { position: absolute; left: 50%; top: -18px; width: 52px; height: 58px; margin: 0 0 0 -26px; }
+    .cup-lg { width: 210px; height: 236px; }
+    .cup-ring { position: absolute; left: 8%; right: 8%; top: 6%; bottom: 10%; border: 2px solid rgba(228,197,106,0.9); border-radius: 50%; }
+    .cup-spin { position: absolute; left: 24%; right: 24%; top: 16%; bottom: 12%; transform-style: preserve-3d; animation: cup-yaw 46s linear infinite; }
+    .cup-ball { position: absolute; left: 50%; bottom: 0; width: 22%; height: 16%; margin-left: -11%; border-radius: 50%; background: radial-gradient(circle at 35% 32%, #fff, #dedede 55%, #bdbdbd); transform: translateZ(36px); animation: cup-ball 46s linear infinite; }
+    .cup-sm .cup-ball { transform: translateZ(14px); }
+    .cup-lg .cup-ball { transform: translateZ(48px); }
+    .cup-body { position: absolute; inset: 0; transform-style: preserve-3d; }
+    .cup-bowl { position: absolute; left: 8%; right: 8%; top: 0; height: 48%; border-radius: 8% 8% 46% 46%; background: linear-gradient(90deg, #7a5b16, #f6e7a8 46%, #b8923a 72%, #7a5b16); }
+    .cup-bowl i { position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(100deg, transparent 34%, rgba(255,255,255,0.72) 50%, transparent 66%); animation: cup-glint 46s ease-in-out infinite; }
+    .cup-stem { position: absolute; left: 42%; right: 42%; top: 46%; height: 22%; background: linear-gradient(90deg, #8a6a1e, #f3e2a0, #8a6a1e); }
+    .cup-foot { position: absolute; left: 22%; right: 22%; bottom: 8%; height: 14%; border-radius: 6px; background: linear-gradient(90deg, #7a5b16, #f6e7a8, #7a5b16); }
+    .cup-ear { position: absolute; top: 8%; width: 28%; height: 34%; border: 3px solid #e4c56a; border-radius: 40%; }
+    .cup-ear.left { left: -18%; border-right: 0; }
+    .cup-ear.right { right: -18%; border-left: 0; }
+    @keyframes cup-yaw { 0%, 76% { transform: rotateY(0deg); } 88% { transform: rotateY(180deg); } 100% { transform: rotateY(360deg); } }
+    @keyframes cup-ball { 0%, 78% { opacity: 1; } 86%, 94% { opacity: 0; } 100% { opacity: 1; } }
+    @keyframes cup-glint { 0%, 74% { opacity: 0; } 80% { opacity: 0.9; } 86%, 100% { opacity: 0; } }
     .live-hero { display: flex; justify-content: space-between; align-items: flex-end; gap: 18px; padding: 18px 0 8px; }
     .live-hero-name { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(3.2rem, 10vw, 6.4rem); line-height: 0.9; color: #fff; }
     .live-hero-pts { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(3.6rem, 12vw, 7rem); line-height: 0.82; color: #e4c56a; }
@@ -526,7 +564,7 @@
         <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
       </div>
       <div id="phone-role"></div>
-      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.53 · Familiemajoren</p>
+      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.54 · Familiemajoren</p>
     </div>
     <div id="page-admin" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Admin</h1><div class="sub">Innstillinger</div></div></div>
@@ -723,7 +761,8 @@ let liveQueue = [];
 let liveTimer = null;
 let liveStoryTimer = null;
 let livePaintKey = '';
-let liveIdleIndex = 0;
+let liveScene = 0;
+let liveSceneTimer = null;
 let liveIdleTimer = null;
 let liveCastSession = null;
 let liveCastBeat = null;
@@ -1101,7 +1140,13 @@ function liveArmIdle(slides) {
 }
 function liveIdleBody(model) {
   const t = model.t;
-  if (!t || !(t.players || []).length) {
+  if (model.slide && model.slide.type === 'year') {
+    return '<div class="live-kicker"><span>FAMILIEMAJOREN</span><span>' + liveEsc(String(model.slide.year || '')) + '</span></div><div class="live-center">' + liveCup('lg') + '<div class="live-hero-name">' + liveEsc(model.slide.winner || '') + '</div><div class="live-sub">' + liveEsc(model.slide.sted || '') + '</div><div class="live-sub">Mester</div></div>';
+  }
+  if (!t || (model.slide && model.slide.type === 'cup')) {
+    return '<div class="live-center">' + liveCup('lg') + '<div class="live-sub">FAMILIEMAJOREN</div></div>';
+  }
+  if (!(t.players || []).length) {
     return '<div class="live-kicker"><span>FAMILIEMAJOREN</span><span>STILLING</span></div><div class="live-wait"><h1>Stilling</h1><p class="live-sub">Ingen spillere er satt opp.</p></div>';
   }
   const slide = model.slide || { type: 'season' };
@@ -1190,12 +1235,145 @@ function liveFitBars() {
   });
 }
 function liveMatchHtml(row, waiting) {
-  const leftGold = !waiting && row.leader && row.leader === row.left ? ' live-gold' : '';
-  const rightGold = !waiting && row.leader && row.leader === row.right ? ' live-gold' : '';
+  const colored = TEAM_LOOK.some(function (look) { return look.word === row.left || look.word === row.right; });
+  const leftGold = !waiting && !colored && row.leader && row.leader === row.left ? ' live-gold' : '';
+  const rightGold = !waiting && !colored && row.leader && row.leader === row.right ? ' live-gold' : '';
   const status = row.label
     ? '<span class="live-status">' + liveEsc(row.label) + '</span>'
     : (waiting ? '<span class="live-status">–</span>' : '<span class="live-status">' + (row.lead === 0 ? 'Delt' : (Math.abs(row.lead) + ' opp')) + '<small>gjennom ' + row.played + (row.pot ? (' · hull ' + (row.played + 1) + ' verdt ' + row.pot) : '') + '</small></span>');
-  return '<div class="live-match"><div><div class="who' + leftGold + '">' + liveEsc(row.left) + '</div>' + (row.leftNames ? '<div class="live-names">' + liveEsc(row.leftNames) + '</div>' : '') + '</div>' + status + '<div><div class="who right' + rightGold + '">' + liveEsc(row.right) + '</div>' + (row.rightNames ? '<div class="live-names" style="text-align:right">' + liveEsc(row.rightNames) + '</div>' : '') + '</div></div>';
+  return '<div class="live-match"><div><div class="who' + leftGold + '">' + liveTint(row.left) + '</div>' + (row.leftNames ? '<div class="live-names">' + liveEsc(row.leftNames) + '</div>' : '') + '</div>' + status + '<div><div class="who right' + rightGold + '">' + liveTint(row.right) + '</div>' + (row.rightNames ? '<div class="live-names" style="text-align:right">' + liveEsc(row.rightNames) + '</div>' : '') + '</div></div>';
+}
+function liveCup(size) {
+  return '<div class="cup cup-' + size + '" aria-hidden="true"><div class="cup-ring"></div><div class="cup-spin"><div class="cup-ball"></div><div class="cup-body"><div class="cup-bowl"><i></i></div><div class="cup-stem"></div><div class="cup-foot"></div><b class="cup-ear left"></b><b class="cup-ear right"></b></div></div></div>';
+}
+function liveTint(word) {
+  for (let i = 0; i < TEAM_LOOK.length; i++) if (TEAM_LOOK[i].word === word) return '<span class="live-tint" style="color:' + TEAM_LOOK[i].color + '">' + liveEsc(word) + '</span>';
+  return liveEsc(word);
+}
+function liveDots(played) {
+  let html = '<div class="live-dots">';
+  for (let i = 0; i < 18; i++) html += '<i class="' + (i < played ? 'on' : i === played ? 'now' : '') + '"></i>';
+  return html + '</div>';
+}
+function livePacks(t, day) {
+  if (['stableford', 'final'].includes(day.format)) {
+    const map = {};
+    liveStableRows(t, day).forEach(function (r) {
+      const key = r.holes;
+      if (!map[key]) map[key] = [];
+      map[key].push(cardName(r.name));
+    });
+    return Object.keys(map).map(function (k) { return { hole: Number(k), names: map[k] }; });
+  }
+  if (day.format === 'fourball') return liveFourRows(day).map(function (r) { return { hole: r.played, left: r.left, right: r.right }; });
+  if (day.format === 'scramble') return liveScrambleRows(day).map(function (r) { return { hole: r.played, left: r.a, right: r.b }; });
+  if (day.format === 'singles') return liveSingleRows(day).map(function (r) { return { hole: r.played, left: r.p1, right: r.p2 }; });
+  return [];
+}
+function liveSpread(t, day) {
+  const packs = livePacks(t, day);
+  if (packs.length < 2) return false;
+  return packs.some(function (p) { return p.hole !== packs[0].hole; });
+}
+function liveOne(day) {
+  if (day.format === 'fourball' || day.format === 'scramble') return (day.teamMatches || []).length <= 1;
+  if (day.format === 'singles') return (day.matches || []).length <= 1;
+  return false;
+}
+function liveSceneCount(model) {
+  if (!model || !model.found) return 1;
+  const through = liveThrough(model.marks);
+  if (through >= 18) return 1;
+  if (!through) return 3;
+  if (liveSpread(model.t, model.found.day)) return 2;
+  return liveOne(model.found.day) ? 3 : 2;
+}
+function liveNextHole(day, index) {
+  const holes = (day.card && day.card.holes) || [];
+  const hole = holes[index] || { par: 4, index: index + 1 };
+  const names = [];
+  ((state.current && state.current.players) || []).forEach(function (p) {
+    if (day.card && day.card.allocated && day.card.allocated[p.name] != null && receivedAt(day, p.name, index) > 0) names.push(String(cardName(p.name)).split(' ')[0]);
+  });
+  return { par: hole.par || 4, index: hole.index || hole.hcp || (index + 1), names: names };
+}
+function liveHoleView(day, index) {
+  const h = liveNextHole(day, index);
+  const slag = h.names.length ? '<div class="live-sub">Slag: ' + liveEsc(h.names.join(', ')) + '</div>' : '';
+  return '<div class="live-center"><div class="live-hero-name">Hull ' + (index + 1) + '</div><div class="live-rule"></div><div class="live-sub">Par ' + h.par + '</div><div class="live-sub">Indeks ' + h.index + '</div>' + slag + '</div>';
+}
+function liveWhere(t, day) {
+  const packs = livePacks(t, day).slice().sort(function (a, b) { return b.hole - a.hole; });
+  const rows = packs.map(function (p) {
+    const where = p.hole >= 18 ? 'Ferdig' : ('Hull ' + (p.hole + 1));
+    if (p.names) return '<div class="live-where"><div class="live-where-h">' + where + '</div><div class="live-names">' + p.names.map(liveEsc).join(' · ') + '</div></div>';
+    return '<div class="live-where"><div>' + liveTint(p.left) + '<span class="mot">mot</span>' + liveTint(p.right) + '</div><div class="live-where-h">' + where + '</div></div>';
+  }).join('');
+  return '<div class="live-center"><div class="live-where-title">På banen</div><div class="live-where-list">' + rows + '</div></div>';
+}
+function liveField(t, day) {
+  if (day.format === 'fourball' || day.format === 'scramble') {
+    const rows = day.format === 'scramble' ? liveScrambleRows(day) : liveFourRows(day);
+    return '<div class="live-rows">' + rows.map(function (r) {
+      return liveMatchHtml({ left: r.left || r.a, right: r.right || r.b, leftNames: r.leftNames || r.namesA, rightNames: r.rightNames || r.namesB, label: 'Klar' }, true);
+    }).join('') + '</div>';
+  }
+  if (day.format === 'singles') {
+    return '<div class="live-rows">' + liveSingleRows(day).map(function (r) {
+      return liveMatchHtml({ left: r.p1, right: r.p2, label: 'Klar' }, true);
+    }).join('') + '</div>';
+  }
+  return '<div class="live-center"><div class="live-where-title">I dag</div>' + (t.players || []).map(function (p) { return '<div class="live-person">' + liveEsc(cardName(p.name)) + '</div>'; }).join('') + '</div>';
+}
+function liveFace(day) {
+  if (day.format === 'scramble') {
+    const r = liveScrambleRows(day)[0];
+    if (!r) return '';
+    return '<div class="live-face"><div><div class="who">' + liveTint(r.a) + '</div><div class="live-names">' + liveEsc(r.namesA) + '</div></div><div class="mid"><div class="mot">mot</div><div>' + r.scoreA + ' – ' + r.scoreB + '</div></div><div class="right"><div class="who">' + liveTint(r.b) + '</div><div class="live-names">' + liveEsc(r.namesB) + '</div></div></div>';
+  }
+  if (day.format === 'singles') {
+    const r = liveSingleRows(day)[0];
+    if (!r) return '';
+    const mid = r.lead === 0 ? 'Delt' : (Math.abs(r.lead) + ' opp');
+    return '<div class="live-face"><div><div class="who">' + liveEsc(cardName(r.p1)) + '</div></div><div class="mid"><div class="mot">mot</div><div>' + mid + '</div></div><div class="right"><div class="who">' + liveEsc(cardName(r.p2)) + '</div></div></div>';
+  }
+  const r = liveFourRows(day)[0];
+  if (!r) return '';
+  const mid = r.lead === 0 ? 'Delt' : (Math.abs(r.lead) + ' opp');
+  return '<div class="live-face"><div><div class="who">' + liveTint(r.left) + '</div><div class="live-names">' + liveEsc(r.leftNames) + '</div></div><div class="mid"><div class="mot">mot</div><div>' + mid + '</div></div><div class="right"><div class="who">' + liveTint(r.right) + '</div><div class="live-names">' + liveEsc(r.rightNames) + '</div></div></div>';
+}
+function liveStanding(model, day, through) {
+  if (['stableford', 'final'].includes(day.format)) {
+    const rows = liveStableRows(model.t, day);
+    const lead = rows[0] || { name: '', pts: 0 };
+    const rest = rows.slice(1).map(function (r, i) {
+      const gap = lead.pts - r.pts;
+      return '<div class="live-line"><span>' + (i + 2) + '</span><b>' + liveEsc(r.name) + '</b><span>' + r.pts + '</span><span class="live-gap">' + (gap ? ('−' + gap) : '–') + '</span></div>';
+    }).join('');
+    return '<div class="live-hero"><div><div class="live-hero-name">' + liveEsc(lead.name) + '</div><div class="live-sub">Leder · gjennom hull ' + through + '</div></div><div class="live-hero-pts live-gold">' + lead.pts + '</div></div><div class="live-rows">' + rest + '</div>';
+  }
+  if (day.format === 'singles') {
+    const rows = liveSingleRows(day).map(function (r) { return { left: r.p1, right: r.p2, lead: r.lead, played: r.played, leader: r.leader }; });
+    if (rows.length === 1) return liveFace(day);
+    return '<div class="live-rows">' + rows.map(function (r) { return liveMatchHtml(r, false); }).join('') + '</div>';
+  }
+  if (day.format === 'fourball') {
+    const rows = liveFourRows(day);
+    if (rows.length === 1) {
+      const r = rows[0];
+      const head = r.lead === 0 ? 'Delt' : (liveTint(r.leader) + '<span class="live-up">' + Math.abs(r.lead) + ' opp</span>');
+      return '<div class="live-center"><div class="live-hero-name">' + head + '</div><div class="live-sub">Gjennom ' + r.played + ' hull</div><div class="live-names">' + liveTint(r.left) + ' · ' + liveEsc(r.leftNames) + '</div><div class="live-names">' + liveTint(r.right) + ' · ' + liveEsc(r.rightNames) + '</div></div>';
+    }
+    return '<div class="live-rows">' + rows.map(function (r) { return liveMatchHtml(r, false); }).join('') + '</div>';
+  }
+  const rows = liveScrambleRows(day);
+  if (rows.length === 1) {
+    const r = rows[0];
+    return '<div class="live-center"><div class="live-hero-name">' + r.scoreA + ' – ' + r.scoreB + '</div><div class="live-sub">Gjennom hull ' + r.played + '</div><div class="live-sub">' + (r.leader ? (liveTint(r.leader) + ' leder') : 'Delt') + '</div><div class="live-sub">' + (r.pot ? ('Hull ' + (r.played + 1) + ' er verdt ' + r.pot) : 'Ferdig') + '</div><div class="live-names">' + liveTint(r.a) + ' · ' + liveEsc(r.namesA) + '</div><div class="live-names">' + liveTint(r.b) + ' · ' + liveEsc(r.namesB) + '</div></div>';
+  }
+  return '<div class="live-rows">' + rows.map(function (r) {
+    return liveMatchHtml({ left: r.a, right: r.b, leftNames: r.namesA, rightNames: r.namesB, lead: r.lead, played: r.played, leader: r.leader, pot: r.pot }, false);
+  }).join('') + '</div>';
 }
 function liveBoardHtml(model, bare) {
   const tools = bare ? '' : liveTools();
@@ -1206,46 +1384,34 @@ function liveBoardHtml(model, bare) {
   }
   const day = model.found.day;
   const through = liveThrough(model.marks);
-  const kicker = '<div class="live-kicker"><span>FAMILIEMAJOREN</span><span>DAG ' + day.dayNumber + ' · ' + liveEsc(formatShort(day.format).toUpperCase()) + '</span></div>';
+  const scene = liveScene % liveSceneCount(model);
+  const right = 'DAG ' + day.dayNumber + ' · ' + liveEsc(formatShort(day.format).toUpperCase());
+  const spread = through > 0 && liveSpread(model.t, day);
   let body = '';
-  if (['stableford', 'final'].includes(day.format)) {
-    const rows = liveStableRows(model.t, day);
-    if (!through) {
-      body = '<div class="live-wait"><h1>Venter på første hull</h1>' + rows.map(function (r) { return '<div class="live-line"><span></span><b>' + liveEsc(r.name) + '</b><span></span><span></span></div>'; }).join('') + '</div>';
-    } else {
-      const lead = rows[0];
-      const rest = rows.slice(1).map(function (r, i) {
-        const gap = lead.pts - r.pts;
-        return '<div class="live-line"><span>' + (i + 2) + '</span><b>' + liveEsc(r.name) + '</b><span>' + r.pts + '</span><span class="live-gap">' + (gap ? ('−' + gap) : '–') + '</span></div>';
-      }).join('');
-      body = '<div class="live-hero"><div><div class="live-hero-name">' + liveEsc(lead.name) + '</div><div class="live-sub">Leder · gjennom hull ' + through + '</div></div><div class="live-hero-pts live-gold">' + lead.pts + '</div></div><div class="live-rows">' + rest + '</div>';
-    }
-  } else if (day.format === 'singles') {
-    const rows = liveSingleRows(day).map(function (r) { return { left: r.p1, right: r.p2, lead: r.lead, played: r.played, leader: r.leader }; });
-    body = (!through ? '<div class="live-wait"><h1>Venter på første hull</h1>' : '<div class="live-rows">') + rows.map(function (r) { return liveMatchHtml(r, !through); }).join('') + '</div>';
-  } else if (day.format === 'fourball') {
-    const rows = liveFourRows(day);
-    if (rows.length === 1 && through) {
-      const r = rows[0];
-      body = '<div class="live-hero"><div><div class="live-hero-name' + (r.leader ? ' live-gold' : '') + '">' + liveEsc(r.lead === 0 ? 'Delt' : (r.leader + ' ' + Math.abs(r.lead) + ' opp')) + '</div><div class="live-sub">Gjennom ' + r.played + ' hull</div><div class="live-names">' + liveEsc(r.left + ' · ' + r.leftNames) + '</div><div class="live-names">' + liveEsc(r.right + ' · ' + r.rightNames) + '</div></div></div>';
-    } else {
-      body = (!through ? '<div class="live-wait"><h1>Venter på første hull</h1>' : '<div class="live-rows">') + rows.map(function (r) { return liveMatchHtml(r, !through); }).join('') + '</div>';
-    }
-  } else if (day.format === 'scramble') {
-    const rows = liveScrambleRows(day);
-    if (rows.length === 1) {
-      const r = rows[0];
-      if (!through) body = '<div class="live-wait"><h1>Venter på første hull</h1><p class="live-sub">Første hull er verdt 1</p><div class="live-names">' + liveEsc(r.a + ' · ' + r.namesA) + '</div><div class="live-names">' + liveEsc(r.b + ' · ' + r.namesB) + '</div></div>';
-      else body = '<div class="live-hero"><div><div class="live-hero-name">' + r.scoreA + ' – ' + r.scoreB + '</div><div class="live-sub">Gjennom hull ' + r.played + '</div><div class="live-sub' + (r.leader ? ' live-gold' : '') + '">' + liveEsc(r.leader ? (r.leader + ' leder') : 'Delt') + '</div><div class="live-sub">' + (r.pot ? ('Hull ' + (r.played + 1) + ' er verdt ' + r.pot) : 'Ferdig') + '</div><div class="live-names">' + liveEsc(r.a + ' · ' + r.namesA) + '</div><div class="live-names">' + liveEsc(r.b + ' · ' + r.namesB) + '</div></div></div>';
-    } else {
-      body = (!through ? '<div class="live-wait"><h1>Venter på første hull</h1>' : '<div class="live-rows">') + rows.map(function (r) {
-        return liveMatchHtml({ left: r.a, right: r.b, leftNames: r.namesA, rightNames: r.namesB, lead: r.lead, played: r.played, leader: r.leader, pot: r.pot }, !through);
-      }).join('') + '</div>';
-    }
+  let dots = '';
+  let net = '';
+  let mark = true;
+  if (!through) {
+    mark = scene !== 0;
+    if (scene === 0) body = '<div class="live-center">' + liveCup('lg') + '<div class="live-hero-name">' + liveEsc(formatShort(day.format)) + '</div><div class="live-rule"></div><div class="live-sub">Klar</div></div>';
+    else if (scene === 1) body = liveField(model.t, day);
+    else { body = liveHoleView(day, 0); dots = liveDots(0); }
+  } else if (spread) {
+    body = scene === 0 ? liveStanding(model, day, through) : liveWhere(model.t, day);
+    if (scene === 0) net = liveNetBar(model.t, day);
+  } else if (scene === 1) {
+    body = liveHoleView(day, Math.min(17, through));
+    dots = liveDots(Math.min(18, through));
+  } else if (scene === 2) {
+    body = liveFace(day);
+  } else {
+    body = liveStanding(model, day, through);
+    dots = liveDots(Math.min(18, through));
+    net = liveNetBar(model.t, day);
   }
-  const net = liveNetBar(model.t, day);
+  const kicker = '<div class="live-kicker"><span>FAMILIEMAJOREN</span>' + (mark ? liveCup('sm') : '') + '<span>' + right + '</span></div>';
   const quiet = liveShow && liveShow.type === 'story' ? ' live-quiet' : '';
-  return '<div class="live-board' + frozen + bareClass + quiet + '">' + tools + kicker + body + net + '</div>';
+  return '<div class="live-board' + frozen + bareClass + quiet + '">' + tools + kicker + body + dots + net + '</div>';
 }
 function liveCoverHtml(show) {
   if (!show) return '';
@@ -1342,22 +1508,38 @@ function liveStoryTick() {
     liveStoryNext(40000);
   }, scroll ? (seconds * 1000 + 800) : 9000);
 }
+function liveArmScene() {
+  if (liveSceneTimer) clearTimeout(liveSceneTimer);
+  liveSceneTimer = setTimeout(function () {
+    liveSceneTimer = null;
+    if (currentPage !== 'live') return;
+    if (liveShow || !liveModel || !liveModel.found) { liveArmScene(); return; }
+    liveScene = (liveScene + 1) % liveSceneCount(liveModel);
+    livePaintKey = '';
+    paintLive();
+    liveArmScene();
+  }, 60000);
+}
 function liveArm() {
   liveFresh = true;
   liveShow = null;
   liveQueue = [];
   livePaintKey = '';
   liveIdleIndex = 0;
+  liveScene = 0;
   liveStopIdle();
   if (liveTimer) clearTimeout(liveTimer);
   liveTimer = null;
   if (liveStoryTimer) clearTimeout(liveStoryTimer);
   liveStoryTimer = null;
   liveStoryNext(40000);
+  liveArmScene();
   liveWake(true);
 }
 function liveStop() {
   liveStopIdle();
+  if (liveSceneTimer) clearTimeout(liveSceneTimer);
+  liveSceneTimer = null;
   if (liveTimer) clearTimeout(liveTimer);
   liveTimer = null;
   if (liveStoryTimer) clearTimeout(liveStoryTimer);
@@ -1482,7 +1664,20 @@ function renderLive() {
   const el = document.getElementById('live-content');
   if (!el) return;
   const t = state.current;
-  const found = t ? liveFound(t) : null;
+  if (!t) {
+    const years = (state.history || []).slice().reverse().map(function (h) {
+      return { type: 'year', year: h.year, winner: h.winner || '', sted: h.sted || '' };
+    });
+    const slides = years.length ? years.concat([{ type: 'cup' }]) : [{ type: 'cup' }];
+    if (liveIdleIndex >= slides.length) liveIdleIndex = 0;
+    const slide = slides[liveIdleIndex] || { type: 'cup' };
+    liveModel = { t: null, found: null, marks: [], season: [], story: '', slide: slide, sig: 'arkiv|' + liveIdleIndex + '|' + (slide.year || 'pokal') + '|' + (slide.winner || '') };
+    liveFresh = false;
+    paintLive();
+    liveArmIdle(slides);
+    return;
+  }
+  const found = liveFound(t);
   if (!found) {
     const slides = t ? liveIdleSlides(t) : [{ type: 'season' }];
     if (liveIdleIndex >= slides.length) liveIdleIndex = 0;

@@ -83,6 +83,44 @@
     @keyframes live-fadeout { 0%, 34% { opacity: 1; } 46%, 100% { opacity: 0; } }
     @keyframes live-fadein { 0%, 34% { opacity: 0; } 46%, 100% { opacity: 1; } }
     @keyframes live-goldin { 0%, 16% { color: #f7f4ee; } 30%, 100% { color: #e4c56a; } }
+    .live-kicker { position: relative; }
+    .live-center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    .live-center .live-hero-name { font-size: clamp(4rem, 8vw, 7rem); }
+    .live-up { display: block; color: #f7f4ee; font-size: 0.58em; margin-top: 8px; }
+    .live-rule { width: 96px; height: 1px; background: #e4c56a; margin: 18px auto; }
+    .live-dots { display: flex; justify-content: center; gap: 10px; margin-top: auto; padding-top: 28px; }
+    .live-dots i { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid rgba(228,197,106,0.75); }
+    .live-dots i.on, .live-dots i.now { background: #e4c56a; border-color: #e4c56a; }
+    .live-dots i.now { box-shadow: 0 0 14px #e4c56a; }
+    .live-face { flex: 1; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 28px; }
+    .live-face .who { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(3.4rem, 7vw, 6.4rem); line-height: 0.9; }
+    .live-face .right { text-align: right; }
+    .live-face .mid { text-align: center; color: #f7f4ee; font-family: 'Playfair Display', Georgia, serif; font-size: 2rem; }
+    .mot { color: #e4c56a; letter-spacing: 0.16em; font-size: 0.8rem; font-weight: 700; margin: 0 14px; }
+    .live-where-title { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(3rem, 5vw, 4.6rem); margin-bottom: 12px; }
+    .live-where-list { width: min(980px, 100%); }
+    .live-where { display: flex; justify-content: space-between; gap: 24px; align-items: baseline; width: 100%; padding: 16px 0; border-top: 1px solid rgba(255,255,255,0.12); }
+    .live-where-h { font-family: 'Playfair Display', Georgia, serif; font-size: 2rem; }
+    .live-person { font-family: 'Playfair Display', Georgia, serif; font-size: 2.2rem; padding: 10px 0; }
+    .cup { position: relative; width: 180px; height: 200px; margin: 0 auto 8px; perspective: 900px; }
+    .cup-sm { position: absolute; left: 50%; top: -8px; width: 64px; height: 72px; margin: 0 0 0 -32px; }
+    .cup-lg { width: 280px; height: 310px; }
+    .cup-ring { position: absolute; left: 8%; right: 8%; top: 6%; bottom: 10%; border: 2px solid rgba(228,197,106,0.9); border-radius: 50%; }
+    .cup-spin { position: absolute; left: 24%; right: 24%; top: 16%; bottom: 12%; transform-style: preserve-3d; animation: cup-yaw 46s linear infinite; }
+    .cup-ball { position: absolute; left: 50%; bottom: 0; width: 22%; height: 16%; margin-left: -11%; border-radius: 50%; background: radial-gradient(circle at 35% 32%, #fff, #dedede 55%, #bdbdbd); transform: translateZ(42px); animation: cup-ball 46s linear infinite; }
+    .cup-sm .cup-ball { transform: translateZ(16px); }
+    .cup-lg .cup-ball { transform: translateZ(64px); }
+    .cup-body { position: absolute; inset: 0; transform-style: preserve-3d; }
+    .cup-bowl { position: absolute; left: 8%; right: 8%; top: 0; height: 48%; border-radius: 8% 8% 46% 46%; background: linear-gradient(90deg, #7a5b16, #f6e7a8 46%, #b8923a 72%, #7a5b16); }
+    .cup-bowl i { position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(100deg, transparent 34%, rgba(255,255,255,0.72) 50%, transparent 66%); animation: cup-glint 46s ease-in-out infinite; }
+    .cup-stem { position: absolute; left: 42%; right: 42%; top: 46%; height: 22%; background: linear-gradient(90deg, #8a6a1e, #f3e2a0, #8a6a1e); }
+    .cup-foot { position: absolute; left: 22%; right: 22%; bottom: 8%; height: 14%; border-radius: 6px; background: linear-gradient(90deg, #7a5b16, #f6e7a8, #7a5b16); }
+    .cup-ear { position: absolute; top: 8%; width: 28%; height: 34%; border: 3px solid #e4c56a; border-radius: 40%; }
+    .cup-ear.left { left: -18%; border-right: 0; }
+    .cup-ear.right { right: -18%; border-left: 0; }
+    @keyframes cup-yaw { 0%, 76% { transform: rotateY(0deg); } 88% { transform: rotateY(180deg); } 100% { transform: rotateY(360deg); } }
+    @keyframes cup-ball { 0%, 78% { opacity: 1; } 86%, 94% { opacity: 0; } 100% { opacity: 1; } }
+    @keyframes cup-glint { 0%, 74% { opacity: 0; } 80% { opacity: 0.9; } 86%, 100% { opacity: 0; } }
     cast-media-player { display: none !important; }
     .wait { min-height: 100vh; display: flex; align-items: center; justify-content: center; letter-spacing: 0.16em; color: #e4c56a; font-weight: 700; animation: live-breathe 8s ease-in-out infinite; }
   </style>
