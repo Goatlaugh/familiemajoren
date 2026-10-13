@@ -68,6 +68,13 @@
     .live-story { position: absolute; left: 48px; right: 48px; bottom: 56px; z-index: 3; text-align: center; animation: live-up 0.8s ease; }
     .live-story .k { color: #e4c56a; letter-spacing: 0.16em; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; }
     .live-story p { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.6rem, 3vw, 2.4rem); line-height: 1.25; color: #fff; margin: 0; }
+    .live-story.scroll { overflow: hidden; }
+    .live-story.scroll p { display: inline-block; white-space: nowrap; padding-left: 100%; animation: live-story-run linear forwards; }
+    .live-cover.ace { background: radial-gradient(circle at 50% 40%, #1c4630 0%, #071a10 64%); }
+    .live-cover.ace .k { font-size: 1.15rem; letter-spacing: 0.28em; }
+    .live-cover.ace h2 { color: #e4c56a; }
+    #eve-weather svg { width: 42px; height: 42px; stroke: #e4c56a; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    @keyframes live-story-run { from { transform: translateX(0); } to { transform: translateX(-100%); } }
     @keyframes live-breathe { 50% { opacity: 0.72; } }
     @keyframes live-up { from { transform: translateY(28px); opacity: 0.35; } }
     @keyframes live-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }

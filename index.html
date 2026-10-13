@@ -94,7 +94,7 @@
     .live-ticker .run { display: inline-block; white-space: nowrap; animation: live-marquee 28s linear infinite; }
     .live-netbar { margin-top: auto; padding-top: 22px; overflow: hidden; }
     .live-netrun { display: flex; gap: 42px; align-items: baseline; }
-    .live-netbar.scroll .live-netrun { width: max-content; animation: live-marquee 36s linear infinite; }
+    .live-netbar.scroll .live-netrun { width: max-content; animation: live-marquee 42s linear infinite; }
     .live-chip { display: inline-flex; gap: 10px; align-items: baseline; white-space: nowrap; }
     .live-chip b { font-family: 'Playfair Display', Georgia, serif; font-weight: 600; font-size: 1.2rem; }
     .live-chip i { font-style: normal; color: rgba(247,244,238,0.7); }
@@ -127,9 +127,15 @@
     .live-story { position: absolute; left: 28px; right: 28px; bottom: calc(64px + env(safe-area-inset-bottom)); z-index: 3; text-align: center; pointer-events: none; animation: live-up 0.8s ease; }
     .live-story .k { color: #e4c56a; letter-spacing: 0.16em; font-size: 0.72rem; font-weight: 700; margin-bottom: 6px; }
     .live-story p { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.25rem, 3.4vw, 1.8rem); line-height: 1.25; color: #fff; margin: 0; }
+    .live-cover.ace { background: radial-gradient(circle at 50% 40%, #1c4630 0%, #071a10 64%); }
+    .live-cover.ace .k { font-size: 1rem; letter-spacing: 0.28em; }
+    .live-cover.ace h2 { color: #e4c56a; }
+    .live-story.scroll { overflow: hidden; }
+    #eve-weather svg { width: 36px; height: 36px; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
     @keyframes live-breathe { 50% { opacity: 0.72; } }
     @keyframes live-up { from { transform: translateY(28px); opacity: 0.35; } }
     @keyframes live-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    @keyframes live-story-run { from { transform: translateX(0); } to { transform: translateX(-100%); } }
     @keyframes live-shift { from { transform: translateY(var(--shift, 0)); } }
     @keyframes live-slot { 0%, 18% { transform: translateY(calc(var(--from) * var(--row))); } 46%, 100% { transform: translateY(calc(var(--to) * var(--row))); } }
     @keyframes live-fadeout { 0%, 34% { opacity: 1; } 46%, 100% { opacity: 0; } }
@@ -520,7 +526,7 @@
         <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
       </div>
       <div id="phone-role"></div>
-      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.52 · Familiemajoren</p>
+      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.53 · Familiemajoren</p>
     </div>
     <div id="page-admin" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Admin</h1><div class="sub">Innstillinger</div></div></div>
@@ -843,10 +849,35 @@ function liveMarks(t, found) {
       }
     });
   }
+  (t.players || []).forEach(function (p) {
+    for (let i = 0; i < 18; i++) {
+      const merit = liveMerit(day, p.name, i);
+      if (merit) marks.push({ key: 'merit|' + p.name + '|' + i + '|' + merit, hole: i, kind: 'merit', merit: merit, name: p.name });
+    }
+  });
   return marks;
 }
-function liveMoment(mark) {
-  const hole = 'Hull ' + (mark.hole + 1);
+function liveMerit(day, name, hole) {
+  const g = liveGrossAt(day, name, hole);
+  if (g == null) return null;
+  if (g === 1) return 'ace';
+  const par = holeAt(day, name, hole).par || 4;
+  const under = par - g;
+  if (under >= 3) return 'albatross';
+  if (under === 2) return 'eagle';
+  if (under === 1) return 'birdie';
+  return null;
+}
+function liveHoleLine(day, hole) {
+  const h = holeAt(day, '', hole);
+  return 'Hull ' + (hole + 1) + ' · par ' + (h.par || 4) + ' · indeks ' + (h.index || (hole + 1));
+}
+function liveMoment(mark, day) {
+  const hole = liveHoleLine(day, mark.hole);
+  if (mark.kind === 'merit') {
+    const word = { ace: 'Hole-in-one', albatross: 'Albatross', eagle: 'Eagle', birdie: 'Birdie' }[mark.merit] || 'Birdie';
+    return { kicker: word.toUpperCase(), title: mark.name, sub: hole, big: mark.merit === 'ace' ? '1' : '', unit: mark.merit === 'ace' ? 'slag' : '', ace: mark.merit === 'ace', merit: mark.merit };
+  }
   if (mark.kind === 'sf') return { kicker: hole.toUpperCase(), title: mark.name, sub: (mark.gross != null ? mark.gross + ' slag' : ''), big: String(mark.pts), unit: 'poeng' };
   if (mark.halved) return { kicker: hole, title: 'Delt hull', sub: '', big: '', unit: '' };
   return { kicker: hole, title: mark.winner || mark.name, sub: 'vant hullet', big: '', unit: '' };
@@ -874,8 +905,8 @@ function liveNetBar(t, day) {
   const chips = rows.map(function (r) {
     return '<span class="live-chip"><b>' + liveEsc(cardName(r.name)) + '</b><i>' + r.pts + '</i><em class="' + (r.diff <= 0 ? 'under' : '') + '">' + liveNetSign(r.diff) + '</em></span>';
   }).join('');
-  const scroll = rows.length > 4;
-  return '<div class="live-netbar' + (scroll ? ' scroll' : '') + '"><div class="live-netrun">' + chips + (scroll ? chips : '') + '</div></div>';
+  const scroll = false;
+  return '<div class="live-netbar' + (scroll ? ' scroll' : '') + '"><div class="live-netrun">' + chips + '</div></div>';
 }
 function liveStableRows(t, day) {
   return (t.players || []).map(function (p) {
@@ -928,13 +959,13 @@ function liveStory(t, found, marks) {
   if (!through) return '';
   const day = found.day;
   const left = 18 - through;
-  const rest = left ? (', ' + left + ' hull igjen.') : '.';
+  const rest = left ? ('  –  ' + left + ' hull igjen') : '';
   if (['stableford', 'final'].includes(day.format)) {
     const rows = liveStableRows(t, day);
     if (rows.length < 2 || !rows[0].holes) return '';
     const behind = rows[0].pts - rows[1].pts;
     if (!behind) return rows[0].name + ' og ' + rows[1].name + ' er likt' + rest;
-    return rows[0].name + ' ' + rows[0].pts + '. ' + rows[1].name + ' ' + behind + ' bak' + rest;
+    return rows[0].name + ' har ' + rows[0].pts + ' poeng  –  ' + rows[1].name + ' ligger ' + behind + ' poeng bak' + rest;
   }
   if (day.format === 'singles') {
     const rows = liveSingleRows(day).filter(function (r) { return !r.done && r.played; });
@@ -1046,6 +1077,9 @@ function liveIdleSlides(t) {
   (t.days || []).forEach(function (d, i) {
     if (liveDayPlayed(d)) slides.push({ type: 'day', index: i });
   });
+  for (let i = (t.days || []).length - 1; i >= 0; i--) {
+    if (liveDayPlayed(t.days[i])) { slides.push({ type: 'evening', index: i }); break; }
+  }
   return slides;
 }
 function liveStopIdle() {
@@ -1056,7 +1090,7 @@ function liveArmIdle(slides) {
   if (!slides || slides.length < 2) { liveStopIdle(); return; }
   if (liveIdleTimer) return;
   const slide = slides[liveIdleIndex] || slides[0];
-  const wait = slide.type === 'season' ? 10000 : 6000;
+  const wait = slide.type === 'day' ? 6000 : 10000;
   liveIdleTimer = setTimeout(function () {
     liveIdleTimer = null;
     if (currentPage !== 'live') return;
@@ -1071,6 +1105,7 @@ function liveIdleBody(model) {
     return '<div class="live-kicker"><span>FAMILIEMAJOREN</span><span>STILLING</span></div><div class="live-wait"><h1>Stilling</h1><p class="live-sub">Ingen spillere er satt opp.</p></div>';
   }
   const slide = model.slide || { type: 'season' };
+  if (slide.type === 'evening' && t.days && t.days[slide.index]) return liveEveningStill(t, t.days[slide.index], slide.index);
   if (slide.type === 'day' && t.days && t.days[slide.index]) return liveDayStill(t, t.days[slide.index]);
   const rows = model.season || [];
   const lines = rows.map(function (s, i) {
@@ -1132,6 +1167,27 @@ function liveDayStill(t, day) {
 function liveTools() {
   const full = document.fullscreenElement ? '' : '<button type="button" onclick="liveFullscreen()">Fullskjerm</button> ';
   return '<div class="live-tools"><button type="button" onclick="liveClose()">Lukk</button><span>' + full + '<button type="button" class="cast-btn" onclick="liveCast()" aria-label="Cast"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 18v3h3c0-1.66-1.34-3-3-3zm0-4v2c2.76 0 5 2.24 5 5h2c0-3.87-3.13-7-7-7zm0-4v2c4.97 0 9 4.03 9 9h2c0-6.08-4.93-11-11-11zm20-7H3c-1.1 0-2 .9-2 2v3h2V5h18v14h-7v2h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg></button></span></div>';
+}
+function liveEveningStill(t, day, index) {
+  const where = [day.course, t.sted].filter(Boolean)[0] || '';
+  const story = dayStory(t, day);
+  const next = tomorrowBits(t, day, index);
+  const place = next ? forecastPlace(t, next.day) : '';
+  const cached = place && next && next.day.date ? weatherCache[place + '|' + next.day.date] : null;
+  const icon = weatherIcon(cached == null ? 'sun' : weatherKind(cached));
+  return '<div class="live-kicker"><span>KVELDEN</span><span>DAG ' + day.dayNumber + '</span></div><div class="live-hero"><div><div class="live-sub">' + liveEsc(formatShort(day.format) + (where ? ' · ' + where : '')) + '</div><div class="live-hero-name">' + liveEsc(dayWinnerLine(t, day)) + '</div>' + (story ? '<div class="live-sub">' + liveEsc(story) + '</div>' : '') + '<div class="live-rule" style="height:1px;background:rgba(228,197,106,0.7);margin:22px 0;"></div><div class="live-sub">Lunsj</div><div class="live-names">' + liveEsc(lunchLine(t, day)) + '</div>' + (next ? '<div class="live-sub" style="margin-top:16px;">I morgen</div><div class="live-names" style="display:flex;gap:12px;align-items:center;"><span id="eve-weather" style="width:36px;height:36px;color:#e4c56a;flex:none;">' + icon + '</span><span>' + liveEsc(next.text) + '</span></div>' : '') + '</div></div>';
+}
+function liveFitBars() {
+  document.querySelectorAll('.live-netbar').forEach(function (bar) {
+    const run = bar.querySelector('.live-netrun');
+    if (!run || run.dataset.fit) return;
+    if (run.scrollWidth > bar.clientWidth + 12) {
+      run.innerHTML += run.innerHTML;
+      run.dataset.fit = '1';
+      bar.classList.add('scroll');
+      run.style.animationDuration = Math.max(36, Math.round(run.scrollWidth / 28)) + 's';
+    }
+  });
 }
 function liveMatchHtml(row, waiting) {
   const leftGold = !waiting && row.leader && row.leader === row.left ? ' live-gold' : '';
@@ -1195,9 +1251,13 @@ function liveCoverHtml(show) {
   if (!show) return '';
   if (show.type === 'moment') {
     const m = show.moment;
-    return '<div class="live-cover"><div class="k">' + liveEsc(m.kicker) + '</div><h2>' + liveEsc(m.title) + '</h2>' + (m.sub ? '<div class="sub">' + liveEsc(m.sub) + '</div>' : '') + (m.big ? '<div class="big">' + liveEsc(m.big) + (m.unit ? '<span class="unit">' + liveEsc(m.unit) + '</span>' : '') + '</div>' : '') + '</div>';
+    const ace = m.ace ? ' ace' : '';
+    return '<div class="live-cover' + ace + '"><div class="k">' + liveEsc(m.kicker) + '</div><h2>' + liveEsc(m.title) + '</h2>' + (m.sub ? '<div class="sub">' + liveEsc(m.sub) + '</div>' : '') + (m.big ? '<div class="big">' + liveEsc(m.big) + (m.unit ? '<span class="unit">' + liveEsc(m.unit) + '</span>' : '') + '</div>' : '') + '</div>';
   }
-  if (show.type === 'story') return '<div class="live-story"><div class="k">AKKURAT NÅ</div><p>' + liveEsc(show.text) + '</p></div>';
+  if (show.type === 'story') {
+    const speed = show.seconds ? (' style="animation-duration:' + show.seconds + 's"') : '';
+    return '<div class="live-story' + (show.scroll ? ' scroll' : '') + '"><div class="k">AKKURAT NÅ</div><p' + speed + '>' + liveEsc(show.text) + '</p></div>';
+  }
   if (show.type === 'champion') return '<div class="live-cover"><div class="k">FAMILIEMAJOREN ' + liveEsc(String(show.year || '')) + '</div><h2 class="live-gold">' + liveEsc(show.name || '') + '</h2><div class="sub">Familiemajormester' + (show.margin ? (' · ' + show.margin + ' poeng') : '') + '</div></div>';
   if (show.type === 'season') return liveSeasonCover(show);
   return '';
@@ -1232,6 +1292,12 @@ function paintLive() {
   if (key === livePaintKey) return;
   livePaintKey = key;
   el.innerHTML = liveBoardHtml(liveModel) + liveCoverHtml(liveShow);
+  liveFitBars();
+  if (liveModel && liveModel.slide && liveModel.slide.type === 'evening' && liveModel.t && liveModel.t.days) {
+    const day = liveModel.t.days[liveModel.slide.index];
+    const next = day ? tomorrowBits(liveModel.t, day, liveModel.slide.index) : null;
+    if (next && next.day.date) paintWeather(forecastPlace(liveModel.t, next.day), next.day.date);
+  }
   liveSendBoard();
 }
 function liveAdvance() {
@@ -1241,22 +1307,40 @@ function liveAdvance() {
   if (!next) { paintLive(); return; }
   liveShow = next;
   paintLive();
-  liveTimer = setTimeout(function () { liveShow = null; liveAdvance(); }, next.type === 'champion' ? 7000 : next.type === 'season' ? 5200 : 4500);
+  const ace = next.moment && next.moment.ace;
+  const eagle = next.moment && (next.moment.merit === 'eagle' || next.moment.merit === 'albatross');
+  const hold = next.type === 'champion' || ace ? 9000 : next.type === 'season' ? 5200 : eagle ? 6500 : 4500;
+  liveTimer = setTimeout(function () { liveShow = null; liveAdvance(); }, hold);
 }
 function livePush(item) {
   if (liveShow && liveShow.type === 'story') {
     clearTimeout(liveTimer);
     liveShow = null;
+    liveStoryNext(40000);
   }
   liveQueue.push(item);
   if (!liveShow) liveAdvance();
 }
+function liveStoryNext(delay) {
+  if (liveStoryTimer) clearTimeout(liveStoryTimer);
+  liveStoryTimer = setTimeout(liveStoryTick, delay);
+}
 function liveStoryTick() {
-  if (currentPage !== 'live' || !liveModel || !liveModel.story || (liveModel.found && liveModel.found.frozen)) return;
-  if (liveShow || liveQueue.length) return;
-  liveShow = { type: 'story', id: 'story-' + Date.now(), text: liveModel.story };
+  liveStoryTimer = null;
+  if (currentPage !== 'live') return;
+  if (!liveModel || (liveModel.found && liveModel.found.frozen)) return;
+  if (!liveModel.story) { liveStoryNext(40000); return; }
+  if (liveShow || liveQueue.length) { liveStoryNext(8000); return; }
+  const text = liveModel.story;
+  const scroll = text.length > 42;
+  const seconds = scroll ? Math.max(16, Math.round(text.length / 3.5)) : 0;
+  liveShow = { type: 'story', id: 'story-' + Date.now(), text: text, scroll: scroll, seconds: seconds };
   paintLive();
-  liveTimer = setTimeout(function () { liveShow = null; liveAdvance(); }, 8000);
+  liveTimer = setTimeout(function () {
+    liveShow = null;
+    liveAdvance();
+    liveStoryNext(40000);
+  }, scroll ? (seconds * 1000 + 800) : 9000);
 }
 function liveArm() {
   liveFresh = true;
@@ -1267,15 +1351,16 @@ function liveArm() {
   liveStopIdle();
   if (liveTimer) clearTimeout(liveTimer);
   liveTimer = null;
-  if (liveStoryTimer) clearInterval(liveStoryTimer);
-  liveStoryTimer = setInterval(liveStoryTick, 15000);
+  if (liveStoryTimer) clearTimeout(liveStoryTimer);
+  liveStoryTimer = null;
+  liveStoryNext(40000);
   liveWake(true);
 }
 function liveStop() {
   liveStopIdle();
   if (liveTimer) clearTimeout(liveTimer);
   liveTimer = null;
-  if (liveStoryTimer) clearInterval(liveStoryTimer);
+  if (liveStoryTimer) clearTimeout(liveStoryTimer);
   liveStoryTimer = null;
   if (liveHold) clearTimeout(liveHold);
   liveHold = null;
@@ -1403,7 +1488,7 @@ function renderLive() {
     if (liveIdleIndex >= slides.length) liveIdleIndex = 0;
     const slide = slides[liveIdleIndex] || { type: 'season' };
     const season = t ? calculateStandings(t) : [];
-    liveModel = { t: t, found: null, marks: [], season: season, story: '', ticker: '', slide: slide, sig: 'idle|' + liveIdleIndex + '|' + (slide.index != null ? slide.index : 's') + '|' + season.map(function (s) { return s.name + ':' + s.total; }).join(',') };
+    liveModel = { t: t, found: null, marks: [], season: season, story: '', ticker: '', slide: slide, sig: 'idle|' + slide.type + '|' + liveIdleIndex + '|' + (slide.index != null ? slide.index : 's') + '|' + season.map(function (s) { return s.name + ':' + s.total; }).join(',') };
     liveFresh = false;
     paintLive();
     liveArmIdle(slides);
@@ -1431,7 +1516,13 @@ function renderLive() {
       }
       livePush({ type: 'season', id: 'round-done-' + doneNames + '-' + season.map(function (s) { return s.total; }).join('-'), rows: season, before: before, mover: liveMover(before, season), finalRound: true });
     } else if (fresh.length) {
-      fresh.forEach(function (m) { livePush({ type: 'moment', id: m.key, moment: liveMoment(m) }); });
+      const meritRank = { ace: 0, albatross: 1, eagle: 2, birdie: 3 };
+      const merits = fresh.filter(function (m) { return m.kind === 'merit'; }).sort(function (a, b) { return meritRank[a.merit] - meritRank[b.merit]; });
+      const rest = fresh.filter(function (m) {
+        if (m.kind === 'merit') return false;
+        return !(m.kind === 'sf' && merits.some(function (x) { return x.name === m.name && x.hole === m.hole; }));
+      });
+      merits.concat(rest).forEach(function (m) { livePush({ type: 'moment', id: m.key, moment: liveMoment(m, found.day) }); });
       if (!liveHoldBefore) liveHoldBefore = livePrevSeason;
       liveHoldSeason = season;
       if (liveHold) clearTimeout(liveHold);
@@ -2611,25 +2702,37 @@ function renderCardSetup() {
   const holes = '<div class="hole-head"><span>Hull</span><span>Par</span><span>HCP</span></div>' + withParSums(holeRows, ut, inn);
   let matches = '';
   if (['fourball', 'scramble'].includes(day.format)) {
-    matches = '<div class="card"><h3 class="card-title">Kamper</h3>' + ((day.teamMatches && day.teamMatches.length) ? day.teamMatches.map(function (m, i) { return '<div class="text-muted" style="margin-bottom:6px;">Kamp ' + (i + 1) + ': ' + m.teamA.join(', ') + ' mot ' + m.teamB.join(', ') + '</div>'; }).join('') : '<p class="text-muted">Ingen kamper ennå.</p>') + '<button class="btn btn-sm btn-secondary mt-2" onclick="generateCardMatches()">Generer kamper</button></div>';
+    matches = '<div class="card"><h3 class="card-title">Kamper</h3>' + ((day.teamMatches && day.teamMatches.length) ? day.teamMatches.map(function (m, i) { return '<div class="text-muted" style="margin-bottom:6px;">Kamp ' + (i + 1) + ': ' + m.teamA.join(', ') + ' mot ' + m.teamB.join(', ') + '</div>'; }).join('') : '<p class="text-muted">Ingen kamper ennå.</p>') + '<p class="text-muted" style="font-size:0.85rem;margin-top:8px;">' + (t.groupDraft && t.groupDraft.teams && t.groupDraft.teams.length ? ('Gruppene fra generatoren brukes. De er satt etter ' + (t.groupDraft.mode === 'hcp' ? 'handicap' : 'poeng') + '.') : 'Ingen grupper er lagret ennå. Knappen setter lag etter poeng.') + '</p><button class="btn btn-sm btn-secondary mt-2" onclick="generateCardMatches()">Generer kamper</button></div>';
   }
   if (day.format === 'singles') {
     matches = '<div class="card"><h3 class="card-title">Matcher</h3>' + ((day.matches && day.matches.length) ? day.matches.map(function (m, i) { return '<div class="text-muted" style="margin-bottom:6px;">Match ' + (i + 1) + ': ' + m.p1 + ' mot ' + m.p2 + '</div>'; }).join('') : '<p class="text-muted">Ingen matcher ennå.</p>') + '<button class="btn btn-sm btn-secondary mt-2" onclick="generateCardMatches()">Generer matcher</button></div>';
   }
   el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Forbered scorekort</h1><div class="sub">Dag ' + day.dayNumber + ' · ' + (FORMATS[day.format] || '') + '</div></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'tournament\')">← Tilbake</button><div class="form-group"><label>Bane</label><input type="text" id="card-course" value="' + String(day.course || '').replace(/"/g, '"') + '" placeholder="Valgfritt" /></div><button type="button" class="btn btn-outline btn-block" onclick="openCourseSearch()">Søk opp bane</button><p class="text-muted" style="font-size:0.85rem;margin:8px 0 16px;">Valgfritt. Søker i familiens banebok. Alt kan endres.</p><h3 class="card-title">Tildelte slag</h3><p class="text-muted mb-2">Tallet fra klubbens liste. Ligger klart fra dagen før, og kan skrives over.</p>' + players + '</div>' + matches + '<div class="card" id="card-holes"><h3 class="card-title">Banen</h3><p class="text-muted mb-2">Par og bane-HCP. HCP her er hullindex, ikke spillerens handicap.</p>' + holes + '</div>' + (card.ready ? '<button class="btn btn-outline btn-block" onclick="withdrawCard()">Trekk scorekort tilbake</button>' : '') + '<button class="btn btn-secondary btn-block mt-2" onclick="saveCardSetup(false)">Lagre og fortsett senere</button><button class="btn btn-primary btn-block mt-2" onclick="saveCardSetup(true)">Lagre og gjør klart</button>';
 }
+function savedGroupTeams(t) {
+  const draft = t && t.groupDraft;
+  if (!draft || !draft.teams || !draft.teams.length) return null;
+  const names = {};
+  (t.players || []).forEach(function (p) { names[p.name] = true; });
+  const teams = draft.teams.map(function (team) { return (team || []).filter(function (n) { return names[n]; }); }).filter(function (team) { return team.length; });
+  const used = {};
+  teams.forEach(function (team) { team.forEach(function (n) { used[n] = true; }); });
+  if ((t.players || []).some(function (p) { return !used[p.name]; })) return null;
+  return teams;
+}
 function generateCardMatches() {
   const t = state.current;
   const day = t.days[cardDay];
   if (['fourball', 'scramble'].includes(day.format)) {
-    const teams = generateTeams(t.players, recommendedTeamCount(t.players.length), 'hcp');
+    const saved = savedGroupTeams(t);
+    const teams = saved || generateTeams(t.players, recommendedTeamCount(t.players.length), 'points');
     day.teams = JSON.parse(JSON.stringify(teams));
     day.teamMatches = pairTeamsIntoMatches(teams);
   }
-  if (day.format === 'singles') day.matches = generateSinglesMatches(calculateStandings(t));
+  if (day.format === 'singles') day.matches = (t.singlesDraft && t.singlesDraft.length) ? JSON.parse(JSON.stringify(t.singlesDraft)) : generateSinglesMatches(calculateStandings(t));
   saveState();
   renderCardSetup();
-  toast('Kamper er lagret. Du kan endre dem før dagen er klar.');
+  toast(day.format === 'singles' ? 'Matcher er lagret.' : (savedGroupTeams(t) ? 'Kampene følger gruppegeneratoren.' : 'Lagene er satt etter poeng.'));
 }
 function saveCardSetup(markReady) {
   const day = state.current.days[cardDay];
@@ -4188,6 +4291,7 @@ function movePlayerToNext(name, fromIdx) {
   editableTeams[next].push(name);
   editableTeams = editableTeams.filter(t => t.length > 0);
   teamMatches = pairTeamsIntoMatches(editableTeams);
+  if (currentPage === 'group-detail') rememberGroupDraft();
   renderTeamBoxes();
   if (document.querySelector('.match-board')) renderMatchCards();
   else renderMatchCardsPreview();
@@ -4833,6 +4937,11 @@ function openGroupDetail(type) {
   renderGroupDetail();
 }
 
+function rememberGroupDraft() {
+  if (!state.current || !editableTeams.length) return;
+  state.current.groupDraft = { mode: groupMode, teams: JSON.parse(JSON.stringify(editableTeams)) };
+  saveState();
+}
 function renderGroupDetail() {
   const el = document.getElementById('group-detail-content');
   const t = state.current;
@@ -4840,19 +4949,25 @@ function renderGroupDetail() {
 
   if (currentGroupType === 'teams') {
     const rec = recommendedTeamCount(t.players.length);
-    groupMode = groupMode || 'hcp';
-    editableTeams = generateTeams(t.players, rec, groupMode);
+    const saved = savedGroupTeams(t);
+    if (saved) {
+      groupMode = (t.groupDraft && t.groupDraft.mode) || 'points';
+      editableTeams = JSON.parse(JSON.stringify(saved));
+    } else {
+      groupMode = groupMode || 'hcp';
+      editableTeams = generateTeams(t.players, rec, groupMode);
+    }
     teamMatches = pairTeamsIntoMatches(editableTeams);
     let teamOptions = [2,4,6,8].filter(x => x <= t.players.length && x % 2 === 0);
     if (!teamOptions.length) teamOptions = [2];
     el.innerHTML = '<div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'groups\')">← Tilbake</button><h2 class="card-title">Lagforslag + Kamper</h2>' +
       '<div class="form-group"><label>Antall lag</label><select id="detail-num-teams" onchange="changeDetailTeams()">' +
-      teamOptions.map(x => '<option value="' + x + '"' + (x === rec ? ' selected' : '') + '>' + x + ' lag' + (x === rec ? ' (anbefalt)' : '') + '</option>').join('') +
+      teamOptions.map(x => '<option value="' + x + '"' + (x === editableTeams.length ? ' selected' : '') + '>' + x + ' lag' + (x === rec ? ' (anbefalt)' : '') + '</option>').join('') +
       '</select></div><div class="mode-btns"><div class="mode-btn ' + (groupMode==='hcp'?'active':'') + '" id="mode-hcp" onclick="setDetailMode(\'hcp\')">Etter HCP</div><div class="mode-btn ' + (groupMode==='points'?'active':'') + '" id="mode-points" onclick="setDetailMode(\'points\')">Etter poeng</div></div>' +
       '<button class="btn btn-sm btn-secondary mb-3" onclick="regenerateDetailTeams()">🔄 Generer</button><div id="teams-container"></div><div class="divider"></div><p class="section-title">Kampoppsett</p><div id="matches-container"></div></div>';
     setTimeout(() => { renderTeamBoxes(); renderMatchCardsPreview(); }, 30);
   } else if (currentGroupType === 'singles') {
-    editableSingles = generateSinglesMatches(calculateStandings(t));
+    editableSingles = (t.singlesDraft && t.singlesDraft.length) ? JSON.parse(JSON.stringify(t.singlesDraft)) : generateSinglesMatches(calculateStandings(t));
     el.innerHTML = '<div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'groups\')">← Tilbake</button><h2 class="card-title">Ryder Cup Singler</h2><button class="btn btn-sm btn-secondary mb-3" onclick="regenerateSinglesDetail()">🔄 Nytt forslag</button>' +
       editableSingles.map((m,i) => '<div class="match-card"><strong>Match ' + (i+1) + '</strong><div class="flex justify-between mt-1"><span>' + m.p1 + '</span><span class="text-muted">vs</span><span>' + m.p2 + '</span></div></div>').join('') + '</div>';
   } else if (currentGroupType === 'leaderflight') {
@@ -4874,17 +4989,21 @@ function changeDetailTeams() {
   const num = parseInt(document.getElementById('detail-num-teams').value);
   editableTeams = generateTeams(state.current.players, num, groupMode);
   teamMatches = pairTeamsIntoMatches(editableTeams);
+  rememberGroupDraft();
   renderTeamBoxes(); renderMatchCardsPreview();
 }
 function regenerateDetailTeams() {
   const num = parseInt(document.getElementById('detail-num-teams').value) || recommendedTeamCount(state.current.players.length);
   editableTeams = generateTeams(state.current.players, num, groupMode);
   teamMatches = pairTeamsIntoMatches(editableTeams);
+  rememberGroupDraft();
   renderTeamBoxes(); renderMatchCardsPreview();
   toast('Oppdatert');
 }
 function regenerateSinglesDetail() {
   editableSingles = generateSinglesMatches(calculateStandings(state.current));
+  if (state.current) state.current.singlesDraft = JSON.parse(JSON.stringify(editableSingles));
+  saveState();
   renderGroupDetail();
 }
 
@@ -5347,6 +5466,7 @@ function paintWeather(place, date) {
       weatherCache[key] = code;
       const node = document.getElementById('eve-weather');
       if (node) node.innerHTML = weatherIcon(weatherKind(code));
+      if (typeof liveSendBoard === 'function') { liveCastSent = ''; liveSendBoard(); }
     })
     .catch(function () {});
 }
