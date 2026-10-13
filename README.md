@@ -4,7 +4,7 @@ Familie-Majoren er familiens årlige golfmesterskap, som en app på telefonen. D
 
 Appen er én nettside. Den ligger på GitHub Pages. Alle som har lenken og familiekoden, ser de samme turneringene, resultatene og bildene.
 
-Versjon nå: **1.55**
+Versjon nå: **1.56**
 
 ## Slik fungerer den for familien
 
@@ -39,7 +39,7 @@ Når året er ferdig, trykker admin **Turnering ferdig**. Den flyttes til histor
 
 Hjem, scorekort, stilling, et gammelt scorekort og Live er mørke. Gull brukes på det som er aktivt: lederen, den valgte fanen og knappen til dagens kort. Menyen nederst er mørk på de sidene. Turnering, innstillinger, charter og de andre sidene er lyse.
 
-**Mer → Live** er storskjermen. Et hull vises først når spilleren, eller admin som har skrevet flere, trykker **Neste**. Da kommer spillerne én og én, og tabellen etterpå hvis noen har flyttet seg. På hull 18 skjer det ved **Fullfør runden**. Når alle er ferdige, vises bare tabellen. Nederst står fornavn, poeng og netto mot par. Mellom hullene veksler skjermen, omtrent ett minutt om gangen: stillingen, neste hull, og lagene mot hverandre når det bare er én kamp. Er gjengene på forskjellige hull, vises hvor hver gjeng er, ikke ett felles hull. Før første slag er det et åpningsbilde, feltet og hull 1. Lagnavn som er farger, vises i den fargen. Pokalen ligger øverst, glimter av og til, og vender seg sakte. Ballen sitter fast i bunnen og blir borte bak pokalen på halvveien. Er ingen turnering i gang, men det finnes historikk, viser Live mesterne fra tidligere år. Finnes det ingen historikk, viser Live bare pokalen. Hjemskjermen og logoen er uendret. **Fullskjerm** fyller skjermen. Da er knappene bare **Lukk** og Cast-symbolet. **Lukk** går ut av fullskjerm og tilbake til Mer. Cast-symbolet på Android åpner Chromecast når app-IDen er lagt inn under Admin. På iPhone sier det at du skal speile skjermen. Live endrer ingen score. Ikonet på hjemskjermen åpner appen uten nettleserfelt. Er det gamle ikonet et bokmerke, fjern det og legg siden til på nytt.
+**Mer → Live** er storskjermen. Et hull vises først når spilleren, eller admin som har skrevet flere, trykker **Neste**. Da kommer spillerne én og én, og tabellen etterpå hvis noen har flyttet seg. På hull 18 skjer det ved **Fullfør runden**. Når alle er ferdige, vises bare tabellen. Nederst står fornavn, poeng og netto mot par. Mellom hullene veksler skjermen, omtrent ett minutt om gangen: stillingen, neste hull, og lagene mot hverandre når det bare er én kamp. Er gjengene på forskjellige hull, vises hvor hver gjeng er, ikke ett felles hull. Før første slag er det et åpningsbilde, feltet og hull 1. Lagnavn som er farger, vises i den fargen. Pokalen er bildet fra åpningsklippet. Den snur ikke. Et lys glir over metallet noen ganger, og så er det stille en stund. Er ingen turnering i gang, men det finnes historikk, viser Live mesterne fra tidligere år. Finnes det ingen historikk, viser Live bare pokalen. Hjemskjermen og logoen er uendret. **Fullskjerm** fyller skjermen. Da er knappene bare **Lukk** og Cast-symbolet. **Lukk** går ut av fullskjerm og tilbake til Mer. Cast-symbolet på Android åpner Chromecast når app-IDen er lagt inn under Admin. På iPhone sier det at du skal speile skjermen. Live endrer ingen score. Ikonet på hjemskjermen åpner appen uten nettleserfelt. Er det gamle ikonet et bokmerke, fjern det og legg siden til på nytt.
 
 ## Admin og alle andre
 
@@ -94,10 +94,10 @@ Dette er hele appen. Ikke legg inn andre mapper.
 
 1. Ta en kopi av den gamle `index.html` før du bytter den.
 2. Last opp den nye `index.html`.
-3. Last opp den nye `sw.js`, `cast.html` og `pokal-sheet.png` i samme omgang. Versjonsnavnet inni `sw.js`, `familiemajoren-v60`, må være et nytt tall. Ellers kan telefonen vise den gamle appen.
+3. Last opp den nye `sw.js`, `cast.html` og `pokal.png` i samme omgang. Versjonsnavnet inni `sw.js`, `familiemajoren-v61`, må være et nytt tall. Ellers kan telefonen vise den gamle appen. Ikke last opp `pokal-sheet.png`.
 4. Vent til GitHub Pages er ferdig. Det tar ofte ett minutt.
 5. Lukk siden helt og åpne lenken på nytt.
-6. Gå til **Mer → Innstillinger**. Der skal det stå den nye versjonen, nå **Versjon 1.55**.
+6. Gå til **Mer → Innstillinger**. Der skal det stå den nye versjonen, nå **Versjon 1.56**.
 
 Bytter du bare bildet eller ikonet, last opp den filen og øk tallet i `sw.js` likevel. Ellers kan den gamle utgaven bli hengende.
 
@@ -109,7 +109,7 @@ Alt som skal endres i appen, ligger i `index.html`. Åpne den i en teksteditor. 
 
 | Du vil endre | Søk etter |
 |---|---|
-| Versjonen som vises i appen | `Versjon 1.55` |
+| Versjonen som vises i appen | `Versjon 1.56` |
 | Kortversjonen av charteret | `const CHARTER` |
 | Det fulle charteret | `charter-full-data` |
 | Mottoet | `Ett år som mester` |
