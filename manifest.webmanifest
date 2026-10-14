@@ -1,7 +1,8 @@
 {
   "name": "Familie-Majoren",
   "short_name": "Familie-Majoren",
-  "start_url": "./",
+  "id": "?app=2",
+  "start_url": "./?app=2",
   "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
