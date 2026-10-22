@@ -58,6 +58,19 @@
     .full-row.now { background: rgba(228,197,106,0.1); }
     .full-row.sum { font-weight: 700; color: #e4c56a; }
     .full-row.sum-ut, .full-row.sum-tot { background: rgba(228,197,106,0.16); }
+    .full-row.mull { background: rgba(228,197,106,0.12); box-shadow: inset 4px 0 0 #e4c56a; }
+    .full-row.now.mull { background: rgba(228,197,106,0.2); }
+    .full-row.mull > span:first-child { flex-direction: column; gap: 1px; color: #e4c56a; font-weight: 700; }
+    .full-row.mull > span:first-child em { font-style: normal; font-weight: 700; }
+    .full-row.mull > span:first-child i { font-style: normal; font-family: Inter, sans-serif; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.01em; line-height: 1; }
+    .mull-btn { display: block; margin: 12px auto 2px; padding: 8px 18px; border-radius: 999px; border: 1.5px solid #e4c56a; background: transparent; color: #e4c56a; font-weight: 700; font-size: 0.95rem; font-family: inherit; cursor: pointer; }
+    .mull-btn.on { background: #e4c56a; color: #142018; }
+    .card .mull-btn { border-color: #a68520; color: #8a6d12; }
+    .card .mull-btn.on { background: #c9a227; border-color: #c9a227; color: #142018; }
+    .mull-note { text-align: center; color: #e4c56a; font-weight: 700; font-size: 0.85rem; margin: 10px 0 0; }
+    .card .mull-note { color: #8a6d12; }
+    .mull-switch { flex: none; min-width: 72px; padding: 8px 16px; border-radius: 999px; border: 1.5px solid var(--green-800); background: #fff; color: var(--green-800); font-weight: 700; font-family: inherit; cursor: pointer; }
+    .mull-switch.on { background: var(--green-800); color: #fff; }
     .full-back { display: block; width: 100%; margin-top: 18px; height: 52px; border-radius: 16px; border: 1px solid rgba(247,244,238,0.28); background: transparent; color: rgba(247,244,238,0.86); font-size: 1rem; font-family: inherit; cursor: pointer; }
     body.score-lock, body.score-lock * { touch-action: manipulation; }
     .live-dot { width: 12px; height: 12px; border-radius: 50%; background: #e4c56a; box-shadow: 0 0 0 4px rgba(228,197,106,0.2); flex: none; }
@@ -550,7 +563,7 @@
         <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
       </div>
       <div id="phone-role"></div>
-      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.57 · Familiemajoren</p>
+      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.58 · Familiemajoren</p>
     </div>
     <div id="page-admin" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Admin</h1><div class="sub">Innstillinger</div></div></div>
@@ -2714,7 +2727,125 @@ function ensureCard(day) {
   if (!day.card.scramblePosted) day.card.scramblePosted = {};
   if (!day.card.posted) day.card.posted = {};
   if (!day.card.done) day.card.done = {};
+  if (!day.card.mulligan || typeof day.card.mulligan !== 'object') day.card.mulligan = { front: false, back: false };
+  if (day.card.mulligan.front == null) day.card.mulligan.front = false;
+  if (day.card.mulligan.back == null) day.card.mulligan.back = false;
+  if (!day.card.mulliganUsed || typeof day.card.mulliganUsed !== 'object') day.card.mulliganUsed = {};
+  if (!day.card.mulliganTeam || typeof day.card.mulliganTeam !== 'object') day.card.mulliganTeam = {};
   return day.card;
+}
+function mulliganSide(hole) { return hole < 9 ? 'front' : 'back'; }
+function mulliganTeamDay(day) { return !!(day && (day.format === 'fourball' || day.format === 'scramble')); }
+function mulliganNineOn(day, hole) {
+  const m = day && day.card && day.card.mulligan;
+  return !!(m && m[mulliganSide(hole)]);
+}
+function mulliganHoleOf(slot, side) {
+  if (!slot) return null;
+  const v = slot[side];
+  if (v == null || v === '') return null;
+  const n = parseInt(v, 10);
+  return isNaN(n) ? null : n;
+}
+function mulliganStamp(slot, side) {
+  if (!slot) return 0;
+  const t = slot[side + 'At'];
+  return typeof t === 'number' ? t : 0;
+}
+function mulliganSlot(day, key, team) {
+  ensureCard(day);
+  const bag = team ? day.card.mulliganTeam : day.card.mulliganUsed;
+  const id = String(key);
+  if (!bag[id] || typeof bag[id] !== 'object') bag[id] = { front: null, back: null, frontAt: 0, backAt: 0 };
+  return bag[id];
+}
+function mulliganUsedHole(day, key, side, team) {
+  const bag = team ? (day.card && day.card.mulliganTeam) : (day.card && day.card.mulliganUsed);
+  return mulliganHoleOf(bag && bag[String(key)], side);
+}
+function canUseMulligan(day, key, team) {
+  if (!day || cardLocked(day) || currentPage === 'history-card') return false;
+  if (isAdmin()) return true;
+  const me = myName();
+  if (team) {
+    const m = (day.teamMatches || [])[parseInt(key, 10)];
+    return !!(m && (m.teamA.indexOf(me) >= 0 || m.teamB.indexOf(me) >= 0));
+  }
+  return me === key;
+}
+function toggleMulligan(key, team) {
+  const day = state.current && state.current.days[cardDay];
+  if (!day || !canUseMulligan(day, key, team) || !mulliganNineOn(day, cardHole)) return;
+  const side = mulliganSide(cardHole);
+  const slot = mulliganSlot(day, key, team);
+  const cur = mulliganHoleOf(slot, side);
+  if (cur != null && cur !== cardHole) return;
+  slot[side] = cur === cardHole ? null : cardHole;
+  slot[side + 'At'] = Date.now();
+  saveState();
+  renderLiveCard();
+}
+function mulliganButton(day, key, team) {
+  if (!day || !day.card || !mulliganNineOn(day, cardHole)) return '';
+  const side = mulliganSide(cardHole);
+  const used = mulliganUsedHole(day, key, side, team);
+  if (used != null && used !== cardHole) return '';
+  const on = used === cardHole;
+  if (!canUseMulligan(day, key, team)) return on ? '<div class="mull-note">Mulligan</div>' : '';
+  const keyArg = team ? String(parseInt(key, 10)) : ("'" + jsName(String(key)) + "'");
+  return '<button type="button" class="mull-btn' + (on ? ' on' : '') + '" onclick="toggleMulligan(' + keyArg + ',' + (team ? 'true' : 'false') + ')">Aktiver Mulligan</button>';
+}
+function mulliganOnPlayerHole(day, name, hole) {
+  if (!day || !day.card || !name) return false;
+  const side = mulliganSide(hole);
+  if (mulliganTeamDay(day)) {
+    const idx = (day.teamMatches || []).findIndex(function (m) { return m.teamA.indexOf(name) >= 0 || m.teamB.indexOf(name) >= 0; });
+    return idx >= 0 && mulliganUsedHole(day, idx, side, true) === hole;
+  }
+  return mulliganUsedHole(day, name, side, false) === hole;
+}
+function toggleMulliganSetup(side) {
+  const btn = document.getElementById('mull-' + side);
+  if (!btn) return;
+  const on = !btn.classList.contains('on');
+  btn.classList.toggle('on', on);
+  btn.textContent = on ? 'På' : 'Av';
+}
+function mulliganFlag(live, snap, merged, key) {
+  const l = !!(live && live[key]);
+  const s = !!(snap && snap[key]);
+  if (l !== s) return l;
+  return !!(merged && merged[key]);
+}
+function takeMulliganSide(localSlot, remoteSlot, side) {
+  const lt = mulliganStamp(localSlot, side);
+  const rt = mulliganStamp(remoteSlot, side);
+  const lh = mulliganHoleOf(localSlot, side);
+  const rh = mulliganHoleOf(remoteSlot, side);
+  if (lt > rt) return { h: lh, t: lt };
+  if (rt > lt) return { h: rh, t: rt };
+  if (lh != null && rh == null) return { h: lh, t: lt };
+  return { h: rh != null ? rh : lh, t: Math.max(lt, rt) };
+}
+function mergeMulliganBag(localBag, remoteBag) {
+  const keys = Object.assign({}, localBag || {}, remoteBag || {});
+  const out = {};
+  Object.keys(keys).forEach(function (id) {
+    const a = (localBag || {})[id] || {};
+    const b = (remoteBag || {})[id] || {};
+    const front = takeMulliganSide(a, b, 'front');
+    const back = takeMulliganSide(a, b, 'back');
+    out[id] = { front: front.h, back: back.h, frontAt: front.t || 0, backAt: back.t || 0 };
+  });
+  return out;
+}
+function copyMulliganFlags(card, source) {
+  const m = (source && source.mulligan) || {};
+  card.mulligan = { front: !!m.front, back: !!m.back };
+}
+function writeMulliganBags(card, localCard, remoteCard) {
+  card.mulliganUsed = mergeMulliganBag(localCard && localCard.mulliganUsed, remoteCard && remoteCard.mulliganUsed);
+  card.mulliganTeam = mergeMulliganBag(localCard && localCard.mulliganTeam, remoteCard && remoteCard.mulliganTeam);
 }
 function strokesOnHole(allocated, holeIndex) {
   const n = parseInt(allocated, 10) || 0;
@@ -2881,6 +3012,13 @@ function renderCardSetup() {
   let ut = 0, inn = 0;
   card.holes.forEach(function (h, i) { const n = parseInt(h.par, 10) || 0; if (i < 9) ut += n; else inn += n; });
   const holes = '<div class="hole-head"><span>Hull</span><span>Par</span><span>HCP</span></div>' + withParSums(holeRows, ut, inn);
+  const teamDay = ['fourball', 'scramble'].includes(day.format);
+  const mset = card.mulligan || {};
+  const switchBtn = function (side, label) {
+    const on = !!mset[side];
+    return '<div class="score-line"><div class="board-name">' + label + '</div><button type="button" id="mull-' + side + '" class="mull-switch' + (on ? ' on' : '') + '" onclick="toggleMulliganSetup(\'' + side + '\')">' + (on ? 'På' : 'Av') + '</button></div>';
+  };
+  const mullCard = '<div class="card"><h3 class="card-title">Spill med mulligan?</h3><p class="text-muted">' + (teamDay ? 'Laget får én mulligan. Den kan ikke spares til neste ni.' : 'Hver spiller får én mulligan. Den kan ikke spares til neste ni.') + '</p>' + switchBtn('front', 'Aktiver for Front 9') + switchBtn('back', 'Aktiver for Back 9') + '</div>';
   let matches = '';
   if (['fourball', 'scramble'].includes(day.format)) {
     matches = '<div class="card"><h3 class="card-title">Kamper</h3>' + ((day.teamMatches && day.teamMatches.length) ? day.teamMatches.map(function (m, i) { return '<div class="text-muted" style="margin-bottom:6px;">Kamp ' + (i + 1) + ': ' + m.teamA.join(', ') + ' mot ' + m.teamB.join(', ') + '</div>'; }).join('') : '<p class="text-muted">Ingen kamper ennå.</p>') + '<p class="text-muted" style="font-size:0.85rem;margin-top:8px;">' + (t.groupDraft && t.groupDraft.teams && t.groupDraft.teams.length ? ('Gruppene fra generatoren brukes. De er satt etter ' + (t.groupDraft.mode === 'hcp' ? 'handicap' : 'poeng') + '.') : 'Ingen grupper er lagret ennå. Knappen setter lag etter poeng.') + '</p><button class="btn btn-sm btn-secondary mt-2" onclick="generateCardMatches()">Generer kamper</button></div>';
@@ -2888,7 +3026,7 @@ function renderCardSetup() {
   if (day.format === 'singles') {
     matches = '<div class="card"><h3 class="card-title">Matcher</h3>' + ((day.matches && day.matches.length) ? day.matches.map(function (m, i) { return '<div class="text-muted" style="margin-bottom:6px;">Match ' + (i + 1) + ': ' + m.p1 + ' mot ' + m.p2 + '</div>'; }).join('') : '<p class="text-muted">Ingen matcher ennå.</p>') + '<button class="btn btn-sm btn-secondary mt-2" onclick="generateCardMatches()">Generer matcher</button></div>';
   }
-  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Forbered scorekort</h1><div class="sub">Dag ' + day.dayNumber + ' · ' + (FORMATS[day.format] || '') + '</div></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'tournament\')">← Tilbake</button><div class="form-group"><label>Bane</label><input type="text" id="card-course" value="' + String(day.course || '').replace(/"/g, '"') + '" placeholder="Valgfritt" /></div><button type="button" class="btn btn-outline btn-block" onclick="openCourseSearch()">Søk opp bane</button><p class="text-muted" style="font-size:0.85rem;margin:8px 0 16px;">Valgfritt. Søker i familiens banebok. Alt kan endres.</p><h3 class="card-title">Tildelte slag</h3><p class="text-muted mb-2">Tallet fra klubbens liste. Ligger klart fra dagen før, og kan skrives over.</p>' + players + '</div>' + matches + '<div class="card" id="card-holes"><h3 class="card-title">Banen</h3><p class="text-muted mb-2">Par og bane-HCP. HCP her er hullindex, ikke spillerens handicap.</p>' + holes + '</div>' + (card.ready ? '<button class="btn btn-outline btn-block" onclick="withdrawCard()">Trekk scorekort tilbake</button>' : '') + '<button class="btn btn-secondary btn-block mt-2" onclick="saveCardSetup(false)">Lagre og fortsett senere</button><button class="btn btn-primary btn-block mt-2" onclick="saveCardSetup(true)">Lagre og gjør klart</button>';
+  el.innerHTML = '<div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Forbered scorekort</h1><div class="sub">Dag ' + day.dayNumber + ' · ' + (FORMATS[day.format] || '') + '</div></div></div><div class="card"><button class="btn btn-sm btn-secondary mb-3" onclick="navigate(\'tournament\')">← Tilbake</button><div class="form-group"><label>Bane</label><input type="text" id="card-course" value="' + String(day.course || '').replace(/"/g, '"') + '" placeholder="Valgfritt" /></div><button type="button" class="btn btn-outline btn-block" onclick="openCourseSearch()">Søk opp bane</button><p class="text-muted" style="font-size:0.85rem;margin:8px 0 16px;">Valgfritt. Søker i familiens banebok. Alt kan endres.</p><h3 class="card-title">Tildelte slag</h3><p class="text-muted mb-2">Tallet fra klubbens liste. Ligger klart fra dagen før, og kan skrives over.</p>' + players + '</div>' + matches + '<div class="card" id="card-holes"><h3 class="card-title">Banen</h3><p class="text-muted mb-2">Par og bane-HCP. HCP her er hullindex, ikke spillerens handicap.</p>' + holes + '</div>' + mullCard + (card.ready ? '<button class="btn btn-outline btn-block" onclick="withdrawCard()">Trekk scorekort tilbake</button>' : '') + '<button class="btn btn-secondary btn-block mt-2" onclick="saveCardSetup(false)">Lagre og fortsett senere</button><button class="btn btn-primary btn-block mt-2" onclick="saveCardSetup(true)">Lagre og gjør klart</button>';
 }
 function savedGroupTeams(t) {
   const draft = t && t.groupDraft;
@@ -2931,6 +3069,9 @@ function saveCardSetup(markReady) {
   document.querySelectorAll('#card-setup-content .hole-index').forEach(function (inp) {
     if (inp.value !== '') card.holes[parseInt(inp.dataset.hole, 10)].index = parseInt(inp.value, 10) || 1;
   });
+  const frontBtn = document.getElementById('mull-front');
+  const backBtn = document.getElementById('mull-back');
+  if (frontBtn && backBtn) card.mulligan = { front: frontBtn.classList.contains('on'), back: backBtn.classList.contains('on') };
   if (markReady) {
     if (['fourball', 'scramble'].includes(day.format) && !(day.teamMatches && day.teamMatches.length)) { toast('Generer kamper først'); saveState(); return; }
     if (day.format === 'singles' && !(day.matches && day.matches.length)) { toast('Generer matcher først'); saveState(); return; }
@@ -3654,6 +3795,7 @@ function renderStablefordCard(el, t, day) {
   el.innerHTML = cardHead(day, 'Hull ' + (h + 1), parLine) +
     '<div class="inst-body"><div class="stroke-who">' + cardName(me) + '</div>' + strokeHero(me, g, locked) +
     '<div class="stroke-pts">' + (pts == null ? '–' : (pts + ' poeng')) + '</div>' +
+    mulliganButton(day, me, false) +
     holeDotRow(function (i) { return grossAt(day, me, i) != null; }) +
     holeNav(h) +
     '<div class="hole-cast">' + cast + '</div>' +
@@ -3675,7 +3817,9 @@ function renderFullStableford(el, day, name, back) {
     const g = grossAt(day, name, i);
     const par = holeAt(day, name, i).par || 4;
     const pts = stablefordAt(day, name, i);
-    const row = '<div class="full-row' + (i === cardHole ? ' now' : '') + '"><span>' + (i + 1) + grossMark(day, name, i) + '</span><span>' + par + '</span><span>' + (g == null ? '–' : g) + '</span><span>' + (pts == null ? '–' : pts) + '</span></div>';
+    const mull = mulliganOnPlayerHole(day, name, i);
+    const num = (i + 1) + grossMark(day, name, i);
+    const row = '<div class="full-row' + (i === cardHole ? ' now' : '') + (mull ? ' mull' : '') + '"><span>' + (mull ? '<em>' + num + '</em><i>Mulligan</i>' : num) + '</span><span>' + par + '</span><span>' + (g == null ? '–' : g) + '</span><span>' + (pts == null ? '–' : pts) + '</span></div>';
     if (i < 9) front += row; else backNine += row;
   }
   const out = rangeSums(day, name, 0, 9), inn = rangeSums(day, name, 9, 18), all = rangeSums(day, name, 0, 18);
@@ -3720,12 +3864,22 @@ function matchCardHtml(day, match, locked) {
   const status = match.singles ? matchRun(day, match).text : teamStatus(day, match).text;
   const who = w === 'A' ? lookA.word || lookA.name : w === 'B' ? lookB.word || lookB.name : '';
   const result = w === 'H' ? 'Delt hull' : who ? (who + ' vinner hullet') : 'Venter på alle slag';
+  const me = myName();
+  let mull = '';
+  if (match.singles) {
+    const who = currentPage === 'history-card' && historyView && historyView.player ? historyView.player : me;
+    if (match.teamA.indexOf(who) >= 0 || match.teamB.indexOf(who) >= 0) mull = mulliganButton(day, who, false);
+  } else {
+    const idx = (day.teamMatches || []).indexOf(match);
+    if (idx >= 0) mull = mulliganButton(day, idx, true);
+  }
   const block = function (look, names, best) {
     return '<div class="team-card" style="border-left-color:' + look.color + ';background:' + look.wash + '"><div class="flex justify-between"><strong style="color:' + look.color + '">' + look.name + '</strong><span class="text-muted">' + (best == null ? '' : 'Beste netto ' + best) + '</span></div>' + names.map(function (n) { return playerRow(day, n, locked); }).join('') + '</div>';
   };
   return cardHead(day, 'Hull ' + (h + 1), parHcp(day, h).replace(' – hcp ', ' · indeks ')) +
     '<div class="card"><div class="mb-2"><strong>' + parHcp(day, h) + '</strong></div>' + block(lookA, match.teamA, bestA) + block(lookB, match.teamB, bestB) +
     '<div class="gold-result">' + result + '</div><div class="status-big">' + (match.singles ? status : status) + '</div>' +
+    mull +
     holeDotRow(function (i) { return holeWinner(day, match, i) != null; }) + holeNav(h) +
     (locked ? '' : '<button class="btn btn-sm btn-secondary mt-3" onclick="clearMe()">Bytt spiller</button>') + '</div>';
 }
@@ -3795,6 +3949,7 @@ function scrambleCardHtml(day, match, idx, locked) {
     '<div class="gold-result">Dette hullet er verdt ' + (pot == null ? '–' : pot) + '</div><div class="mt-3">' +
     (pot == null && !chosen ? '<p class="text-muted">Fyll hullene foran først.</p>' : btn('A', a.name + ' vinner') + btn('H', 'Delt') + btn('B', b.name + ' vinner')) +
     '</div><div class="points-box">Hullpoeng: ' + a.name + ' (' + tot.a + ') – ' + b.name + ' (' + tot.b + ')</div>' +
+    mulliganButton(day, idx, true) +
     holeDotRow(function (i) { return !!scrambleVal(arr[i]); }) + holeNav(cardHole) + '</div>';
 }
 function cardHead(day, title, sub) {
@@ -4084,7 +4239,7 @@ function scrambleNewer(remote) {
 function cardLiveSignature() {
   const day = state.current && state.current.days[cardDay];
   if (!day || !day.card) return '';
-  return JSON.stringify([day.card.gross, day.card.scramble, day.completed, day.published, cardHole, myName()]);
+  return JSON.stringify([day.card.gross, day.card.scramble, day.card.mulligan, day.card.mulliganUsed, day.card.mulliganTeam, day.completed, day.published, cardHole, myName()]);
 }
 function applyMergedScores(merged, snapshot) {
   if (!merged || !merged.current || !state.current) return;
@@ -4153,6 +4308,11 @@ function applyMergedScores(merged, snapshot) {
       });
     });
     ld.card.scramblePosted = nextScr;
+    const liveM = ld.card.mulligan || {};
+    const snapM = (sd && sd.card && sd.card.mulligan) || {};
+    const mergedM = md.card.mulligan || {};
+    ld.card.mulligan = { front: mulliganFlag(liveM, snapM, mergedM, 'front'), back: mulliganFlag(liveM, snapM, mergedM, 'back') };
+    writeMulliganBags(ld.card, ld.card, md.card);
   });
 }
 function mergePostedOnto(targetDay, dayIndex, localDay, remoteDay) {
@@ -4261,6 +4421,8 @@ function mergeOutgoing(remote, local) {
       overlayGross(ld, i, local.current.days[i]);
       overlayScramble(ld, local.current.days[i]);
       mergePostedOnto(ld, i, local.current.days[i], remoteDays[i]);
+      copyMulliganFlags(ld.card, local.current.days[i].card);
+      writeMulliganBags(ld.card, local.current.days[i].card, rd && rd.card);
     });
     out.current = localCur;
     out.history = local.history;
@@ -4274,6 +4436,8 @@ function mergeOutgoing(remote, local) {
       overlayGross(rd, i, ld);
       overlayScramble(rd, ld);
       mergePostedOnto(rd, i, ld, rd);
+      if (!rd.card.mulligan) copyMulliganFlags(rd.card, ld.card);
+      writeMulliganBags(rd.card, ld.card, rd.card);
     });
   }
   delete out.courseBook;
@@ -4318,6 +4482,8 @@ function mergeRemoteCards(local, remote) {
       });
       overlayScramble(rd, ld);
       mergePostedOnto(rd, i, ld, rd);
+      if (!rd.card.mulligan) copyMulliganFlags(rd.card, ld.card);
+      writeMulliganBags(rd.card, ld.card, rd.card);
     });
   }
   if (local && local.current && remote.current) mergeDays(local.current.days, remote.current.days);
