@@ -1,4 +1,4 @@
-const CACHE = 'familiemajoren-v63';
+const CACHE = 'familiemajoren-v64';
 const FILES = [
   './',
   './index.html',
@@ -8,7 +8,12 @@ const FILES = [
   './apple-touch-icon.png',
   './manifest.webmanifest',
   './cast.html',
-  './pokal.png'
+  './pokal.png',
+  './pokal-poster.png',
+  './pokal-snurr.mp4',
+  './pokal-strek.mp4',
+  './ace.mp4',
+  './bane.mp4'
 ];
 
 self.addEventListener('install', function (event) {

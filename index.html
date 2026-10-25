@@ -105,11 +105,20 @@
     .live-where { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; width: 100%; padding: 14px 0; border-top: 1px solid rgba(255,255,255,0.12); }
     .live-where-h { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.4rem, 3vw, 2rem); }
     .live-person { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.5rem, 4vw, 2.3rem); padding: 8px 0; }
-    .pokal { position: relative; width: 240px; height: 208px; margin: 0 auto 6px; background: url('pokal.png') center / contain no-repeat; -webkit-mask: url('pokal.png') center / contain no-repeat; mask: url('pokal.png') center / contain no-repeat; overflow: hidden; }
-    .pokal i { position: absolute; inset: 0; background: linear-gradient(100deg, transparent 36%, rgba(255,248,220,0.0) 44%, rgba(255,250,230,0.78) 50%, rgba(255,248,220,0.0) 56%, transparent 64%); background-size: 240% 100%; mix-blend-mode: screen; animation: pokal-shine 16s ease-in-out infinite; pointer-events: none; }
-    .pokal-sm { position: absolute; left: 50%; top: -18px; width: 84px; height: 72px; margin: 0 0 0 -42px; }
-    .pokal-lg { width: 360px; height: 312px; }
-    @keyframes pokal-shine { 0%, 3% { background-position: 130% 0; } 11% { background-position: -30% 0; } 20% { background-position: 130% 0; } 28% { background-position: -30% 0; } 37% { background-position: 130% 0; } 45% { background-position: -30% 0; } 45.1%, 100% { background-position: 130% 0; } }
+    .pokal { position: relative; width: 240px; height: 240px; margin: 0 auto 6px; background: none; }
+    .pokal video { width: 100%; height: 100%; object-fit: contain; display: block; background: transparent; }
+    .pokal-sm { position: absolute; left: 50%; top: -28px; width: 96px; height: 96px; margin: 0 0 0 -48px; }
+    .pokal-lg { width: 360px; height: 360px; }
+    .live-sting { position: fixed; inset: 0; z-index: 70; background: #071a10; display: flex; align-items: center; justify-content: center; }
+    .live-sting video { width: min(100vw, 100vh); height: min(100vw, 100vh); object-fit: contain; }
+    .live-holecard { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    .live-holecard .ring { width: min(78vw, 520px); aspect-ratio: 1; border: 2px solid rgba(228,197,106,0.55); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .live-holecard .num { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(7rem, 22vw, 11rem); line-height: 0.8; color: #f7f4ee; }
+    .live-holecard .rule { width: 42%; height: 2px; background: #e4c56a; margin: 22px 0 16px; }
+    .live-holecard .par { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: clamp(1.7rem, 4.2vw, 2.6rem); color: #f7f4ee; }
+    .live-holecard .slag { margin-top: 28px; }
+    .live-cover video.live-film { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; pointer-events: none; }
+    .live-cover > :not(video) { position: relative; z-index: 1; }
     .live-hero { display: flex; justify-content: space-between; align-items: flex-end; gap: 18px; padding: 18px 0 8px; }
     .live-hero-name { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(3.2rem, 10vw, 6.4rem); line-height: 0.9; color: #fff; }
     .live-hero-pts { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(3.6rem, 12vw, 7rem); line-height: 0.82; color: #e4c56a; }
@@ -164,7 +173,9 @@
     .live-story { position: absolute; left: 28px; right: 28px; bottom: calc(64px + env(safe-area-inset-bottom)); z-index: 3; text-align: center; pointer-events: none; animation: live-up 0.8s ease; }
     .live-story .k { color: #e4c56a; letter-spacing: 0.16em; font-size: 0.72rem; font-weight: 700; margin-bottom: 6px; }
     .live-story p { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.25rem, 3.4vw, 1.8rem); line-height: 1.25; color: #fff; margin: 0; }
-    .live-cover.ace { background: radial-gradient(circle at 50% 40%, #1c4630 0%, #071a10 64%); }
+    .live-cover.ace { background: #071a10; }
+    .live-cover.course { background: #071a10; }
+    .live-cover.course .k, .live-cover.course h2, .live-cover.course .sub { text-shadow: 0 2px 18px rgba(0,0,0,0.72); }
     .live-cover.ace .k { font-size: 1rem; letter-spacing: 0.28em; }
     .live-cover.ace h2 { color: #e4c56a; }
     .live-story.scroll { overflow: hidden; }
@@ -563,7 +574,7 @@
         <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
       </div>
       <div id="phone-role"></div>
-      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.58 · Familiemajoren</p>
+      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.59 · Familiemajoren</p>
     </div>
     <div id="page-admin" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Admin</h1><div class="sub">Innstillinger</div></div></div>
@@ -762,6 +773,12 @@ let liveStoryTimer = null;
 let livePaintKey = '';
 let liveScene = 0;
 let liveSceneTimer = null;
+let liveBeat = 0;
+let liveSting = false;
+let liveStingToken = 0;
+let liveStingTimer = null;
+let liveCourseOpen = false;
+let liveCupSpin = false;
 let liveIdleTimer = null;
 let liveCastSession = null;
 let liveCastBeat = null;
@@ -1243,7 +1260,9 @@ function liveMatchHtml(row, waiting) {
   return '<div class="live-match"><div><div class="who' + leftGold + '">' + liveTint(row.left) + '</div>' + (row.leftNames ? '<div class="live-names">' + liveEsc(row.leftNames) + '</div>' : '') + '</div>' + status + '<div><div class="who right' + rightGold + '">' + liveTint(row.right) + '</div>' + (row.rightNames ? '<div class="live-names" style="text-align:right">' + liveEsc(row.rightNames) + '</div>' : '') + '</div></div>';
 }
 function liveCup(size) {
-  return '<div class="pokal pokal-' + size + '" role="img" aria-label="Pokalen"><i></i></div>';
+  const spin = size === 'lg' || liveCupSpin;
+  const auto = spin ? ' data-auto autoplay' : '';
+  return '<div class="pokal pokal-' + size + '" role="img" aria-label="Pokalen"><video' + auto + ' muted playsinline webkit-playsinline preload="' + (spin ? 'auto' : 'none') + '" poster="pokal-poster.png" src="pokal-snurr.mp4"></video></div>';
 }
 function liveTint(word) {
   for (let i = 0; i < TEAM_LOOK.length; i++) if (TEAM_LOOK[i].word === word) return '<span class="live-tint" style="color:' + TEAM_LOOK[i].color + '">' + liveEsc(word) + '</span>';
@@ -1298,8 +1317,8 @@ function liveNextHole(day, index) {
 }
 function liveHoleView(day, index) {
   const h = liveNextHole(day, index);
-  const slag = h.names.length ? '<div class="live-sub">Slag: ' + liveEsc(h.names.join(', ')) + '</div>' : '';
-  return '<div class="live-center"><div class="live-hero-name">Hull ' + (index + 1) + '</div><div class="live-rule"></div><div class="live-sub">Par ' + h.par + '</div><div class="live-sub">Indeks ' + h.index + '</div>' + slag + '</div>';
+  const slag = h.names.length ? '<div class="live-sub slag">Slag: ' + liveEsc(h.names.join(', ')) + '</div>' : '';
+  return '<div class="live-holecard"><div class="ring"><div class="num">' + (index + 1) + '</div><div class="rule"></div><div class="par">Par ' + h.par + '</div></div>' + slag + '</div>';
 }
 function liveWhere(t, day) {
   const packs = livePacks(t, day).slice().sort(function (a, b) { return b.hole - a.hole; });
@@ -1390,17 +1409,19 @@ function liveBoardHtml(model, bare) {
   let dots = '';
   let net = '';
   let mark = true;
+  let holeCard = false;
   if (!through) {
     mark = scene !== 0;
     if (scene === 0) body = '<div class="live-center">' + liveCup('lg') + '<div class="live-hero-name">' + liveEsc(formatShort(day.format)) + '</div><div class="live-rule"></div><div class="live-sub">Klar</div></div>';
     else if (scene === 1) body = liveField(model.t, day);
-    else { body = liveHoleView(day, 0); dots = liveDots(0); }
+    else { body = liveHoleView(day, 0); dots = liveDots(0); holeCard = true; }
   } else if (spread) {
     body = scene === 0 ? liveStanding(model, day, through) : liveWhere(model.t, day);
     if (scene === 0) net = liveNetBar(model.t, day);
   } else if (scene === 1) {
     body = liveHoleView(day, Math.min(17, through));
     dots = liveDots(Math.min(18, through));
+    holeCard = true;
   } else if (scene === 2) {
     body = liveFace(day);
   } else {
@@ -1408,16 +1429,24 @@ function liveBoardHtml(model, bare) {
     dots = liveDots(Math.min(18, through));
     net = liveNetBar(model.t, day);
   }
-  const kicker = '<div class="live-kicker"><span>FAMILIEMAJOREN</span>' + (mark ? liveCup('sm') : '') + '<span>' + right + '</span></div>';
+  if (holeCard) mark = false;
+  const kicker = '<div class="live-kicker"><span>FAMILIEMAJOREN</span>' + (mark ? liveCup('sm') : '') + '<span>' + (holeCard ? 'HULL' : right) + '</span></div>';
   const quiet = liveShow && liveShow.type === 'story' ? ' live-quiet' : '';
-  return '<div class="live-board' + frozen + bareClass + quiet + '">' + tools + kicker + body + dots + net + '</div>';
+  return '<div class="live-board' + frozen + bareClass + quiet + '">' + tools + kicker + body + dots + net + '</div>' + (liveSting ? liveStingHtml() : '');
+}
+function liveStingHtml() {
+  return '<div class="live-sting"><video data-auto autoplay muted playsinline webkit-playsinline src="pokal-strek.mp4"></video></div>';
 }
 function liveCoverHtml(show) {
   if (!show) return '';
   if (show.type === 'moment') {
     const m = show.moment;
     const ace = m.ace ? ' ace' : '';
-    return '<div class="live-cover' + ace + '"><div class="k">' + liveEsc(m.kicker) + '</div><h2>' + liveEsc(m.title) + '</h2>' + (m.sub ? '<div class="sub">' + liveEsc(m.sub) + '</div>' : '') + (m.big ? '<div class="big">' + liveEsc(m.big) + (m.unit ? '<span class="unit">' + liveEsc(m.unit) + '</span>' : '') + '</div>' : '') + '</div>';
+    const film = m.ace ? '<video class="live-film" data-auto autoplay muted playsinline webkit-playsinline src="ace.mp4"></video>' : '';
+    return '<div class="live-cover' + ace + '">' + film + '<div class="k">' + liveEsc(m.kicker) + '</div><h2>' + liveEsc(m.title) + '</h2>' + (m.sub ? '<div class="sub">' + liveEsc(m.sub) + '</div>' : '') + (m.big ? '<div class="big">' + liveEsc(m.big) + (m.unit ? '<span class="unit">' + liveEsc(m.unit) + '</span>' : '') + '</div>' : '') + '</div>';
+  }
+  if (show.type === 'course') {
+    return '<div class="live-cover course"><video class="live-film" data-auto autoplay muted playsinline webkit-playsinline src="bane.mp4"></video><div class="k">FAMILIEMAJOREN</div><h2>' + liveEsc(show.label || '') + '</h2>' + (show.sub ? '<div class="sub">' + liveEsc(show.sub) + '</div>' : '') + '</div>';
   }
   if (show.type === 'story') {
     const speed = show.seconds ? (' style="animation-duration:' + show.seconds + 's"') : '';
@@ -1453,11 +1482,16 @@ function liveSeasonCover(show) {
 function paintLive() {
   const el = document.getElementById('live-content');
   if (!el || !liveModel) return;
-  const key = liveModel.sig + '|' + (liveShow ? liveShow.id : '');
+  const key = liveModel.sig + '|' + (liveShow ? liveShow.id : '') + (liveSting ? '|sting' : '');
   if (key === livePaintKey) return;
   livePaintKey = key;
   el.innerHTML = liveBoardHtml(liveModel) + liveCoverHtml(liveShow);
   liveFitBars();
+  el.querySelectorAll('video[data-auto]').forEach(function (v) {
+    v.muted = true;
+    const play = v.play();
+    if (play && play.catch) play.catch(function () {});
+  });
   if (liveModel && liveModel.slide && liveModel.slide.type === 'evening' && liveModel.t && liveModel.t.days) {
     const day = liveModel.t.days[liveModel.slide.index];
     const next = day ? tomorrowBits(liveModel.t, day, liveModel.slide.index) : null;
@@ -1474,7 +1508,7 @@ function liveAdvance() {
   paintLive();
   const ace = next.moment && next.moment.ace;
   const eagle = next.moment && (next.moment.merit === 'eagle' || next.moment.merit === 'albatross');
-  const hold = next.type === 'champion' || ace ? 9000 : next.type === 'season' ? 5200 : eagle ? 6500 : 4500;
+  const hold = next.type === 'course' ? 10000 : next.type === 'champion' || ace ? 9000 : next.type === 'season' ? 5200 : eagle ? 6500 : 4500;
   liveTimer = setTimeout(function () { liveShow = null; liveAdvance(); }, hold);
 }
 function livePush(item) {
@@ -1512,10 +1546,35 @@ function liveArmScene() {
   liveSceneTimer = setTimeout(function () {
     liveSceneTimer = null;
     if (currentPage !== 'live') return;
-    if (liveShow || !liveModel || !liveModel.found) { liveArmScene(); return; }
+    if (liveShow || !liveModel || !liveModel.found || liveModel.found.frozen) { liveArmScene(); return; }
     liveScene = (liveScene + 1) % liveSceneCount(liveModel);
+    liveBeat = (liveBeat + 1) % 4;
     livePaintKey = '';
-    paintLive();
+    if (liveBeat === 0) {
+      const day = liveModel.found.day;
+      liveSting = false;
+      liveShow = { type: 'course', id: 'bane-' + Date.now(), label: 'Dag ' + day.dayNumber, sub: formatShort(day.format) };
+      paintLive();
+      liveTimer = setTimeout(function () { liveShow = null; liveAdvance(); }, 10000);
+    } else if (liveBeat === 3) {
+      liveCupSpin = true;
+      liveSting = false;
+      paintLive();
+      liveCupSpin = false;
+    } else {
+      liveSting = true;
+      liveStingToken++;
+      const token = liveStingToken;
+      paintLive();
+      if (liveStingTimer) clearTimeout(liveStingTimer);
+      liveStingTimer = setTimeout(function () {
+        liveStingTimer = null;
+        if (token !== liveStingToken) return;
+        liveSting = false;
+        livePaintKey = '';
+        paintLive();
+      }, 2000);
+    }
     liveArmScene();
   }, 60000);
 }
@@ -1526,6 +1585,13 @@ function liveArm() {
   livePaintKey = '';
   liveIdleIndex = 0;
   liveScene = 0;
+  liveBeat = 0;
+  liveSting = false;
+  liveStingToken++;
+  liveCourseOpen = true;
+  liveCupSpin = false;
+  if (liveStingTimer) clearTimeout(liveStingTimer);
+  liveStingTimer = null;
   liveStopIdle();
   if (liveTimer) clearTimeout(liveTimer);
   liveTimer = null;
@@ -1539,6 +1605,9 @@ function liveStop() {
   liveStopIdle();
   if (liveSceneTimer) clearTimeout(liveSceneTimer);
   liveSceneTimer = null;
+  if (liveStingTimer) clearTimeout(liveStingTimer);
+  liveStingTimer = null;
+  liveSting = false;
   if (liveTimer) clearTimeout(liveTimer);
   liveTimer = null;
   if (liveStoryTimer) clearTimeout(liveStoryTimer);
@@ -1735,6 +1804,10 @@ function renderLive() {
   livePrevKeys = {};
   marks.forEach(function (m) { livePrevKeys[m.key] = 1; });
   livePrevSeason = season;
+  if (liveCourseOpen && found && !found.frozen && !liveShow && !liveQueue.length) {
+    liveCourseOpen = false;
+    livePush({ type: 'course', id: 'open-' + found.day.dayNumber, label: 'Dag ' + found.day.dayNumber, sub: formatShort(found.day.format) });
+  } else liveCourseOpen = false;
   paintLive();
 }
 
