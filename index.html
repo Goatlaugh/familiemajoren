@@ -574,7 +574,7 @@
         <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
       </div>
       <div id="phone-role"></div>
-      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.59 · Familiemajoren</p>
+      <p class="text-muted mt-3" style="font-size:0.8rem;text-align:center;">Versjon 1.60 · Familiemajoren</p>
     </div>
     <div id="page-admin" class="page">
       <div class="page-banner"><img src="icon-192.png" alt="" /><div><h1>Admin</h1><div class="sub">Innstillinger</div></div></div>
@@ -587,7 +587,12 @@
       <div class="section-label">BANER</div>
       <div class="menu-list">
         <button type="button" class="menu-row" onclick="openCourseBook()"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.7 3.9 5.8 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.8-3.9-9s1.3-6.3 3.9-9z"/></svg>Baner<span class="chev">›</span></button>
+        <button type="button" class="menu-row" onclick="exportCourseBook()">Eksporter banebok<span class="chev">›</span></button>
+        <button type="button" class="menu-row" onclick="document.getElementById('course-import-file').click()">Importer banebok<span class="chev">›</span></button>
       </div>
+      <p class="text-muted" style="font-size:0.85rem;margin:8px 4px 0;">Banene ligger i en egen fil. Turneringen, historikken og Hall of Fame følger ikke med. Samme fil kan leses av den andre appen.</p>
+      <div id="course-import-preview" class="card hidden" style="margin-top:12px;"></div>
+      <input type="file" id="course-import-file" accept=".json,application/json" class="hidden" onchange="previewCourseImport(event)" />
       <div class="section-label">SKY</div>
       <div class="menu-list">
         <button type="button" class="menu-row" onclick="exportData()">Eksporter data<span class="chev">›</span></button>
@@ -3483,7 +3488,7 @@ function saveCourseBookEntry() {
   d.tees = (d.tees || []).filter(function (t) { return String(t.name || '').trim(); });
   if (!d.tees.length) { toast('Gi minst én tee et navn'); courseSearch.draft.tees = [blankTee()]; return; }
   shareDefaultHoles(d.tees);
-  d.updatedAt = new Date().toISOString().slice(0, 10);
+  d.updatedAt = new Date().toISOString();
   const saved = JSON.parse(JSON.stringify(d));
   const book = courseBook();
   const idx = book.findIndex(function (c) { return c.id === saved.id; });
@@ -5964,6 +5969,91 @@ function exportData() {
   toast('Eksportert!');
 }
 
+let courseImportPending = null;
+function courseStamp(course) {
+  return String(course && course.updatedAt || '');
+}
+function courseImportPlan(incoming) {
+  const local = {};
+  courseBook().forEach(function (c) { if (c && c.id) local[c.id] = c; });
+  let added = 0, newer = 0, skipped = 0, invalid = 0;
+  (incoming || []).forEach(function (c) {
+    if (!c || !c.id || !(c.club || c.course)) { invalid++; return; }
+    const prev = local[c.id];
+    if (!prev) added++;
+    else if (courseStamp(c) > courseStamp(prev)) newer++;
+    else skipped++;
+  });
+  return { added: added, newer: newer, skipped: skipped, invalid: invalid, total: (incoming || []).length };
+}
+function exportCourseBook() {
+  if (!isAdmin()) { toast('Lås opp admin først'); return; }
+  const list = courseBook().slice();
+  const file = { kind: 'banebok', version: 1, exportedAt: new Date().toISOString(), count: list.length, courses: list };
+  const blob = new Blob([JSON.stringify(file, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'banebok_' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+  toast(list.length ? ('Banebok eksportert, ' + list.length + (list.length === 1 ? ' bane' : ' baner')) : 'Baneboken er tom, filen er likevel lagret');
+}
+function hideCourseImport() {
+  courseImportPending = null;
+  const box = document.getElementById('course-import-preview');
+  if (box) { box.classList.add('hidden'); box.innerHTML = ''; }
+}
+function previewCourseImport(event) {
+  const file = event.target.files && event.target.files[0];
+  event.target.value = '';
+  if (!file) return;
+  if (!isAdmin()) { toast('Lås opp admin først'); return; }
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    let data;
+    try { data = JSON.parse(e.target.result); } catch (err) { toast('Kunne ikke lese fil'); return; }
+    if (!data || data.kind !== 'banebok') {
+      toast(data && (data.current !== undefined || data.history) ? 'Dette er en sikkerhetskopi. Bruk Importer data.' : 'Dette er ikke en banebok');
+      return;
+    }
+    if (Number(data.version) > 1) { toast('Filen er laget av en nyere utgave. Oppdater appen først.'); return; }
+    if (!Array.isArray(data.courses)) { toast('Baneboken mangler banene'); return; }
+    const plan = courseImportPlan(data.courses);
+    if (!plan.total || plan.invalid === plan.total) { toast('Fant ingen baner i filen'); return; }
+    courseImportPending = data.courses;
+    const box = document.getElementById('course-import-preview');
+    if (!box) return;
+    const line = function (n, text) { return '<div style="display:flex;gap:16px;align-items:baseline;padding:6px 0;"><b style="font-family:Georgia,serif;font-size:1.6rem;color:#0f3d1a;min-width:2rem;">' + n + '</b><span>' + text + '</span></div>'; };
+    box.innerHTML = '<strong>' + liveEsc(file.name) + '</strong>' +
+      line(plan.total - plan.invalid, 'baner i filen') +
+      line(plan.added, 'nye, legges til') +
+      line(plan.newer, 'nyere, oppdateres') +
+      line(plan.skipped, 'eldre eller like, hoppes over') +
+      '<p class="text-muted" style="margin:12px 0;">Ingenting slettes. Turneringen røres ikke. De andre telefonene får banene via skyen.</p>' +
+      '<div class="flex gap-2"><button type="button" class="btn btn-secondary" onclick="hideCourseImport()">Avbryt</button><button type="button" class="btn btn-primary" onclick="applyCourseImport()">Oppdater</button></div>';
+    box.classList.remove('hidden');
+    box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
+  reader.readAsText(file);
+}
+function applyCourseImport() {
+  if (!isAdmin()) { toast('Lås opp admin først'); return; }
+  const incoming = courseImportPending;
+  if (!incoming) return;
+  const map = {};
+  courseBook().forEach(function (c) { if (c && c.id) map[c.id] = c; });
+  incoming.forEach(function (c) {
+    if (!c || !c.id || !(c.club || c.course)) return;
+    const prev = map[c.id];
+    if (!prev || courseStamp(c) > courseStamp(prev)) map[c.id] = c;
+  });
+  courses = Object.keys(map).map(function (id) { return map[id]; });
+  saveCoursesLocal();
+  pushCourses();
+  hideCourseImport();
+  toast('Baneboken er oppdatert');
+  if (currentPage === 'course-search') renderCourseSearch();
+}
+
 function importData(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -5971,6 +6061,10 @@ function importData(event) {
   reader.onload = e => {
     try {
       const imported = JSON.parse(e.target.result);
+      if (imported && imported.kind === 'banebok') {
+        toast('Dette er en banebok. Bruk Importer banebok.');
+        return;
+      }
       if (imported && (imported.current !== undefined || imported.history)) {
         if (confirm('Overskrive eksisterende data?')) {
           state = imported;
